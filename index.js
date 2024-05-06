@@ -32,16 +32,15 @@ Copyright (c) 2024 by Fabio Vitali
 global.rootDir = __dirname ;
 global.startDate = null; 
 
+import template from './scripts/tpl.js'
+import mymongo from './scripts/mongo.js'
+import express from 'express'
+import cors from 'cors'
 
-
-const template = require(global.rootDir + '/scripts/tpl.js');
-const mymongo = require(global.rootDir + '/scripts/mongo.js');
-const express = require('express');
-const cors = require('cors')
-
-
-
-
+// const template = require(global.rootDir + '/scripts/tpl.js');
+// const mymongo = require(global.rootDir + '/scripts/mongo.js');
+// const express = require('express');
+// const cors = require('cors')
 
 
 /* ========================== */
@@ -56,6 +55,7 @@ app.use('/css' , express.static(global.rootDir +'/public/css'));
 app.use('/data', express.static(global.rootDir +'/public/data'));
 app.use('/docs', express.static(global.rootDir +'/public/html'));
 app.use('/img' , express.static(global.rootDir +'/public/media'));
+app.use(express.static(global.rootDir +'/src')); // this is for vue
 app.use(express.urlencoded({ extended: true })) 
 app.use(cors())
 
