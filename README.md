@@ -9,7 +9,7 @@ ssh gocker.cs.unibo.it
 dalla shell di gocker:
 1. per fare partire node
 ```bash
-start site232433 node-20 index.js 
+start node-20 site232433 index.js 
 ```
 2. per deployare il sito
 ```bash
