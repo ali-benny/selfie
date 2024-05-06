@@ -19,3 +19,14 @@ start static site232433
 ```bash
 start mongo site232433
 ```
+
+## Deploy 
+```bash
+npm install
+```
+```bash
+npm run format
+```
+```bash
+npm run dev
+```
