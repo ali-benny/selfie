@@ -11,6 +11,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@editorjs/editorjs": "^2.29.1",
     "cors": "^2.8.5",
     "express": "^4.18.0",
     "handlebars": "^4.7.7",
@@ -22,11 +23,17 @@
     "vue-router": "^4.3.0"
   },
   "devDependencies": {
+    "@editorjs/header": "^2.8.1",
+    "@editorjs/list": "^1.9.0",
+    "@editorjs/paragraph": "^2.11.4",
     "@rushstack/eslint-patch": "^1.8.0",
     "@vitejs/plugin-vue": "^5.0.4",
     "@vue/eslint-config-prettier": "^9.0.0",
+    "bootstrap": "^5.3.3",
     "eslint": "^8.57.0",
     "eslint-plugin-vue": "^9.23.0",
+    "jquery": "^3.7.1",
+    "popper.js": "^1.16.1",
     "prettier": "^3.2.5",
     "vite": "^5.2.8"
   }
