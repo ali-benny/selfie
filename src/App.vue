@@ -10,6 +10,7 @@ import { Icon } from '@iconify/vue'
         <RouterLink to="/"><Icon icon="ic:round-dashboard" /></RouterLink>
         <RouterLink to="/note"><Icon icon="fluent:notebook-32-filled" /></RouterLink>
         <RouterLink to="/user"><Icon icon="fluent:settings-48-filled" /></RouterLink>
+        <RouterLink to="/pomodoro">Pomodoro</RouterLink>
       </div>
     </nav>
     <div id="app"><RouterView /></div>
