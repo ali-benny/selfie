@@ -13,6 +13,10 @@ export function initializeEditor() {
   const editor = new EditorJS({
     holder: 'editorjs',
     // inlineToolbar: ['link', 'marker', 'bold', 'italic'],
+    /**
+     * Previously saved data that should be rendered
+     */
+    data: {},
     tools: {
       header: {
         class: Header,
@@ -70,5 +74,6 @@ export function initializeEditor() {
         }
       }
     }
-  })
+  }) 
+  return editor; 
 }

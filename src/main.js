@@ -2,7 +2,7 @@ import './assets/main.css'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'jquery'
 import 'bootstrap'
-
+import './const.js'	
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 
