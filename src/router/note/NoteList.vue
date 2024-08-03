@@ -50,6 +50,7 @@
 import { ref, onMounted } from 'vue'
 import { getNotes } from './editor/note'
 import { Icon } from '@iconify/vue'
+import { SERVER_URL } from '@/const'
 
 export default {
   setup() {
@@ -58,13 +59,31 @@ export default {
     onMounted(async () => {
       try {
         notes.value = await getNotes()
-        // console.log(notes)
       } catch (error) {
         console.error('Failed to fetch notes:', error)
       }
     })
 
-    function deleteNote(id) {}
+    async function deleteNote(id) {
+      const response = await fetch(SERVER_URL + '/delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          collection: 'Note',
+          id: id
+        })
+      })
+
+      if (response.ok) {
+        notes.value = await getNotes()
+        console.log('Note deleted successfully')
+      } else {
+        console.error('Failed to delete note')
+      }
+    }
+
     function formatDate(isoString) {
       const date = new Date(isoString)
       const day = String(date.getDate()).padStart(2, '0')

@@ -106,7 +106,7 @@ app.post('/save', async (req, res) => {
   if (!connected['note']) await connect('note')
   try {
     const existing_note = await Note.findOne({ _id: id }).lean()
-    if (existing_note != null ) {
+    if (existing_note != null) {
       // i've already this note in mongodb
       await Note.updateOne({ _id: id }, { name: filename, data: data, date: new Date() })
       console.log('Updated!')
@@ -137,6 +137,19 @@ async function search(dbName) {
   else mongoose.create(dbName)
   return mongoose.model(dbName).find()
 }
+
+/**
+ * Removing documents from a collection by ID
+ */
+app.post('/delete', async (req, res) => {
+  const { collection, id } = req.body
+  try {
+    await mongoose.model(collection).findByIdAndDelete(id)
+    res.status(200).send('Document deleted from ' + collection)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
 
 /**
  * Disconnect from MongoDB
