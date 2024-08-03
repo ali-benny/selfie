@@ -102,16 +102,13 @@ const Note = mongoose.model('Note', NoteSchema)
  */
 app.post('/save', async (req, res) => {
   const { id, filename, data } = req.body
-  // console.log(toString(id))
-  // let ob_id = new mongoose.Types.ObjectId(id)
-  // console.log(ob_id)
   console.log('Saving: ' + filename)
   if (!connected['note']) await connect('note')
   try {
-    const existing_note = await Note.findOne({ _id: ob_id }).lean()
+    const existing_note = await Note.findOne({ _id: id }).lean()
     if (existing_note != null ) {
       // i've already this note in mongodb
-      await Note.updateOne({ _id: ob_id }, { name: filename, data: data, date: new Date() })
+      await Note.updateOne({ _id: id }, { name: filename, data: data, date: new Date() })
       console.log('Updated!')
     } else {
       const note = new Note({

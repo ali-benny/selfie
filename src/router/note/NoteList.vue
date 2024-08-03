@@ -58,14 +58,14 @@ export default {
     onMounted(async () => {
       try {
         notes.value = await getNotes()
-        console.log(notes)
+        // console.log(notes)
       } catch (error) {
         console.error('Failed to fetch notes:', error)
       }
     })
 
     function deleteNote(id) {}
-    function formatDate(isoString)  {
+    function formatDate(isoString) {
       const date = new Date(isoString)
       const day = String(date.getDate()).padStart(2, '0')
       const month = String(date.getMonth() + 1).padStart(2, '0')

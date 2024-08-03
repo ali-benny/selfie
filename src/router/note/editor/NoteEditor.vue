@@ -61,7 +61,6 @@ export default {
         .save()
         .then(async (outputData) => {
           try {   
-            console.log(getEditNoteId())
             saveNoteMongo(this.id, this.title, outputData)
           } catch (error) {
             console.error('Failed to save EditorJS data:', error)

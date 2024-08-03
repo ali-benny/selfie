@@ -22,7 +22,6 @@ export async function saveNoteMongo(id, filename, data) {
   })
 
   if (response.ok) {
-    console.log(id)
     console.log('Note saved successfully')
   } else {
     console.error('Failed to save note')

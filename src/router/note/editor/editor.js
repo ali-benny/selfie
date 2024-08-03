@@ -16,13 +16,13 @@ import { SERVER_URL } from '@/const'
 let title = ''
 
 export function getEditNoteTitle() {
-  console.log('GETtitle: ' + title)
+  // console.log('GETtitle: ' + title)
   return title
 }
 
 export function getEditNoteId() {
   const searchParams = new URLSearchParams(window.location.search)
-  console.log('note ID: ' + searchParams.get('edit'))
+  // console.log('note ID: ' + searchParams.get('edit'))
   return searchParams?.get('edit')
 }
 
