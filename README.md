@@ -30,3 +30,15 @@ npm run format
 ```bash
 npm run dev
 ```
+
+## File System
+### `backend` directory
+Qui verranno contentuti tutti i file lato server da fare runnare in parallelo.
+
+### `src` directory
+Tutto il progetto vue, dunque tutto il lato frontend.
+
+### `dist, public, scripts, tpl` directory
+Questi sono "rimasugli" del prof, ovvero i file iniziali che sono forniti all'inizializzazione dello spazio web.
+
+Tra questi incluso anche i file `index.js`e `index.html` posto esternamente a tutte le dir.

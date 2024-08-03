@@ -1,7 +1,7 @@
-import cors from 'cors';
-import express from 'express';
-import mongoose from 'mongoose';
-import { MONGO_URI, SERVER_URL, port } from '../../src/const.js';
+import cors from 'cors'
+import express, { query } from 'express'
+import mongoose from 'mongoose'
+import { MONGO_URI, SERVER_URL, port } from '../../src/const.js'
 
 let connected = {}
 const app = express()
@@ -9,10 +9,12 @@ app.use(cors())
 app.use(express.json())
 
 app.listen(port, () => {
-  console.log(`Server running at ${SERVER_URL}`);
-});
+  console.log(`Server running at ${SERVER_URL}`)
+})
 
-// Create new collection if not already exist
+/**
+ * Create a new mongodb collection
+ */
 app.get(SERVER_URL + '/create', async (req, res) => {
   const { dbName } = req.body
   try {
@@ -23,19 +25,42 @@ app.get(SERVER_URL + '/create', async (req, res) => {
   }
 })
 
-// Get all documents
+/**
+ * From 'notes' collection get all documents
+ */
 app.get('/find', async (req, res) => {
   try {
-    if (!connected['note']) await connect('note');
-    const notes = await Note.find();
-    res.status(200).json(notes);
+    if (!connected['note']) await connect('note')
+    const notes = await Note.find()
+    res.status(200).json(notes)
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    console.error(err)
+    res.status(500).json({ error: err.message })
   }
-});
+})
 
+// Search by id and return a document
+/**
+ * From 'notes' collection get documents based on Query ['id']
+ */
+app.post('/search', async (req, res) => {
+  const { query } = req.body
+  let id = new mongoose.Types.ObjectId(query) // needed to convert string into mongoose ObjectId
+  try {
+    if (!connected['note']) await connect('note')
+    const notes = await Note.findOne({ _id: id })
+    res.status(200).json(notes)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: err.message })
+  }
+})
 
+/**
+ * Connect to a dbName collection into the database "selfie"
+ *
+ * @param {*} dbName collection name to connect to
+ */
 async function connect(dbName) {
   try {
     await mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -72,16 +97,21 @@ const NoteSchema = new mongoose.Schema({
 
 const Note = mongoose.model('Note', NoteSchema)
 
-// Save a note to the database
+/**
+ * Save a note to the mongodb into 'notes' collection
+ */
 app.post('/save', async (req, res) => {
-  const { filename, data } = req.body
+  const { id, filename, data } = req.body
+  // console.log(toString(id))
+  // let ob_id = new mongoose.Types.ObjectId(id)
+  // console.log(ob_id)
   console.log('Saving: ' + filename)
-  
   if (!connected['note']) await connect('note')
   try {
-    if (await Note.findOne({ name: filename })) {
+    const existing_note = await Note.findOne({ _id: ob_id }).lean()
+    if (existing_note != null ) {
       // i've already this note in mongodb
-      await Note.updateOne({ name: filename }, { data: data, date: new Date() })
+      await Note.updateOne({ _id: ob_id }, { name: filename, data: data, date: new Date() })
       console.log('Updated!')
     } else {
       const note = new Note({
@@ -89,8 +119,7 @@ app.post('/save', async (req, res) => {
         data: data,
         author: 'User'
       }) // TODO: get user from session
-      // Note.create(note)
-      const resp = await note.save();
+      const resp = await note.save()
       console.log('Saved!')
     }
     res.status(200).send('Note saved successfully')
@@ -100,6 +129,11 @@ app.post('/save', async (req, res) => {
   }
 })
 
+/**
+ * Searching documents from a collection
+ *
+ * @param dbName collection name
+ */
 async function search(dbName) {
   console.log('Getting docs from ' + dbName + ' ...')
   if (!connected[dbName]) await connect(dbName)
@@ -107,6 +141,11 @@ async function search(dbName) {
   return mongoose.model(dbName).find()
 }
 
+/**
+ * Disconnect from MongoDB
+ *
+ * @param {*} dbName
+ */
 async function disconnect(dbName) {
   try {
     await mongoose.disconnect()

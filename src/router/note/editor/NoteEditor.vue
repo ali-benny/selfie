@@ -26,23 +26,15 @@
 </template>
 
 <script>
-import { initializeEditor } from './editor.js'
+import { initializeEditor, getEditNoteTitle, getEditNoteId } from './editor.js'
 import { Icon } from '@iconify/vue'
-import { saveNoteMongo } from './note.js';
+import { saveNoteMongo } from './note.js'
 
 export default {
-  mounted() {
-    this.editor = initializeEditor()
-    fetch('/api/check')
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Server is not running')
-        }
-        console.log('Server is running')
-      })
-      .catch((error) => {
-        console.error('Failed to reach the server:', error)
-      })
+  async mounted() {
+    this.editor = await initializeEditor()
+    this.title = getEditNoteTitle()
+    this.id = getEditNoteId()
   },
   directives: {
     focus: {
@@ -53,7 +45,7 @@ export default {
       }
     }
   },
-  data() {
+  data() {    
     return {
       editor: null,
       isChecked: false,
@@ -68,18 +60,12 @@ export default {
       this.editor
         .save()
         .then(async (outputData) => {
-          try{
-            saveNoteMongo(this.title, outputData)
-        //   const response = await axios.post('/api/save', {
-        //       filename: this.title,
-        //       data: outputData
-        // });
-        //     if (response.status === 200) {
-        //     this.saved = true;
-        //   }
-        } catch (error) {
-          console.error('Failed to save EditorJS data:', error)
-        }
+          try {   
+            console.log(getEditNoteId())
+            saveNoteMongo(this.id, this.title, outputData)
+          } catch (error) {
+            console.error('Failed to save EditorJS data:', error)
+          }
         })
         .catch((error) => {
           console.error('Failed to save EditorJS data:', error)

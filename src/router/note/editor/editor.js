@@ -8,15 +8,64 @@ import CodeTool from '@editorjs/code'
 import Table from '@editorjs/table'
 import Link from '@editorjs/link'
 import LinkAutocomplete from '@editorjs/link-autocomplete'
+import { SERVER_URL } from '@/const'
 
-export function initializeEditor() {
+/**
+ * note's title to be displayed into the editor
+ */
+let title = ''
+
+export function getEditNoteTitle() {
+  console.log('GETtitle: ' + title)
+  return title
+}
+
+export function getEditNoteId() {
+  const searchParams = new URLSearchParams(window.location.search)
+  console.log('note ID: ' + searchParams.get('edit'))
+  return searchParams?.get('edit')
+}
+
+/**
+ * Searching on mongodb note data by note ID from the searchParams object
+ *
+ * @return {EditorJS.data} | {}
+ */
+async function getEditNoteData() {
+  const noteId = getEditNoteId()
+  let noteData = {}
+  if (noteId) {
+    const response = await fetch(SERVER_URL + '/search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        query: noteId
+      })
+    })
+    if (response.ok) {
+      noteData = await response.json()
+      title = noteData.name
+      return noteData.data
+    }
+  }
+  return noteData
+}
+
+/**
+ * Initialize the EditorJS with all tools choosen
+ *
+ * @see getEditNoteData for import existed data
+ *
+ * @export
+ */
+export async function initializeEditor() {
+  const edit_note = await getEditNoteData()
   const editor = new EditorJS({
     holder: 'editorjs',
     // inlineToolbar: ['link', 'marker', 'bold', 'italic'],
-    /**
-     * Previously saved data that should be rendered
-     */
-    data: {},
+    data: edit_note,
     tools: {
       header: {
         class: Header,
@@ -74,6 +123,6 @@ export function initializeEditor() {
         }
       }
     }
-  }) 
-  return editor; 
+  })
+  return editor
 }
