@@ -8,7 +8,7 @@ import CodeTool from '@editorjs/code'
 import Table from '@editorjs/table'
 import Link from '@editorjs/link'
 import LinkAutocomplete from '@editorjs/link-autocomplete'
-import { SERVER_URL } from '@/const'
+import { SERVER_URL } from '../../../const.js'
 
 /**
  * note's title to be displayed into the editor
@@ -87,9 +87,9 @@ export async function initializeEditor() {
         config: {
           endpoints: {
             byFile:
-              'http://localhost/phppot/javascript/create-web-text-editor-javascript/ajax-endpoint/upload.php',
+              SERVER_URL+'/upload',
             byUrl:
-              'http://localhost/phppot/javascript/create-web-text-editor-javascript/ajax-endpoint/upload.php'
+              SERVER_URL+'/upload'
           }
         }
       },
@@ -97,7 +97,7 @@ export async function initializeEditor() {
         class: AttachesTool,
         config: {
           endpoint:
-            'http://localhost/phppot/javascript/create-web-text-editor-javascript/ajax-endpoint/upload.php'
+            '/upload'
         }
       },
       code: {

@@ -1,24 +1,28 @@
 <template>
-  <div class="container w-80 m-5">
-    <div class="row justify-content-start m-2">
-      <input
-        type="text"
-        class="col form-control fs-1 fw-bold"
-        v-model="title"
-        :readonly="!isChecked"
-        v-focus="isChecked"
-      />
+  <div class="container">
+    <div class="d-flex justify-content-between m-2 flex-wrap">
+      <div class="row">
+        <input
+          type="text"
+          class="col form-control fs-2 fw-bold"
+          v-model="title"
+          :readonly="!isChecked"
+          v-focus="isChecked"
+        />
+        <button
+          class="btn col col-1 fs-4"
+          :class="isChecked ? 'text-success' : 'text-primary'"
+          @click="toggleIcon"
+        >
+          <Icon icon="fluent:edit-16-filled" :inline="true" v-if="!isChecked" />
+          <Icon icon="fluent:checkmark-12-filled" v-else />
+        </button>
+      </div>
       <button
-        class="btn col col-1 fs-4"
-        :class="isChecked ? 'text-success' : 'text-primary'"
-        @click="toggleIcon"
+        class="btn fs-4 btn-warning my-2 rounded-4 d-flex align-items-center"
+        @click="saveNote"
       >
-        <Icon icon="fluent:edit-16-filled" :inline="true" v-if="!isChecked" />
-        <Icon icon="fluent:checkmark-12-filled" v-else />
-      </button>
-      <div class="col"></div>
-      <button class="btn col col-1 fs-4 text-warning" @click="saveNote">
-        <Icon icon="fluent:save-32-filled" />
+        <Icon icon="fluent:save-32-filled" /> Salva
       </button>
     </div>
     <div id="editorjs" class="bg-body-tertiary p-4 rounded-4 mt-4"></div>
@@ -45,7 +49,7 @@ export default {
       }
     }
   },
-  data() {    
+  data() {
     return {
       editor: null,
       isChecked: false,
@@ -60,7 +64,7 @@ export default {
       this.editor
         .save()
         .then(async (outputData) => {
-          try {   
+          try {
             saveNoteMongo(this.id, this.title, outputData)
           } catch (error) {
             console.error('Failed to save EditorJS data:', error)

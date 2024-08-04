@@ -1,14 +1,14 @@
 import cors from 'cors'
-import express, { query } from 'express'
+import express from 'express'
 import mongoose from 'mongoose'
-import { MONGO_URI, SERVER_URL, port } from '../../src/const.js'
+import { MONGO_URI, SERVER_URL, PORT } from '../../src/const.js'
 
 let connected = {}
 const app = express()
 app.use(cors())
 app.use(express.json())
 
-app.listen(port, () => {
+app.listen(PORT, () => {
   console.log(`Server running at ${SERVER_URL}`)
 })
 
@@ -165,3 +165,45 @@ async function disconnect(dbName) {
     console.log(err)
   }
 }
+
+/**
+ *   ****** UPLOAD IMAGE ******   *
+ */
+
+
+import bodyParser from 'body-parser'
+import upload from '../upload.js'
+
+const ImageSchema = new mongoose.Schema({
+  filename: String,
+  path: String,
+  size: Number,
+  mimetype: String
+})
+
+const Image = mongoose.model('Image', ImageSchema)
+
+app.use(bodyParser.json())
+app.use('/uploads', express.static('uploads'))
+
+app.post('/upload', upload.single('image'), async (req, res) => {
+  try {
+    const newImage = new Image({
+      filename: req.file.filename,
+      path: req.file.path,
+      size: req.file.size,
+      mimetype: req.file.mimetype
+    })
+
+    await newImage.save()
+
+    res.json({
+      success: 1,
+      file: {
+        url: `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
+      }
+    })
+  } catch (error) {
+    res.status(500).json({ success: 0, message: 'Upload image error!' })
+  }
+})

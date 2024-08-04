@@ -1,6 +1,9 @@
 <template>
   <div>
     <h1>Le tue note</h1>
+    <a href="/editor" class="btn btn-success floating-btn rounded-5 d-flex align-items-center" title="Add new note">
+      <Icon icon="fluent:note-add-24-filled" />Crea nota
+    </a>
     <ul class="list-group">
       <li
         v-for="note in notes"
@@ -45,6 +48,15 @@
     </ul>
   </div>
 </template>
+
+<style>
+.floating-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+</style>
 
 <script>
 import { ref, onMounted } from 'vue'
