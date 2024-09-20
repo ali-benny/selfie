@@ -44,6 +44,7 @@
     "axios": "^1.6.8",
     "bootstrap": "^5.3.3",
     "cross-env": "^7.0.3",
+    "editorjs-html": "^3.4.3",
     "eslint": "^8.57.0",
     "eslint-plugin-vue": "^9.23.0",
     "jquery": "^3.7.1",

@@ -1,51 +1,98 @@
 <template>
   <div>
     <h1>Le tue note</h1>
-    <a href="/editor" class="btn btn-success floating-btn rounded-5 d-flex align-items-center" title="Add new note">
+    <a
+      href="/editor"
+      class="btn btn-success floating-btn rounded-5 d-flex align-items-center"
+      title="Add new note"
+    >
       <Icon icon="fluent:note-add-24-filled" />Crea nota
     </a>
-    <ul class="list-group">
+    <div class="d-flex justify-content-end my-2">
+      <div class="btn-group" role="group" aria-label="Note View Mode">
+        <input type="radio" class="btn-check" id="list" value="list" v-model="viewMode" />
+        <label class="btn btn-outline-primary" for="list"
+          ><Icon icon="fluent:apps-list-24-filled"
+        /></label>
+        <input type="radio" class="btn-check" id="grid" value="grid" v-model="viewMode" />
+        <label class="btn btn-outline-primary" for="grid"
+          ><Icon icon="fluent:grid-16-filled"
+        /></label>
+      </div>
+    </div>
+    <ul class="list-group" v-if="viewMode == 'list'">
       <li
         v-for="note in notes"
         :key="note._id"
-        class="list-group-item d-flex justify-content-between"
+        class="list-group-item d-flex flex-row flex-wrap justify-content-between"
       >
-        <div>
+        <div class="d-flex flex-column">
           <p>{{ note._id }}</p>
           <h2>{{ note.name }}</h2>
           <p>Author: {{ note.author }}</p>
           <p class="d-flex align-items-center gap-2">
             <Icon icon="ic:round-update" /> {{ formatDate(note.date) }}
           </p>
-          <!-- <p>{{ note.data }}</p> -->
-          <img
+        </div>
+        <div
+          id="preview"
+          class="bg-light p-3 d-flex flex-column w-md-75 m-md-3 flex-md-grow-1 rounded-4 flex-wrap"
+          v-html="truncate(note.data, 100)"
+        ></div>
+        <!-- <img
             v-if="note.attachment"
             :src="note.attachmentPreview"
             alt="Attachment Preview"
             class="img-fluid"
-          />
-        </div>
-        <!-- TODO: https://editorjs.io/fill-block-with-saved-data/ -->
-        <div class="d-flex flex-column gap-2">
+          /> -->
+        <div class="d-grid gap-2 mx-auto align-center mt-2">
           <a
             :href="`/editor?edit=${note._id}`"
             role="button"
-            class="btn btn-ghost btn-primary fs-3 d-flex align-items-center"
+            class="btn btn-ghost btn-primary fs-5 d-flex justify-content-center gap-2 align-items-center"
             title="Edit note"
           >
-            <Icon icon="fluent:note-edit-24-regular" />
+            <Icon icon="fluent:note-edit-24-regular" /> Modifica
           </a>
           <button
             @click="deleteNote(note._id)"
             role="button"
-            class="btn btn-ghost btn-danger fs-3 d-flex align-items-center"
+            class="btn btn-ghost btn-outline-danger fs-5 d-flex justify-content-center gap-2 align-items-center"
             title="Delete note"
           >
-            <Icon icon="fluent:delete-24-regular" />
+            <Icon icon="fluent:delete-24-regular" /> Elimina
           </button>
         </div>
       </li>
     </ul>
+    <div v-if="viewMode == 'grid'" class="grid-container mx-2">
+      <div v-for="note in notes" :key="note._id" class="d-flex flex-column grid-item bg-light p-3 rounded-4">
+        <h2>{{ note.name }}</h2>
+        <p>Author: {{ note.author }}</p>
+        <p class="d-flex align-items-center gap-2">
+          <Icon icon="ic:round-update" /> {{ formatDate(note.date) }}
+        </p>
+        <div id="preview" class="d-flex flex-column mh-auto flex-grow-1" v-html="truncate(note.data, 100)"></div>
+        <div class="d-flex flex-row gap-2 mx-auto justify-content-center mt-2">
+          <a
+            :href="`/editor?edit=${note._id}`"
+            role="button"
+            class="btn btn-ghost btn-primary fs-5 d-flex justify-content-center gap-2 align-items-center"
+            title="Edit note"
+          >
+            <Icon icon="fluent:note-edit-24-regular" /> Modifica
+          </a>
+          <button
+            @click="deleteNote(note._id)"
+            role="button"
+            class="btn btn-ghost btn-outline-danger fs-5 d-flex justify-content-center gap-2 align-items-center"
+            title="Delete note"
+          >
+            <Icon icon="fluent:delete-24-regular" /> Elimina
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -56,6 +103,37 @@
   right: 20px;
   z-index: 1000;
 }
+
+#preview {
+  display: inline-block;
+}
+
+#preview img {
+  /* width: fit-content;
+  max-height: 40%; */
+  max-width: 100%;
+  max-height: 150px; /* Dimensione massima ridotta */
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+#preview p {
+  word-break: break-all;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.grid-item {
+  padding: 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
 </style>
 
 <script>
@@ -63,10 +141,13 @@ import { ref, onMounted } from 'vue'
 import { getNotes } from './editor/note'
 import { Icon } from '@iconify/vue'
 import { SERVER_URL } from '@/const'
+import edjsHTML from 'editorjs-html'
 
 export default {
   setup() {
     const notes = ref([])
+    const viewMode = ref('list')
+    const edjsParser = edjsHTML()
 
     onMounted(async () => {
       try {
@@ -105,10 +186,26 @@ export default {
       const minutes = String(date.getMinutes()).padStart(2, '0')
       return `${day}/${month}/${year} ${hours}:${minutes}`
     }
+
+    function parseHtml(data) {
+      if (!data || !Array.isArray(data.blocks)) {
+        return ''
+      }
+      return edjsParser.parse(data).join('')
+    }
+
+    function truncate(data, length) {
+      const parsedData = parseHtml(data)
+      return parsedData.length > length ? parsedData.substring(0, length) + '...' : parsedData
+    }
+
     return {
       notes,
+      viewMode,
       formatDate,
-      deleteNote
+      deleteNote,
+      parseHtml,
+      truncate
     }
   },
   components: {
