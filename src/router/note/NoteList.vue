@@ -37,7 +37,7 @@
         <div
           id="preview"
           class="bg-light p-3 d-flex flex-column w-md-75 m-md-3 flex-md-grow-1 rounded-4 flex-wrap"
-          v-html="truncate(note.data, 100)"
+          v-html="truncate(note.data, 200)"
         ></div>
         <!-- <img
             v-if="note.attachment"
@@ -49,15 +49,23 @@
           <a
             :href="`/editor?edit=${note._id}`"
             role="button"
-            class="btn btn-ghost btn-primary fs-5 d-flex justify-content-center gap-2 align-items-center"
+            class="btn btn-ghost btn-primary fs-5 d-flex justify-content-center align-items-center"
             title="Edit note"
           >
             <Icon icon="fluent:note-edit-24-regular" /> Modifica
           </a>
           <button
+            @click="duplicateNote(note._id)"
+            role="button"
+            class="btn btn-ghost btn-outline-primary fs-5 d-flex justify-content-center align-items-center"
+            title="Duplicate note"
+          >
+            <Icon icon="fluent:copy-24-regular" /> Duplica
+          </button>
+          <button
             @click="deleteNote(note._id)"
             role="button"
-            class="btn btn-ghost btn-outline-danger fs-5 d-flex justify-content-center gap-2 align-items-center"
+            class="btn btn-ghost btn-outline-danger fs-5 d-flex justify-content-center align-items-center"
             title="Delete note"
           >
             <Icon icon="fluent:delete-24-regular" /> Elimina
@@ -66,26 +74,42 @@
       </li>
     </ul>
     <div v-if="viewMode == 'grid'" class="grid-container mx-2">
-      <div v-for="note in notes" :key="note._id" class="d-flex flex-column grid-item bg-light p-3 rounded-4">
+      <div
+        v-for="note in notes"
+        :key="note._id"
+        class="d-flex flex-column grid-item bg-light p-3 rounded-4"
+      >
         <h2>{{ note.name }}</h2>
         <p>Author: {{ note.author }}</p>
         <p class="d-flex align-items-center gap-2">
           <Icon icon="ic:round-update" /> {{ formatDate(note.date) }}
         </p>
-        <div id="preview" class="d-flex flex-column mh-auto flex-grow-1" v-html="truncate(note.data, 100)"></div>
+        <div
+          id="preview"
+          class="d-flex flex-column mh-auto flex-grow-1"
+          v-html="truncate(note.data, 200)"
+        ></div>
         <div class="d-flex flex-row gap-2 mx-auto justify-content-center mt-2">
           <a
             :href="`/editor?edit=${note._id}`"
             role="button"
-            class="btn btn-ghost btn-primary fs-5 d-flex justify-content-center gap-2 align-items-center"
+            class="btn btn-ghost btn-primary fs-5 d-flex justify-content-center align-items-center"
             title="Edit note"
           >
             <Icon icon="fluent:note-edit-24-regular" /> Modifica
           </a>
           <button
+            @click="duplicateNote(note._id)"
+            role="button"
+            class="btn btn-ghost btn-outline-primary fs-5 d-flex justify-content-center align-items-center"
+            title="Duplicate note"
+          >
+            <Icon icon="fluent:copy-24-regular" /> Duplica
+          </button>
+          <button
             @click="deleteNote(note._id)"
             role="button"
-            class="btn btn-ghost btn-outline-danger fs-5 d-flex justify-content-center gap-2 align-items-center"
+            class="btn btn-ghost btn-outline-danger fs-5 d-flex justify-content-center align-items-center"
             title="Delete note"
           >
             <Icon icon="fluent:delete-24-regular" /> Elimina
@@ -109,10 +133,8 @@
 }
 
 #preview img {
-  /* width: fit-content;
-  max-height: 40%; */
   max-width: 100%;
-  max-height: 150px; /* Dimensione massima ridotta */
+  max-height: 150px;
   height: auto;
   display: block;
   margin: 0 auto;
@@ -138,10 +160,11 @@
 
 <script>
 import { ref, onMounted } from 'vue'
-import { getNotes } from './editor/note'
 import { Icon } from '@iconify/vue'
-import { SERVER_URL } from '@/const'
 import edjsHTML from 'editorjs-html'
+import { SERVER_URL } from '@/const'
+import { getNotes } from './editor/note'
+import { saveNoteMongo } from './editor/note.js'
 
 export default {
   setup() {
@@ -177,6 +200,35 @@ export default {
       }
     }
 
+    async function duplicateNote(id) {
+      try {
+        const response = await fetch(SERVER_URL + '/search', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ query: id }) 
+        })
+
+        if (!response.ok) {
+          throw new Error('Error - duplicating note')
+        }
+
+        const note = await response.json()
+
+        const newFilename = 'Copia di ' + note.name
+        const newData = { ...note.data }
+
+        // create new note
+        await saveNoteMongo(null, newFilename, newData)
+        
+        notes.value = await getNotes()
+        console.log('Note duplicated successfully')
+      } catch (error) {
+        console.error('Error - duplicating note:', error)
+      }
+    }
+
     function formatDate(isoString) {
       const date = new Date(isoString)
       const day = String(date.getDate()).padStart(2, '0')
@@ -204,6 +256,7 @@ export default {
       viewMode,
       formatDate,
       deleteNote,
+      duplicateNote,
       parseHtml,
       truncate
     }
