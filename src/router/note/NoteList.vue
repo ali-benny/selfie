@@ -3,10 +3,10 @@
     <h1>Le tue note</h1>
     <a
       href="/editor"
-      class="btn btn-success floating-btn rounded-5 d-flex align-items-center"
+      class="btn btn-success floating-btn rounded-circle d-flex align-items-center p-2 fs-2"
       title="Add new note"
     >
-      <Icon icon="fluent:note-add-24-filled" />Crea nota
+      <Icon icon="fluent:note-add-24-filled" />
     </a>
     <div class="d-flex justify-content-end my-2">
       <div class="btn-group" role="group" aria-label="Note View Mode">
@@ -73,47 +73,51 @@
         </div>
       </li>
     </ul>
-    <div v-if="viewMode == 'grid'" class="grid-container mx-2">
-      <div
-        v-for="note in notes"
-        :key="note._id"
-        class="d-flex flex-column grid-item bg-light p-3 rounded-4"
-      >
-        <h2>{{ note.name }}</h2>
-        <p>Author: {{ note.author }}</p>
-        <p class="d-flex align-items-center gap-2">
-          <Icon icon="ic:round-update" /> {{ formatDate(note.date) }}
-        </p>
+    <div v-if="viewMode == 'grid'" class="container-fluid">
+      <div class="row">
         <div
-          id="preview"
-          class="d-flex flex-column mh-auto flex-grow-1"
-          v-html="truncate(note.data, 200)"
-        ></div>
-        <div class="d-flex flex-row gap-2 mx-auto justify-content-center mt-2">
-          <a
-            :href="`/editor?edit=${note._id}`"
-            role="button"
-            class="btn btn-ghost btn-primary fs-5 d-flex justify-content-center align-items-center"
-            title="Edit note"
-          >
-            <Icon icon="fluent:note-edit-24-regular" /> Modifica
-          </a>
-          <button
-            @click="duplicateNote(note._id)"
-            role="button"
-            class="btn btn-ghost btn-outline-primary fs-5 d-flex justify-content-center align-items-center"
-            title="Duplicate note"
-          >
-            <Icon icon="fluent:copy-24-regular" /> Duplica
-          </button>
-          <button
-            @click="deleteNote(note._id)"
-            role="button"
-            class="btn btn-ghost btn-outline-danger fs-5 d-flex justify-content-center align-items-center"
-            title="Delete note"
-          >
-            <Icon icon="fluent:delete-24-regular" /> Elimina
-          </button>
+          v-for="note in notes"
+          :key="note._id"
+          class="col-xl-3 col-lg-4 col-md-6 col-sm-12 d-flex p-2"
+        >
+          <div class="card d-flex flex-column p-3">
+            <h2>{{ note.name }}</h2>
+            <p>Author: {{ note.author }}</p>
+            <p class="d-flex align-items-center gap-2">
+              <Icon icon="ic:round-update" /> {{ formatDate(note.date) }}
+            </p>
+            <div
+              id="preview"
+              class="d-flex flex-column flex-grow-1 bg-light card p-2"
+              v-html="truncate(note.data, 200)"
+            ></div>
+            <div class="d-flex flex-row flex-wrap gap-2 mx-auto justify-content-center mt-2">
+              <a
+                :href="`/editor?edit=${note._id}`"
+                role="button"
+                class="btn btn-ghost btn-primary fs-5 d-flex justify-content-center align-items-center"
+                title="Edit note"
+              >
+                <Icon icon="fluent:note-edit-24-regular" />
+              </a>
+              <button
+                @click="duplicateNote(note._id)"
+                role="button"
+                class="btn btn-ghost btn-outline-primary fs-5 d-flex justify-content-center align-items-center"
+                title="Duplicate note"
+              >
+                <Icon icon="fluent:copy-24-regular" />
+              </button>
+              <button
+                @click="deleteNote(note._id)"
+                role="button"
+                class="btn btn-ghost btn-outline-danger fs-5 d-flex justify-content-center align-items-center"
+                title="Delete note"
+              >
+                <Icon icon="fluent:delete-24-regular" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -123,13 +127,9 @@
 <style>
 .floating-btn {
   position: fixed;
-  top: 20px;
+  bottom: 20px;
   right: 20px;
   z-index: 1000;
-}
-
-#preview {
-  display: inline-block;
 }
 
 #preview img {
@@ -142,19 +142,6 @@
 
 #preview p {
   word-break: break-all;
-}
-
-.grid-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 16px;
-}
-
-.grid-item {
-  padding: 16px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background-color: #f9f9f9;
 }
 </style>
 
@@ -207,7 +194,7 @@ export default {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ query: id }) 
+          body: JSON.stringify({ query: id })
         })
 
         if (!response.ok) {
@@ -221,7 +208,7 @@ export default {
 
         // create new note
         await saveNoteMongo(null, newFilename, newData)
-        
+
         notes.value = await getNotes()
         console.log('Note duplicated successfully')
       } catch (error) {

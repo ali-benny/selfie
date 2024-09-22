@@ -86,18 +86,15 @@ export async function initializeEditor() {
         class: ImageTool,
         config: {
           endpoints: {
-            byFile:
-              SERVER_URL+'/upload',
-            byUrl:
-              SERVER_URL+'/upload'
+            byFile: SERVER_URL + '/upload',
+            byUrl: SERVER_URL + '/upload'
           }
         }
       },
       attaches: {
         class: AttachesTool,
         config: {
-          endpoint:
-            '/upload'
+          endpoint: '/upload'
         }
       },
       code: {

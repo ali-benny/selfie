@@ -1,5 +1,5 @@
-import { SERVER_URL } from '@/const';
-
+import { SERVER_URL } from '@/const'
+// TODO: non so dove, ma le note sono identificate in base al titolo e non all'id -> questo crea problemi quando cambio titolo ad una nota [ne genera una nuova]
 /**
  * Using mongodb API to save note actual status
  *
@@ -9,7 +9,7 @@ import { SERVER_URL } from '@/const';
  * @param {*} data note contents
  */
 export async function saveNoteMongo(id, filename, data) {
-  const response = await fetch(SERVER_URL+'/save', {
+  const response = await fetch(SERVER_URL + '/save', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -26,7 +26,7 @@ export async function saveNoteMongo(id, filename, data) {
   } else {
     console.error('Failed to save note')
   }
-} 
+}
 
 export function deletedNoteMongo(filename, data) {}
 
@@ -35,8 +35,8 @@ export function deletedNoteMongo(filename, data) {}
  *
  * @export
  */
-export async function getNotes(){
-  const response = await fetch(SERVER_URL+'/find', {
+export async function getNotes() {
+  const response = await fetch(SERVER_URL + '/find', {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json'
