@@ -9,6 +9,21 @@
       <Icon icon="fluent:note-add-24-filled" />
     </a>
     <div class="d-flex justify-content-end my-2">
+      <div class="dropdown">
+        <button
+          class="btn btn-default dropdown-toggle"
+          type="button"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          Ordina per
+        </button>
+        <ul class="dropdown-menu" role="menu">
+          <li><button class="dropdown-item" @click="orderBy()">Titolo</button></li>
+          <li><button class="dropdown-item" @click="orderBy()">Data</button></li>
+          <li><button class="dropdown-item" @click="orderBy()">Autore</button></li>
+        </ul>
+      </div>
       <div class="btn-group" role="group" aria-label="Note View Mode">
         <input type="radio" class="btn-check" id="list" value="list" v-model="viewMode" />
         <label class="btn btn-outline-primary" for="list"
@@ -24,7 +39,7 @@
       <li
         v-for="note in notes"
         :key="note._id"
-        class="list-group-item d-flex flex-row flex-wrap justify-content-between"
+        class="list-group-item d-flex flex-row flex-wrap flex-md-nowrap justify-content-between"
       >
         <div class="d-flex flex-column">
           <p>{{ note._id }}</p>
@@ -36,7 +51,7 @@
         </div>
         <div
           id="preview"
-          class="bg-light p-3 d-flex flex-column w-md-75 m-md-3 flex-md-grow-1 rounded-4 flex-wrap"
+          class="d-flex w-75 m-3 p-3 flex-grow-1 flex-wrap rounded-4 bg-light"
           v-html="truncate(note.data, 200)"
         ></div>
         <!-- <img
@@ -45,7 +60,9 @@
             alt="Attachment Preview"
             class="img-fluid"
           /> -->
-        <div class="d-grid gap-2 mx-auto align-center mt-2">
+        <div
+          class="d-flex flex-md-column flex-row flex-wrap justify-content-center gap-2 mx-auto mt-2"
+        >
           <a
             :href="`/editor?edit=${note._id}`"
             role="button"
@@ -80,7 +97,7 @@
           :key="note._id"
           class="col-xl-3 col-lg-4 col-md-6 col-sm-12 d-flex p-2"
         >
-          <div class="card d-flex flex-column p-3">
+          <div class="card d-flex flex-column flex-grow-1 p-3">
             <h2>{{ note.name }}</h2>
             <p>Author: {{ note.author }}</p>
             <p class="d-flex align-items-center gap-2">
@@ -152,12 +169,14 @@ import edjsHTML from 'editorjs-html'
 import { SERVER_URL } from '@/const'
 import { getNotes } from './editor/note'
 import { saveNoteMongo } from './editor/note.js'
+import { useToast } from 'vue-toastification'
 
 export default {
   setup() {
     const notes = ref([])
     const viewMode = ref('list')
     const edjsParser = edjsHTML()
+    const toast = useToast()
 
     onMounted(async () => {
       try {
@@ -181,9 +200,9 @@ export default {
 
       if (response.ok) {
         notes.value = await getNotes()
-        console.log('Note deleted successfully')
+        toast.success('Note deleted successfully!')
       } else {
-        console.error('Failed to delete note')
+        toast.error('Failed to delete note')
       }
     }
 
@@ -210,11 +229,13 @@ export default {
         await saveNoteMongo(null, newFilename, newData)
 
         notes.value = await getNotes()
-        console.log('Note duplicated successfully')
+        toast.success('Note duplicated successfully')
       } catch (error) {
-        console.error('Error - duplicating note:', error)
+        toast.error('Error - duplicating note:', error)
       }
     }
+
+    function orderBy(ordertype) {}
 
     function formatDate(isoString) {
       const date = new Date(isoString)

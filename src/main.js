@@ -11,7 +11,16 @@ import router from './router'
 
 const app = createApp(App)
 
+import Toast from "vue-toastification";
+import "vue-toastification/dist/index.css";
+const options = {
+    // You can set your default options here
+};
+
+app.use(Toast, options);
+
 app.use(createPinia())
 app.use(router)
 
 app.mount('#app')
+

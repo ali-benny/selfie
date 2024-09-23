@@ -33,6 +33,7 @@
 import { initializeEditor, getEditNoteTitle, getEditNoteId } from './editor.js'
 import { Icon } from '@iconify/vue'
 import { saveNoteMongo } from './note.js'
+import { useToast } from 'vue-toastification'
 
 export default {
   async mounted() {
@@ -61,17 +62,21 @@ export default {
       this.isChecked = !this.isChecked
     },
     saveNote() {
+      const toast = useToast();
       this.editor
         .save()
         .then(async (outputData) => {
           try {
             saveNoteMongo(this.id, this.title, outputData)
+            toast.success('Note saved successfully!')
           } catch (error) {
             console.error('Failed to save EditorJS data:', error)
+            toast.error('Failed to save the note')
           }
         })
         .catch((error) => {
           console.error('Failed to save EditorJS data:', error)
+          toast.error('Failed to save the note')
         })
     }
   },
