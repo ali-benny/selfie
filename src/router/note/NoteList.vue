@@ -42,7 +42,8 @@
         class="list-group-item d-flex flex-row flex-wrap flex-md-nowrap justify-content-between"
       >
         <div class="d-flex flex-column">
-          <p>{{ note._id }}</p>
+          <!-- DEBUG: note _id -->
+          <!-- <p>{{ note._id }}</p>  -->
           <h2>{{ note.name }}</h2>
           <p>Author: {{ note.author }}</p>
           <p class="d-flex align-items-center gap-2">

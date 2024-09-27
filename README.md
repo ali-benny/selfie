@@ -30,6 +30,8 @@ start mongo site232433
 
 ## Deploy
 
+runnare server: `node src/api/app.js`
+
 ```bash
 npm install
 ```
@@ -43,14 +45,6 @@ npm run dev
 ```
 
 ## File System
-
-### `backend` directory
-
-Qui verranno contentuti tutti i file lato server da fare runnare in parallelo.
-
-### `src` directory
-
-Tutto il progetto vue, dunque tutto il lato frontend.
 
 ### `dist, public, scripts, tpl` directory
 

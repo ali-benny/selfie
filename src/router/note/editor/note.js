@@ -53,7 +53,7 @@ export async function getNotes() {
 }
 
 export async function getNoteTags(noteId) {
-  const response = await fetch(`${SERVER_URL}/notes/${noteId}/tags`)
+  const response = await fetch(`${SERVER_URL}/${noteId}/tags`)
   if (response.ok) {
     return await response.json()
   } else {
