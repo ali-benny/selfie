@@ -31,12 +31,15 @@
         :items="tags"
         item-text="name"
         item-value="name"
-        label="Tags"
-        multiple
+        label="Categorie"
         chips
         clearable
+        deletable-chips
+        multiple
         closable-chips
-        @keydown.enter.prevent="createTag"
+        density="compact"
+        variant="solo-filled"
+        @keydown.enter.prevent="addTag"
       ></v-autocomplete>
     </div>
     <div id="editorjs" class="bg-body-tertiary p-4 rounded-4 mt-4"></div>
@@ -53,10 +56,10 @@ import { getTags, createTag } from '@/router/note/editor/tags'
 export default {
   async mounted() {
     this.editor = await initializeEditor()
-    this.selectedTags = await getNoteTags(this.id)
-    this.tags = await getTags()
-    this.title = getEditNoteTitle()
     this.id = getEditNoteId()
+    this.title = getEditNoteTitle()
+    this.tags = await getTags(this.id)
+    this.selectedTags = await getNoteTags(this.id)
   },
   directives: {
     focus: {
@@ -98,10 +101,10 @@ export default {
           toast.error('Failed to save the note')
         })
     },
-    async createTag(event) {
+    addTag(event) {
       const newTag = event.target.value
       if (newTag && !this.tags.includes(newTag)) {
-        await createTag(newTag)
+        createTag(this.id, newTag)
         this.tags.push(newTag)
         this.selectedTags.push(newTag)
       }

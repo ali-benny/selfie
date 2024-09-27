@@ -1,23 +1,21 @@
 import { SERVER_URL } from '@/const'
 
-export async function getTags() {
-  const response = await fetch(SERVER_URL + '/tags', {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json'
+export async function getTags(noteId) {
+  try {
+    const response = await fetch(SERVER_URL + `/tags`)
+    if (!response.ok) {
+      throw new Error('Errore nel recupero dei tag della nota')
     }
-  })
-
-  if (response.ok) {
-    return response.json()
-  } else {
-    console.error('ERROR: getTags')
-    return []
+    const data = await response.json()
+    console.log(JSON.stringify(data))
+    return data
+  } catch (error) {
+    console.error(error.message)
   }
 }
 
-export async function createTag(tag) {
-  const response = await fetch(SERVER_URL + '/tags', {
+export async function createTag(id, tag) {
+  const response = await fetch(SERVER_URL + '/notes/' + id + '/tags', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'

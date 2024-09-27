@@ -112,7 +112,10 @@ app.post('/save', async (req, res) => {
     const existing_note = await Note.findOne({ _id: id }).lean()
     if (existing_note != null) {
       // i've already this note in mongodb
-      await Note.updateOne({ _id: id }, { name: filename, data: data, date: new Date(), tags: tags })
+      await Note.updateOne(
+        { _id: id },
+        { name: filename, data: data, date: new Date(), tags: tags }
+      )
       console.log('Updated!')
     } else {
       const note = new Note({
@@ -132,32 +135,45 @@ app.post('/save', async (req, res) => {
 })
 
 // Ottieni i tag di una nota specifica
-app.get('/:id/tags', async (req, res) => {
+app.get('/notes/:id/tags', async (req, res) => {
   try {
-    const note = await Note.findById(req.params.id);
+    const note = await Note.findById(req.params.id)
     if (note == null) {
-      return res.status(404).json({ message: 'Note not found' });
+      return res.status(404).json({ message: 'Note not found' })
     }
-    res.json(note.tags);
+    res.json(note.tags)
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: err.message })
   }
-});
+})
 
 // Aggiungi un tag a una nota esistente
-app.post('/:id/tags', async (req, res) => {
+app.post('/notes/:id/tags', async (req, res) => {
   try {
-    const note = await Note.findById(req.params.id);
+    const note = await Note.findById(req.params.id)
     if (note == null) {
-      return res.status(404).json({ message: 'Note not found' });
+      return res.status(404).json({ message: 'Note not found' })
     }
-    note.tags.push(req.body.tag);
-    await note.save();
-    res.status(201).json(note.tags);
+    if (!note.tags.includes(req.body.tag)) {
+      note.tags.push(req.body.tag)
+    }
+    await note.save()
+    res.status(200).json(note.tags)
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(400).json({ message: err.message })
   }
-});
+})
+
+// Endpoint per ottenere tutti i tag distinti
+app.get('/tags', async (req, res) => {
+  try {
+    const tags = await Note.distinct('tags', { tags: { $ne: null } }) // Filtra i tag non nulli
+    const notEmptyTags = tags.filter((tag) => tag.trim() !== '') // Rimuovi eventuali tag vuoti
+    res.json(notEmptyTags)
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
 
 /**
  * Searching documents from a collection
@@ -202,7 +218,6 @@ async function disconnect(dbName) {
 /**
  *   ****** UPLOAD IMAGE ******   *
  */
-
 
 import bodyParser from 'body-parser'
 import upload from '../upload.js'

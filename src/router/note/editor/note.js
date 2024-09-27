@@ -4,7 +4,7 @@ import { SERVER_URL } from '@/const'
  * Using mongodb API to save note actual status
  *
  * @export
- * @param {*} id 
+ * @param {*} id
  * @param {*} filename === note title
  * @param {*} data note body contents
  * @param {*} tags note category tags

@@ -48,8 +48,11 @@
           <p class="d-flex align-items-center gap-2">
             <Icon icon="ic:round-update" /> {{ formatDate(note.date) }}
           </p>
+          <!-- Tags -->
           <div class="d-flex flex-row gap-2">
-            <p v-for="tag in note.tags" class="d-flex p-1 rounded-3 bg-secondary">{{ tag }}</p>
+            <p v-for="tag in note.tags" class="d-flex px-2 rounded-5 bg-primary-subtle">
+              {{ tag }}
+            </p>
           </div>
         </div>
         <div
@@ -106,6 +109,12 @@
             <p class="d-flex align-items-center gap-2">
               <Icon icon="ic:round-update" /> {{ formatDate(note.date) }}
             </p>
+            <!-- Tags -->
+            <div class="d-flex flex-row gap-2">
+              <p v-for="tag in note.tags" class="d-flex px-2 rounded-5 bg-primary-subtle">
+                {{ tag }}
+              </p>
+            </div>
             <div
               id="preview"
               class="d-flex flex-column flex-grow-1 bg-light card p-2"
