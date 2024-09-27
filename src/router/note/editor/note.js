@@ -4,11 +4,12 @@ import { SERVER_URL } from '@/const'
  * Using mongodb API to save note actual status
  *
  * @export
- * @param {*} id note
- * @param {*} filename note title
- * @param {*} data note contents
+ * @param {*} id 
+ * @param {*} filename === note title
+ * @param {*} data note body contents
+ * @param {*} tags note category tags
  */
-export async function saveNoteMongo(id, filename, data) {
+export async function saveNoteMongo(id, filename, data, tags) {
   const response = await fetch(SERVER_URL + '/save', {
     method: 'POST',
     headers: {
@@ -17,7 +18,8 @@ export async function saveNoteMongo(id, filename, data) {
     body: JSON.stringify({
       id: id,
       filename: filename,
-      data: data
+      data: data,
+      tags: tags
     })
   })
 
@@ -47,5 +49,15 @@ export async function getNotes() {
     return response.json()
   } else {
     console.error('ERROR: getNotes')
+  }
+}
+
+export async function getNoteTags(noteId) {
+  const response = await fetch(`${SERVER_URL}/notes/${noteId}/tags`)
+  if (response.ok) {
+    return await response.json()
+  } else {
+    console.error('Failed to fetch tags')
+    return []
   }
 }

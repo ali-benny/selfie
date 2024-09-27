@@ -92,6 +92,10 @@ const NoteSchema = new mongoose.Schema({
   readers: {
     type: Array,
     default: []
+  },
+  tags: {
+    type: Object,
+    default: []
   }
 })
 
@@ -101,20 +105,21 @@ const Note = mongoose.model('Note', NoteSchema)
  * Save a note to the mongodb into 'notes' collection
  */
 app.post('/save', async (req, res) => {
-  const { id, filename, data } = req.body
+  const { id, filename, data, tags } = req.body
   console.log('Saving: ' + filename)
   if (!connected['note']) await connect('note')
   try {
     const existing_note = await Note.findOne({ _id: id }).lean()
     if (existing_note != null) {
       // i've already this note in mongodb
-      await Note.updateOne({ _id: id }, { name: filename, data: data, date: new Date() })
+      await Note.updateOne({ _id: id }, { name: filename, data: data, date: new Date(), tags: tags })
       console.log('Updated!')
     } else {
       const note = new Note({
         name: filename,
         data: data,
-        author: 'User'
+        author: 'User',
+        tags: tags
       }) // TODO: get user from session
       const resp = await note.save()
       console.log('Saved!')
@@ -125,6 +130,34 @@ app.post('/save', async (req, res) => {
     res.status(500).json({ error: err.message })
   }
 })
+
+// Ottieni i tag di una nota specifica
+app.get('/:id/tags', async (req, res) => {
+  try {
+    const note = await Note.findById(req.params.id);
+    if (note == null) {
+      return res.status(404).json({ message: 'Note not found' });
+    }
+    res.json(note.tags);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Aggiungi un tag a una nota esistente
+app.post('/:id/tags', async (req, res) => {
+  try {
+    const note = await Note.findById(req.params.id);
+    if (note == null) {
+      return res.status(404).json({ message: 'Note not found' });
+    }
+    note.tags.push(req.body.tag);
+    await note.save();
+    res.status(201).json(note.tags);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
 
 /**
  * Searching documents from a collection

@@ -19,9 +19,9 @@
           Ordina per
         </button>
         <ul class="dropdown-menu" role="menu">
-          <li><button class="dropdown-item" @click="orderBy()">Titolo</button></li>
-          <li><button class="dropdown-item" @click="orderBy()">Data</button></li>
-          <li><button class="dropdown-item" @click="orderBy()">Autore</button></li>
+          <li><button class="dropdown-item" @click="orderBy('title')">Titolo</button></li>
+          <li><button class="dropdown-item" @click="orderBy('date')">Data</button></li>
+          <li><button class="dropdown-item" @click="orderBy('author')">Autore</button></li>
         </ul>
       </div>
       <div class="btn-group" role="group" aria-label="Note View Mode">
@@ -48,6 +48,9 @@
           <p class="d-flex align-items-center gap-2">
             <Icon icon="ic:round-update" /> {{ formatDate(note.date) }}
           </p>
+          <div class="d-flex flex-row gap-2">
+            <p v-for="tag in note.tags" class="d-flex p-1 rounded-3 bg-secondary">{{ tag }}</p>
+          </div>
         </div>
         <div
           id="preview"
@@ -226,7 +229,7 @@ export default {
         const newData = { ...note.data }
 
         // create new note
-        await saveNoteMongo(null, newFilename, newData)
+        await saveNoteMongo(null, newFilename, newData, null)
 
         notes.value = await getNotes()
         toast.success('Note duplicated successfully')
@@ -235,7 +238,17 @@ export default {
       }
     }
 
-    function orderBy(ordertype) {}
+    function orderBy(ordertype) {
+      let sortedNotes = []
+      if (ordertype === 'title') {
+        sortedNotes = [...notes.value].sort((a, b) => a.name.localeCompare(b.name))
+      } else if (ordertype === 'date') {
+        sortedNotes = [...notes.value].sort((a, b) => new Date(a.date) - new Date(b.date))
+      } else if (ordertype === 'author') {
+        sortedNotes = [...notes.value].sort((a, b) => a.author.localeCompare(b.author))
+      }
+      notes.value = sortedNotes
+    }
 
     function formatDate(isoString) {
       const date = new Date(isoString)
@@ -262,6 +275,7 @@ export default {
     return {
       notes,
       viewMode,
+      orderBy,
       formatDate,
       deleteNote,
       duplicateNote,

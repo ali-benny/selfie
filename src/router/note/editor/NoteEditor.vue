@@ -25,6 +25,20 @@
         <Icon icon="fluent:save-32-filled" /> Salva
       </button>
     </div>
+    <div>
+      <v-autocomplete
+        v-model="selectedTags"
+        :items="tags"
+        item-text="name"
+        item-value="name"
+        label="Tags"
+        multiple
+        chips
+        clearable
+        closable-chips
+        @keydown.enter.prevent="createTag"
+      ></v-autocomplete>
+    </div>
     <div id="editorjs" class="bg-body-tertiary p-4 rounded-4 mt-4"></div>
   </div>
 </template>
@@ -32,12 +46,15 @@
 <script>
 import { initializeEditor, getEditNoteTitle, getEditNoteId } from './editor.js'
 import { Icon } from '@iconify/vue'
-import { saveNoteMongo } from './note.js'
+import { getNoteTags, saveNoteMongo } from './note.js'
 import { useToast } from 'vue-toastification'
+import { getTags, createTag } from '@/router/note/editor/tags'
 
 export default {
   async mounted() {
     this.editor = await initializeEditor()
+    this.selectedTags = await getNoteTags(this.id)
+    this.tags = await getTags()
     this.title = getEditNoteTitle()
     this.id = getEditNoteId()
   },
@@ -54,7 +71,9 @@ export default {
     return {
       editor: null,
       isChecked: false,
-      title: 'Untitled'
+      title: 'Untitled',
+      selectedTags: [],
+      tags: []
     }
   },
   methods: {
@@ -62,12 +81,12 @@ export default {
       this.isChecked = !this.isChecked
     },
     saveNote() {
-      const toast = useToast();
+      const toast = useToast()
       this.editor
         .save()
         .then(async (outputData) => {
           try {
-            saveNoteMongo(this.id, this.title, outputData)
+            saveNoteMongo(this.id, this.title, outputData, this.selectedTags)
             toast.success('Note saved successfully!')
           } catch (error) {
             console.error('Failed to save EditorJS data:', error)
@@ -78,6 +97,14 @@ export default {
           console.error('Failed to save EditorJS data:', error)
           toast.error('Failed to save the note')
         })
+    },
+    async createTag(event) {
+      const newTag = event.target.value
+      if (newTag && !this.tags.includes(newTag)) {
+        await createTag(newTag)
+        this.tags.push(newTag)
+        this.selectedTags.push(newTag)
+      }
     }
   },
   components: {
