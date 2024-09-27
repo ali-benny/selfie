@@ -238,7 +238,7 @@ export default {
         const newData = { ...note.data }
 
         // create new note
-        await saveNoteMongo(null, newFilename, newData, null)
+        await saveNoteMongo(null, newFilename, newData, note.tags)
 
         notes.value = await getNotes()
         toast.success('Note duplicated successfully')
