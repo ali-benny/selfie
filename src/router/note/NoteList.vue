@@ -49,7 +49,7 @@
             <Icon icon="ic:round-update" /> {{ formatDate(note.date) }}
           </p>
           <!-- Tags -->
-          <div class="d-flex flex-row gap-2">
+          <div class="d-flex flex-row gap-2 flex-wrap">
             <p v-for="tag in note.tags" class="d-flex px-2 rounded-5 bg-primary-subtle">
               {{ tag }}
             </p>
@@ -110,7 +110,7 @@
               <Icon icon="ic:round-update" /> {{ formatDate(note.date) }}
             </p>
             <!-- Tags -->
-            <div class="d-flex flex-row gap-2">
+            <div class="d-flex flex-row flex-wrap gap-2">
               <p v-for="tag in note.tags" class="d-flex px-2 rounded-5 bg-primary-subtle">
                 {{ tag }}
               </p>
