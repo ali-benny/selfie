@@ -35,7 +35,6 @@ app.post('/search', async (req, res) => {
   }
 })
 
-
 const NoteSchema = new mongoose.Schema({
   name: {
     type: String,

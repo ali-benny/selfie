@@ -8,6 +8,6 @@ export default createVuetify({
   components,
   directives,
   icons: {
-    iconfont: 'mdi', // 'mdi' per Material Design Icons
-  },
+    iconfont: 'mdi' // 'mdi' per Material Design Icons
+  }
 })

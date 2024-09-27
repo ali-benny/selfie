@@ -1,7 +1,7 @@
 import cors from 'cors'
 import express from 'express'
 import mongoose from 'mongoose'
-import {  MONGO_URI, SERVER_URL, PORT } from '../const.js'
+import { MONGO_URI, SERVER_URL, PORT } from '../const.js'
 import notes from './notes/notes.js'
 
 export let connected = {}
