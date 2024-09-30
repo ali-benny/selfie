@@ -8,7 +8,7 @@ export let connected = {}
 const app = express()
 app.use(cors())
 app.use(express.json())
-app.use('/', notes)
+app.use('/api', notes)
 
 app.listen(PORT, () => {
   console.log(`Server running at ${SERVER_URL}`)

@@ -1,8 +1,8 @@
-import { SERVER_URL } from '@/const'
+import { API_URL } from '@/const'
 
 export async function getTags(noteId) {
   try {
-    const response = await fetch(SERVER_URL + `/tags`)
+    const response = await fetch(API_URL + `/tags`)
     if (!response.ok) {
       throw new Error('Errore nel recupero dei tag della nota')
     }
@@ -15,7 +15,7 @@ export async function getTags(noteId) {
 }
 
 export async function createTag(id, tag) {
-  const response = await fetch(SERVER_URL + '' + id + '/tags', {
+  const response = await fetch(API_URL +'/'+ id + '/tags', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'

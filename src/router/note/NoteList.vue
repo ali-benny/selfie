@@ -179,7 +179,7 @@
 import { ref, onMounted } from 'vue'
 import { Icon } from '@iconify/vue'
 import edjsHTML from 'editorjs-html'
-import { SERVER_URL } from '@/const'
+import { API_URL } from '@/const'
 import { getNotes } from './editor/note'
 import { saveNoteMongo } from './editor/note.js'
 import { useToast } from 'vue-toastification'
@@ -200,7 +200,7 @@ export default {
     })
 
     async function deleteNote(id) {
-      const response = await fetch(SERVER_URL + '/delete', {
+      const response = await fetch(API_URL + '/delete', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -221,7 +221,7 @@ export default {
 
     async function duplicateNote(id) {
       try {
-        const response = await fetch(SERVER_URL + '/search', {
+        const response = await fetch(API_URL + '/search', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

@@ -8,7 +8,7 @@ import CodeTool from '@editorjs/code'
 import Table from '@editorjs/table'
 import Link from '@editorjs/link'
 import LinkAutocomplete from '@editorjs/link-autocomplete'
-import { SERVER_URL } from '../../../const.js'
+import { API_URL } from '../../../const.js'
 
 /**
  * note's title to be displayed into the editor
@@ -35,7 +35,7 @@ async function getEditNoteData() {
   const noteId = getEditNoteId()
   let noteData = {}
   if (noteId) {
-    const response = await fetch(SERVER_URL + '/search', {
+    const response = await fetch(API_URL + '/search', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -86,8 +86,8 @@ export async function initializeEditor() {
         class: ImageTool,
         config: {
           endpoints: {
-            byFile: SERVER_URL + '/upload',
-            byUrl: SERVER_URL + '/upload'
+            byFile: API_URL + '/upload',
+            byUrl: API_URL + '/upload'
           }
         }
       },

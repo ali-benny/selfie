@@ -1,9 +1,13 @@
 <script setup>
-import TheWelcome from '../components/TheWelcome.vue'
+import NoteWidget from '../components/NoteWidget.vue'
 </script>
 
 <template>
   <main>
-    <TheWelcome />
+    <div class="d-flex justify-content-between">
+      <div class="card">
+        <NoteWidget></NoteWidget>
+      </div>
+    </div>
   </main>
 </template>
