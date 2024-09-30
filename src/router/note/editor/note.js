@@ -1,4 +1,4 @@
-import { API_URL } from '@/const'
+import { API_URL } from '../../../../const'
 // TODO: non so dove, ma le note sono identificate in base al titolo e non all'id -> questo crea problemi quando cambio titolo ad una nota [ne genera una nuova]
 /**
  * Using mongodb API to save note actual status

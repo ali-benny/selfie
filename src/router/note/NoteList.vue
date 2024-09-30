@@ -70,14 +70,14 @@
         <div
           class="d-flex flex-md-column flex-row flex-wrap justify-content-center gap-2 mx-auto mt-2"
         >
-          <a
-            :href="`/editor?edit=${note._id}`"
+          <RouterLink
+            :to="`/editor?edit=${note._id}`"
             role="button"
             class="btn btn-ghost btn-primary fs-5 d-flex justify-content-center align-items-center"
             title="Edit note"
           >
             <Icon icon="fluent:note-edit-24-regular" /> Modifica
-          </a>
+          </RouterLink>
           <button
             @click="duplicateNote(note._id)"
             role="button"
@@ -122,14 +122,14 @@
               v-html="truncate(note.data, 200)"
             ></div>
             <div class="d-flex flex-row flex-wrap gap-2 mx-auto justify-content-center mt-2">
-              <a
-                :href="`/editor?edit=${note._id}`"
+              <RouterLink
+                :to="`/editor?edit=${note._id}`"
                 role="button"
                 class="btn btn-ghost btn-primary fs-5 d-flex justify-content-center align-items-center"
                 title="Edit note"
               >
                 <Icon icon="fluent:note-edit-24-regular" />
-              </a>
+              </RouterLink>
               <button
                 @click="duplicateNote(note._id)"
                 role="button"
@@ -179,10 +179,11 @@
 import { ref, onMounted } from 'vue'
 import { Icon } from '@iconify/vue'
 import edjsHTML from 'editorjs-html'
-import { API_URL } from '@/const'
+import { API_URL } from '../../../const'
 import { getNotes } from './editor/note'
 import { saveNoteMongo } from './editor/note.js'
 import { useToast } from 'vue-toastification'
+import { RouterLink } from 'vue-router'
 
 export default {
   setup() {

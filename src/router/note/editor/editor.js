@@ -8,7 +8,7 @@ import CodeTool from '@editorjs/code'
 import Table from '@editorjs/table'
 import Link from '@editorjs/link'
 import LinkAutocomplete from '@editorjs/link-autocomplete'
-import { API_URL } from '../../../const.js'
+import { API_URL } from '../../../../const.js'
 
 /**
  * note's title to be displayed into the editor
