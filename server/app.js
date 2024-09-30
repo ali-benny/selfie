@@ -6,6 +6,8 @@ import notes from './notes/notes.js'
 import fs from 'fs'
 import path from 'path'
 
+const __dirname = process.cwd();
+
 export let connected = {}
 const app = express()
 app.use(cors())
@@ -86,7 +88,7 @@ async function disconnect(dbName) {
 }
 
 app.get('/static/:file', async (req, res) => {
-  fs.readFile('dist/static/' + req.params.file, (err, data) => {
+  fs.readFile(path.join(__dirname, 'dist/static/', req.params.file), (err, data) => {
     if (err) {
       console.log(err)
       res.redirect('/')
@@ -120,7 +122,7 @@ app.get('/static/:file', async (req, res) => {
 })
 
 app.get('/*/', async (req, res) => {
-  fs.readFile('dist/index.html', function (err, data) {
+  fs.readFile(path.join(__dirname, 'dist/index.html'), function (err, data) {
     if (err) {
       console.error(err)
       res.redirect('/')
