@@ -15,7 +15,7 @@ export async function getTags(noteId) {
 }
 
 export async function createTag(id, tag) {
-  const response = await fetch(API_URL +'/'+ id + '/tags', {
+  const response = await fetch(API_URL + '/' + id + '/tags', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'

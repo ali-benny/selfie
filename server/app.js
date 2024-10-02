@@ -134,5 +134,3 @@ app.get('/*/', async (req, res) => {
     res.end(data, 'utf-8')
   })
 })
-
-// app.use('/static', express.static('dist/static'))
