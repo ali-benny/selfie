@@ -2,6 +2,11 @@ Progetto per il corso di Tecnlogie Web
 
 dir macchine di lab: `/home/web/site232433/html/` che equivale a https://site232433.tw.cs.unibo.it
 
+
+1. `git pull origin`
+2. `npm run build`
+3. ``
+
 per accedere al gocker:
 
 ```bash
@@ -64,6 +69,9 @@ export default {
 }
 </script>
 ```
+### set usati attualmente:
+- fluent
+- ic
 
 Per usare l'icona inserire l'elemento del tipo: `<Icon icon="<pack>:<nome_icona>" />`
 
