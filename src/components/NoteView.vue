@@ -2,8 +2,8 @@
 import { ref, onMounted, computed } from 'vue'
 import { Icon } from '@iconify/vue'
 import edjsHTML from 'editorjs-html'
-import { API_URL } from '~/const.js'
-import { getNotes, saveNoteMongo } from '@/router/note/editor/note.js'
+import { API_URL } from '../../const.js'
+import { getNotes, saveNoteMongo, deleteNote } from '@/router/note/editor/note.js'
 import { useToast } from 'vue-toastification'
 
 const props = defineProps(['viewMode', 'lastModified', 'edit', 'extended'])
@@ -20,34 +20,13 @@ onMounted(async () => {
   }
 })
 
-async function deleteNote(id) {
-  const response = await fetch(API_URL + '/delete', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      collection: 'Note',
-      id: id
-    })
-  })
-
-  if (response.ok) {
-    notes.value = await getNotes()
-    toast.success('Note deleted successfully!')
-  } else {
-    toast.error('Failed to delete note')
-  }
-}
-
 async function duplicateNote(id) {
   try {
-    const response = await fetch(API_URL + '/search', {
-      method: 'POST',
+    const response = await fetch(API_URL + `/notes/${id}`, {
+      method: 'GET',
       headers: {
         'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ query: id })
+      }
     })
 
     if (!response.ok) {
@@ -110,6 +89,17 @@ const filteredNotes = computed(() => {
   }
   return notes.value
 })
+
+async function removeNote(id) {
+  try {
+    await deleteNote(id)
+    notes.value = await getNotes()
+    toast.success('Note deleted successfully')
+  } catch (error) {
+    console.error('Failed to delete note:', error)
+    toast.error('Failed to delete note')
+  }
+}
 </script>
 
 <template>
@@ -167,7 +157,7 @@ const filteredNotes = computed(() => {
           <Icon icon="fluent:copy-24-regular" /> Duplica
         </button>
         <button
-          @click="deleteNote(note._id)"
+          @click="removeNote(note._id)"
           role="button"
           class="btn btn-ghost btn-outline-danger fs-5 d-flex justify-content-center align-items-center"
           title="Delete note"
@@ -222,7 +212,7 @@ const filteredNotes = computed(() => {
               <Icon icon="fluent:copy-24-regular" />
             </button>
             <button
-              @click="deleteNote(note._id)"
+              @click="removeNote(note._id)"
               role="button"
               class="btn btn-ghost btn-outline-danger fs-5 d-flex justify-content-center align-items-center"
               title="Delete note"

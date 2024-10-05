@@ -1,8 +1,9 @@
 import cors from 'cors'
-import express, { response } from 'express'
+import express from 'express'
 import mongoose from 'mongoose'
 import { MONGO_URI, SERVER_URL, PORT } from '../const.js'
 import notes from './notes/notes.js'
+import upload from './notes/upload.js'
 import users from './users/users.js'
 import fs from 'fs'
 import path from 'path'
@@ -13,7 +14,9 @@ export let connected = {}
 const app = express()
 app.use(cors())
 app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
 app.use('/api', notes)
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')))
 app.use('/api', users)
 
 app.listen(PORT, () => {
