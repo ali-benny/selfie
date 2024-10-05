@@ -22,7 +22,7 @@ export function getEditNoteTitle() {
 
 export function getEditNoteId() {
   const searchParams = new URLSearchParams(window.location.search)
-  console.log('note ID: ' + searchParams.get('edit'))
+  // console.log('note ID: ' + searchParams.get('edit'))
   return searchParams?.get('edit')
 }
 
@@ -35,14 +35,11 @@ async function getEditNoteData() {
   const noteId = getEditNoteId()
   let noteData = {}
   if (noteId) {
-    const response = await fetch(API_URL + '/search', {
-      method: 'POST',
+    const response = await fetch(`/notes/${noteId}`, {
+      method: 'GET',
       headers: {
         'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        query: noteId
-      })
+      }
     })
     if (response.ok) {
       noteData = await response.json()
@@ -94,7 +91,7 @@ export async function initializeEditor() {
       attaches: {
         class: AttachesTool,
         config: {
-          endpoint: '/upload'
+          endpoint: API_URL + '/upload'
         }
       },
       code: {
@@ -115,8 +112,8 @@ export async function initializeEditor() {
       link: {
         class: LinkAutocomplete,
         config: {
-          endpoint: '/',
-          queryParam: 'search'
+          endpoint: '/notes',
+          queryParam: 'title'
         }
       }
     }

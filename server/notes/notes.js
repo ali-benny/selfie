@@ -1,39 +1,10 @@
 import express from 'express'
 import mongoose from 'mongoose'
 import { connected, connect } from '../app.js'
+import bodyParser from 'body-parser'
+import upload from './upload.js'
 
 const app = express()
-
-/**
- * From 'notes' collection get all documents
- */
-app.get('/find', async (req, res) => {
-  try {
-    if (!connected['note']) await connect('note')
-    const notes = await Note.find()
-    res.status(200).json(notes)
-  } catch (err) {
-    console.error(err)
-    res.status(500).json({ error: err.message })
-  }
-})
-
-// Search by id and return a document
-/**
- * From 'notes' collection get documents based on Query ['id']
- */
-app.post('/search', async (req, res) => {
-  const { query } = req.body
-  let id = new mongoose.Types.ObjectId(query) // needed to convert string into mongoose ObjectId
-  try {
-    if (!connected['note']) await connect('note')
-    const notes = await Note.findOne({ _id: id })
-    res.status(200).json(notes)
-  } catch (err) {
-    console.error(err)
-    res.status(500).json({ error: err.message })
-  }
-})
 
 const NoteSchema = new mongoose.Schema({
   name: {
@@ -64,11 +35,96 @@ const NoteSchema = new mongoose.Schema({
 
 const Note = mongoose.model('Note', NoteSchema)
 
+const ImageSchema = new mongoose.Schema({
+  filename: String,
+  path: String,
+  size: Number,
+  mimetype: String
+})
+
+const Image = mongoose.model('Image', ImageSchema)
+
+app.use(bodyParser.json())
+app.use('/uploads', express.static('uploads'))
+
+/**
+ * Get all notes
+ * Find from 'notes' collection get all documents
+ */
+app.get('/notes', async (req, res) => {
+  try {
+    if (!connected['note']) await connect('note')
+    const notes = await Note.find()
+    res.status(200).json(notes)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+/**
+ * Search from 'notes' collection get documents based on Query ['id']
+ */
+app.post('/notes/:id', async (req, res) => {
+  const { query } = req.body
+  let id = new mongoose.Types.ObjectId(query) // needed to convert string into mongoose ObjectId
+  try {
+    if (!connected['note']) await connect('note')
+    const notes = await Note.findOne({ _id: id })
+    res.status(200).json(notes)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+/**
+ * Create a new note
+ */
+app.post('/notes', async (req, res) => {
+  const { filename, data, tags } = req.body
+  const note = new Note({
+    name: filename,
+    data: data,
+    author: 'User',
+    tags: tags,
+  })
+  try {
+    if (!connected['note']) await connect('note')
+    await note.save()
+    res.status(201).json(note)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+/**
+ * Get a note by ID
+ * Search from 'notes' collection get documents based on Query ['id']
+ */
+app.get('/notes/:id', async (req, res) => {
+  const { id } = req.params
+  try {
+    if (!connected['note']) await connect('note')
+    const note = await Note.findById(id)
+    if (note) {
+      res.status(200).json(note)
+    } else {
+      res.status(404).json({ error: 'Note not found' })
+    }
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
 /**
  * Save a note to the mongodb into 'notes' collection
  */
-app.post('/save', async (req, res) => {
-  const { id, filename, data, tags } = req.body
+app.put('/notes/:id', async (req, res) => {
+  const { id } = req.params
+  const { filename, data, tags } = req.body
   console.log('Saving: ' + filename)
   if (!connected['note']) await connect('note')
   try {
@@ -91,6 +147,25 @@ app.post('/save', async (req, res) => {
       console.log('Saved!')
     }
     res.status(200).send('Note saved successfully')
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+/**
+ * Delete a note
+ */
+app.delete('/notes/:id', async (req, res) => {
+  const { id } = req.params
+  try {
+    if (!connected['note']) await connect('note')
+    const note = await Note.findByIdAndDelete(id)
+    if (note) {
+      res.status(200).json({ message: 'Note deleted successfully' })
+    } else {
+      res.status(404).json({ error: 'Note not found' })
+    }
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: err.message })
@@ -130,8 +205,8 @@ app.post('/:id/tags', async (req, res) => {
 // Endpoint per ottenere tutti i tag distinti
 app.get('/tags', async (req, res) => {
   try {
-    const tags = await Note.distinct('tags', { tags: { $ne: null } }) // Filtra i tag non nulli
-    const notEmptyTags = tags.filter((tag) => tag.trim() !== '') // Rimuovi eventuali tag vuoti
+    const tags = await Note.distinct('tags', { tags: { $ne: null } })
+    const notEmptyTags = tags.filter((tag) => tag.trim() !== '')
     res.json(notEmptyTags)
   } catch (err) {
     res.status(500).json({ message: err.message })
@@ -142,23 +217,9 @@ app.get('/tags', async (req, res) => {
  *   ****** UPLOAD IMAGE ******   *
  */
 
-import bodyParser from 'body-parser'
-import upload from './upload.js'
-
-const ImageSchema = new mongoose.Schema({
-  filename: String,
-  path: String,
-  size: Number,
-  mimetype: String
-})
-
-const Image = mongoose.model('Image', ImageSchema)
-
-app.use(bodyParser.json())
-app.use('/uploads', express.static('uploads'))
-
 app.post('/upload', upload.single('image'), async (req, res) => {
   try {
+    if (!connected['image']) await connect('image')
     const newImage = new Image({
       filename: req.file.filename,
       path: req.file.path,
@@ -168,13 +229,14 @@ app.post('/upload', upload.single('image'), async (req, res) => {
 
     await newImage.save()
 
-    res.json({
+    res.status(200).json({
       success: 1,
       file: {
         url: `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
       }
     })
   } catch (error) {
+    console.error(error)
     res.status(500).json({ success: 0, message: 'Upload image error!' })
   }
 })
