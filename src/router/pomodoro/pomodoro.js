@@ -1,4 +1,4 @@
-import { SERVER_URL } from '@/cost.js'
+import { API_URL } from '../../../const.js'
 
 /*
  * TODO: spostare pomodoroMessage e breakMessage
@@ -17,7 +17,7 @@ export const defaultConfig = {
  */
 export async function loadPomodoro() {
   try {
-    const response = await fetch(SERVER_URL + '/pomodoros', {
+    const response = await fetch(API_URL + '/pomodoros', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -45,7 +45,7 @@ export async function loadPomodoro() {
  */
 export async function updatePomodoro(pomodoro) {
   try {
-    const response = await fetch(SERVER_URL + '/pomodoros/' + pomodoro.id, {
+    const response = await fetch(API_URL + '/pomodoros/' + pomodoro.id, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -71,7 +71,7 @@ export async function updatePomodoro(pomodoro) {
  */
 export async function createPomodoro(config) {
   try {
-    const response = await fetch(SERVER_URL + '/pomodoros', {
+    const response = await fetch(API_URL + '/pomodoros', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -98,7 +98,7 @@ export async function createPomodoro(config) {
  */
 export async function deletePomodoro(pomodoro) {
   try {
-    const response = await fetch(SERVER_URL + '/pomodoros/' + pomodoro.id, {
+    const response = await fetch(API_URL + '/pomodoros/' + pomodoro.id, {
       method: 'DELETE'
     })
     if (!response.ok) {
