@@ -9,7 +9,7 @@ import Table from '@editorjs/table'
 import Link from '@editorjs/link'
 import LinkAutocomplete from '@editorjs/link-autocomplete'
 import { API_URL } from '../../../../const.js'
-
+import { MDParser, MDImporter } from 'editorjs-md-parser'
 /**
  * note's title to be displayed into the editor
  */
@@ -61,6 +61,7 @@ export async function initializeEditor() {
   const edit_note = await getEditNoteData()
   const editor = new EditorJS({
     holder: 'editorjs',
+    autofocuse: true,
     // inlineToolbar: ['link', 'marker', 'bold', 'italic'],
     data: edit_note,
     tools: {
@@ -105,15 +106,34 @@ export async function initializeEditor() {
       link: {
         class: Link,
         config: {
-          endpoint:
-            'http://localhost/phppot/javascript/create-web-text-editor-javascript/ajax-endpoint/fetch-url-metadata.php'
+          endpoint: API_URL + '/fetchUrl'
         }
       },
-      link: {
+      linkAutocomplete: {
         class: LinkAutocomplete,
         config: {
           endpoint: '/notes',
           queryParam: 'title'
+        }
+      },
+      markdownParser: {
+        class: MDParser,
+        config: {
+          filename: 'test',
+          timestamp: true,
+          callback: (blocksData) => {
+            console.log('Callback MDParser', blocksData)
+          }
+        }
+      },
+      markdownImporter: {
+        class: MDImporter,
+        config: {
+          append: true,
+          extensions: ['md', 'txt'],
+          callback: (blocksData) => {
+            console.log('Callback MDImporter', blocksData)
+          }
         }
       }
     }

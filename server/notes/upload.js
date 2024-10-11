@@ -1,16 +1,21 @@
-import multer from 'multer'
-import { extname } from 'path'
+import multer from 'multer';
+import fs from 'fs';
 
-// Configurazione di Multer
+const uploadDir = 'uploads/';
+
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/')
+    cb(null, uploadDir);
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + extname(file.originalname))
+    cb(null, Date.now() + '-' + file.originalname);
   }
-})
+});
 
-const upload = multer({ storage: storage })
+const upload = multer({ storage: storage });
 
-export default upload
+export default upload;
