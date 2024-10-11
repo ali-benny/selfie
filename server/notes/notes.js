@@ -217,9 +217,9 @@ app.get('/tags', async (req, res) => {
  *   ****** UPLOAD IMAGE ******   *
  */
 
-app.post('/upload', upload.single('image'), async (req, res) => {
+app.post('/upload', upload.single('file'), async (req, res) => {
   try {
-    if (!connected['image']) await connect('image')
+    if (!connected['upload']) await connect('upload')
     const newImage = new Image({
       filename: req.file.filename,
       path: req.file.path,
@@ -237,8 +237,45 @@ app.post('/upload', upload.single('image'), async (req, res) => {
     })
   } catch (error) {
     console.error(error)
-    res.status(500).json({ success: 0, message: 'Upload image error!' })
+    res.status(500).json({ success: 0, message: 'Upload error!' })
   }
 })
+
+/** 
+ * Including Block external link url
+ */
+
+import * as cheerio from 'cheerio';
+
+app.get('/fetchUrl', async (req, res) => {
+  const url = req.query.url;
+
+  if (!url) {
+    return res.status(400).json({ success: 0, message: 'URL is required' });
+  }
+
+  try {
+    const response = await fetch(url);
+    const html = await response.text();
+    const $ = cheerio.load(html);
+
+    const metadata = {
+      success: 1,
+      link: url,
+      meta: {
+        title: $('title').first().text(),
+        description: $('meta[name="description"]').attr('content') || '',
+        image: {
+          url: $('meta[property="og:image"]').attr('content') || ''
+        }
+      }
+    };
+
+    res.json(metadata);
+  } catch (error) {
+    console.error('Error fetching URL:', error);
+    res.status(500).json({ success: 0, message: 'Failed to fetch URL metadata' });
+  }
+});
 
 export default app
