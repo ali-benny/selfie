@@ -1,3 +1,6 @@
+# Secrets
+.secrets
+
 # Logs
 logs
 *.log
@@ -16,7 +19,7 @@ dist-ssr
 coverage
 *.tsbuildinfo
 
-# Note's Images Uploads 
+# Note's Images Uploads
 uploads/
 
 # Diagnostic reports (https://nodejs.org/api/report.html)

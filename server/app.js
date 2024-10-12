@@ -3,6 +3,7 @@ import express, { response } from 'express'
 import mongoose from 'mongoose'
 import { MONGO_URI, SERVER_URL, PORT } from '../const.js'
 import notes from './notes/notes.js'
+import users from './users/users.js'
 import pomodoro from './pomodoro/pomodoro.js'
 
 import fs from 'fs'
@@ -15,6 +16,7 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 app.use('/api', notes)
+app.use('/api', users)
 app.use('/api', pomodoro)
 
 app.listen(PORT, () => {
