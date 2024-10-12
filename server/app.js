@@ -3,19 +3,26 @@ import express, { response } from 'express'
 import mongoose from 'mongoose'
 import { MONGO_URI, SERVER_URL, PORT } from '../const.js'
 import notes from './notes/notes.js'
+import users from './users/users.js'
 import fs from 'fs'
 import path from 'path'
 
-const __dirname = process.cwd();
+const __dirname = process.cwd()
 
 export let connected = {}
 const app = express()
 app.use(cors())
 app.use(express.json())
 app.use('/api', notes)
+app.use('/api', users)
 
 app.listen(PORT, () => {
   console.log(`Server running at ${SERVER_URL}`)
+})
+
+app.all('*', (res, req, next) => {
+  // TODO: require autentication
+  next()
 })
 
 /**
