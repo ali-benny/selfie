@@ -16,13 +16,11 @@ import { MDParser, MDImporter } from 'editorjs-md-parser'
 let title = ''
 
 export function getEditNoteTitle() {
-  // console.log('GETtitle: ' + title)
   return title
 }
 
 export function getEditNoteId() {
   const searchParams = new URLSearchParams(window.location.search)
-  // console.log('note ID: ' + searchParams.get('edit'))
   return searchParams?.get('edit')
 }
 
@@ -35,7 +33,7 @@ export async function getEditNoteData() {
   const noteId = getEditNoteId()
   let noteData = {}
   if (noteId) {
-    const response = await fetch(`/notes/${noteId}`, {
+    const response = await fetch(`${API_URL}/notes/${noteId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -43,7 +41,6 @@ export async function getEditNoteData() {
     })
     if (response.ok) {
       noteData = await response.json()
-      console.log('DATA: ' + noteData)
       title = noteData.name
       return noteData.data
     }
