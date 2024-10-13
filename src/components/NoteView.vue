@@ -74,7 +74,8 @@ function parseHtml(data) {
   if (!data || !Array.isArray(data.blocks)) {
     return ''
   }
-  return edjsParser.parse(data).join('')
+  const html = edjsParser.parse(data).join('')
+  return html.replace(/src="\/uploads\//g, `src="${API_URL}/uploads/`)
 }
 
 function truncate(data, length) {

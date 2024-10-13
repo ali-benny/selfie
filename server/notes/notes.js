@@ -114,7 +114,7 @@ app.get('/notes/:id', async (req, res) => {
       res.status(404).json({ error: 'Note not found' })
     }
   } catch (err) {
-    console.error(err)
+    console.error('NOTES/:id | '+err)
     res.status(500).json({ error: err.message })
   }
 })
@@ -232,7 +232,31 @@ app.post('/upload', upload.single('file'), async (req, res) => {
     res.status(200).json({
       success: 1,
       file: {
-        url: `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
+        url: `/uploads/${req.file.filename}`
+      }
+    })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ success: 0, message: 'Upload error!' })
+  }
+})
+
+app.post('/upload/image', upload.single('image'), async (req, res) => {
+  try {
+    if (!connected['image']) await connect('image')
+    const newImage = new Image({
+      filename: req.file.filename,
+      path: req.file.path,
+      size: req.file.size,
+      mimetype: req.file.mimetype
+    })
+
+    await newImage.save()
+
+    res.status(200).json({
+      success: 1,
+      file: {
+        url: `/uploads/${req.file.filename}`
       }
     })
   } catch (error) {

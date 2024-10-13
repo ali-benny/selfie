@@ -7,9 +7,9 @@ import AttachesTool from '@editorjs/attaches'
 import CodeTool from '@editorjs/code'
 import Table from '@editorjs/table'
 import Link from '@editorjs/link'
-import LinkAutocomplete from '@editorjs/link-autocomplete'
 import { API_URL } from '../../../../const.js'
 import { MDParser, MDImporter } from 'editorjs-md-parser'
+
 /**
  * note's title to be displayed into the editor
  */
@@ -31,7 +31,7 @@ export function getEditNoteId() {
  *
  * @return {EditorJS.data} | {}
  */
-async function getEditNoteData() {
+export async function getEditNoteData() {
   const noteId = getEditNoteId()
   let noteData = {}
   if (noteId) {
@@ -43,6 +43,7 @@ async function getEditNoteData() {
     })
     if (response.ok) {
       noteData = await response.json()
+      console.log('DATA: ' + noteData)
       title = noteData.name
       return noteData.data
     }
@@ -61,7 +62,7 @@ export async function initializeEditor() {
   const edit_note = await getEditNoteData()
   const editor = new EditorJS({
     holder: 'editorjs',
-    autofocuse: true,
+    autofocus: true,
     // inlineToolbar: ['link', 'marker', 'bold', 'italic'],
     data: edit_note,
     tools: {
@@ -84,8 +85,8 @@ export async function initializeEditor() {
         class: ImageTool,
         config: {
           endpoints: {
-            byFile: API_URL + '/upload',
-            byUrl: API_URL + '/upload'
+            byFile: API_URL + '/upload/image',
+            byUrl: API_URL + '/upload/image'
           }
         }
       },
@@ -107,13 +108,6 @@ export async function initializeEditor() {
         class: Link,
         config: {
           endpoint: API_URL + '/fetchUrl'
-        }
-      },
-      linkAutocomplete: {
-        class: LinkAutocomplete,
-        config: {
-          endpoint: '/notes',
-          queryParam: 'title'
         }
       },
       markdownParser: {
