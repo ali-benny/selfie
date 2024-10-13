@@ -55,11 +55,15 @@ import { getTags, createTag } from '@/router/note/editor/tags'
 
 export default {
   async mounted() {
-    this.editor = await initializeEditor()
     this.id = getEditNoteId()
-    this.title = getEditNoteTitle()
     this.tags = await getTags(this.id)
-    this.selectedTags = await getNoteTags(this.id)
+    this.editor = await initializeEditor()
+    if (this.id != null) {
+      this.selectedTags = await getNoteTags(this.id)
+
+      this.title = getEditNoteTitle()
+      console.log('-Note Title:', this.title)
+    }
   },
   directives: {
     focus: {
@@ -83,23 +87,21 @@ export default {
     toggleIcon() {
       this.isChecked = !this.isChecked
     },
-    saveNote() {
+    async saveNote() {
       const toast = useToast()
-      this.editor
-        .save()
-        .then(async (outputData) => {
-          try {
-            saveNoteMongo(this.id, this.title, outputData, this.selectedTags)
-            toast.success('Note saved successfully!')
-          } catch (error) {
-            console.error('Failed to save EditorJS data:', error)
-            toast.error('Failed to save the note')
-          }
-        })
-        .catch((error) => {
-          console.error('Failed to save EditorJS data:', error)
-          toast.error('Failed to save the note')
-        })
+      if (!this.editor) {
+        console.error('Editor not initialized')
+        toast.error('Editor not ready. Please try again.')
+        return
+      }
+      try {
+        const outputData = await this.editor.save()
+        await saveNoteMongo(this.id, this.title, outputData, this.selectedTags)
+        toast.success('Note saved successfully!')
+      } catch (error) {
+        console.error('Failed to save EditorJS data:', error)
+        toast.error('Failed to save the note')
+      }
     },
     addTag(event) {
       const newTag = event.target.value
