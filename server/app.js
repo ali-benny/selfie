@@ -5,6 +5,7 @@ import { MONGO_URI, SERVER_URL, PORT } from '../const.js'
 import notes from './notes/notes.js'
 import upload from './notes/upload.js'
 import users from './users/users.js'
+import upload from './notes/upload.js'
 import fs from 'fs'
 import path from 'path'
 
