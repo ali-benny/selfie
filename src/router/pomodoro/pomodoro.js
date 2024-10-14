@@ -4,8 +4,8 @@ import { API_URL } from '../../../const.js'
  * TODO: spostare pomodoroMessage e breakMessage
  */
 export const defaultConfig = {
-  pomodoroTime: 25 * 60,
-  breakTime: 5 * 60,
+  pomodoroTime: 25,
+  breakTime: 5,
   cycles: 4,
   pomodoroMessage: 'Work!',
   breakMessage: 'Relax :)'
@@ -59,8 +59,6 @@ export async function updatePomodoro(pomodoro) {
     if (!response.ok) {
       throw new Error(`ERROR - updatePomodoro, response status ${response.status}`)
     }
-
-    console.log('OKAY - updatePomodoro')
   } catch (error) {
     console.error(error.message)
   }
@@ -109,6 +107,57 @@ export async function deletePomodoro(pomodoro) {
   }
 }
 
+export async function loadConfigs() {
+  try {
+    const response = await fetch(API_URL + '/pomodoros/configs', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+
+    if (!response.ok) {
+      throw new Error(`ERROR - loadPomodoro, response status ${response.status}`)
+    }
+    return response.json()
+  } catch (error) {
+    console.error(error.message)
+  }
+}
+
+export async function updatePomodoroConfig(config) {
+  try {
+    const response = await fetch(API_URL + '/pomodoros/configs/' + config._id, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...config
+      })
+    })
+    if (!response.ok) {
+      throw new Error(`ERROR - updatePomodoroConfig, response status ${response.status}`)
+    }
+  } catch (error) {
+    console.error(error.message)
+  }
+}
+
+/*
+ * Elimina la Config
+ */
+export async function deletePomodoroConfig(id) {
+  try {
+    const response = await fetch(API_URL + '/pomodoros/configs/' + id, {
+      method: 'DELETE'
+    })
+    if (!response.ok) {
+      throw new Error(`ERROR - deletePomodoroConfig, response status ${response.status}`)
+    }
+  } catch (error) {
+    console.error(error.message)
+  }
+}
+
 export class Pomodoro {
   static createTimerStep(pomodoro) {
     return () => {
@@ -129,7 +178,7 @@ export class Pomodoro {
   }) {
     this.id = id
     this.config = config
-    this.timer = timer ? timer : config.pomodoroTime
+    this.timer = timer ? timer : config.pomodoroTime * 60
     this.phase = phase
     this.cycle = cycle
     this.started = started
@@ -150,7 +199,7 @@ export class Pomodoro {
     if (!this.started) {
       this.started = true
       this.phase = 'pomodoro'
-      this.timer = this.config.pomodoroTime
+      this.timer = this.config.pomodoroTime * 60
     }
 
     this.running = true
@@ -202,14 +251,14 @@ export class Pomodoro {
     switch (this.phase) {
       case 'pomodoro':
         this.phase = 'break'
-        this.timer = this.config.breakTime
+        this.timer = this.config.breakTime * 60
         break
       case 'break':
         if (++this.cycle >= this.config.cycles) {
           this.finish()
         } else {
           this.phase = 'pomodoro'
-          this.timer = this.config.pomodoroTime
+          this.timer = this.config.pomodoroTime * 60
         }
         break
     }
@@ -230,7 +279,8 @@ export class Pomodoro {
       clearInterval(this.intervalId)
       this.intervalId = setInterval(Pomodoro.createTimerStep(this), 1000)
     }
-    this.timer = this.phase === 'pomodoro' ? this.config.pomodoroTime : this.config.breakTime
+    this.timer =
+      this.phase === 'pomodoro' ? this.config.pomodoroTime * 60 : this.config.breakTime * 60
 
     updatePomodoro(this)
   }

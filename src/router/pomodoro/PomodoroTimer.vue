@@ -1,42 +1,54 @@
 <template>
-      <div class="row justify-content-center">
-        <div class="col-auto display-5">
-          {{ message }}
-        </div>
-        <div class="row justify-content-center">
-          <div class="col-auto">
-            {{ pomodoro.cycle }} / {{ pomodoro.config.cycles }}
-          </div>
-        </div>
+  <div class="row justify-content-center">
+    <div class="col-auto display-5">
+      {{ message }}
+    </div>
+    <div class="row justify-content-center">
+      <div class="col-auto">
+        {{ pomodoro.cycle }} / {{ pomodoro.config.cycles }}
       </div>
-      <div class="row justify-content-center">
-        <div class="col-auto display-1 user-select-none digital">
-          {{ formattedTime }}
-        </div>
-      </div>
-      <div class="row justify-content-center">
-        <div v-if="pomodoro.started" @click="pomodoro.restart()" class="col-auto clickable">
-          <Icon icon="fluent:arrow-reset-20-regular" style="color: black" />
-        </div>
-        <div v-if="pomodoro.running" @click="pomodoro.pause()" class="col-auto user-select-none clickable">
-          <Icon icon="fluent:pause-20-regular" style="color: black" />
-        </div>
-        <div v-else @click="pomodoro.play()" class="col-auto user-select-none clickable">
-          <Icon icon="fluent:play-20-regular" style="color: black" />
-        </div>
-        <div v-if="pomodoro.started" @click="pomodoro.skip()" class="col-auto clickable">
-          <Icon icon="fluent:fast-forward-20-regular" style="color: black" />
-        </div>
-      </div>
+    </div>
+  </div>
+  <div class="row justify-content-center">
+    <div class="col-auto display-1 user-select-none digital">
+      {{ formattedTime }}
+    </div>
+  </div>
+  <div class="row justify-content-center">
+    <div v-if="pomodoro.started" @click="pomodoro.restart()" class="col-auto clickable">
+      <Icon icon="fluent:arrow-reset-20-regular" style="color: black" />
+    </div>
+    <div v-if="pomodoro.running" @click="pomodoro.pause()" class="col-auto user-select-none clickable">
+      <Icon icon="fluent:pause-20-regular" style="color: black" />
+    </div>
+    <div v-else @click="pomodoro.play()" class="col-auto user-select-none clickable">
+      <Icon icon="fluent:play-20-regular" style="color: black" />
+    </div>
+    <div v-if="pomodoro.started" @click="pomodoro.skip()" class="col-auto clickable">
+      <Icon icon="fluent:fast-forward-20-regular" style="color: black" />
+    </div>
+  </div>
+  <div class="row">
+    <button @click="deletePomodoro()" class="col">
+      <Icon icon="fluent:delete-20-regular" />
+    </button>
+  </div>
 </template>
 
 <script>
 import { Icon } from '@iconify/vue'
-import { Pomodoro } from './pomodoro.js'
+import { Pomodoro, deletePomodoro } from './pomodoro.js'
 
 export default {
   props: {
     pomodoro: Pomodoro
+  },
+  methods: {
+    deletePomodoro() {
+      deletePomodoro(this.pomodoro)
+      // TODO: mandare un messaggio alla dash?
+      this.pomodoro.finished = true
+    }
   },
   computed: {
     formattedTime() {
