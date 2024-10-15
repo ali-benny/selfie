@@ -43,11 +43,20 @@ export default {
   props: {
     pomodoro: Pomodoro
   },
+  emits: [
+    'pomodoroFinished'
+  ],
   methods: {
     deletePomodoro() {
       deletePomodoro(this.pomodoro)
-      // TODO: mandare un messaggio alla dash?
-      this.pomodoro.finished = true
+      this.$emit("pomodoroFinished")
+    }
+  },
+  watchers: {
+    'pomodoro.finished'(finished) {
+      if (finished) {
+        this.$emit("pomodoroFinished")
+      }
     }
   },
   computed: {

@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <div v-if="pomodoro">
-      <PomodoroTimer :pomodoro="pomodoro" />
+      <PomodoroTimer @pomodoroFinished="deletePomodoro()" :pomodoro="pomodoro" />
     </div>
     <div v-else>
       <div>
@@ -23,27 +23,26 @@
         </div>
         <button @click="createPomodoro(form_config)">Crea</button>
       </div>
-      <div class="container-sm">
-        <ul class="w-100 w-sm-75 mx-auto list-group">
+      <div class="w-100 w-md-75 mx-auto">
+        <ul class="list-group">
           <li v-for="config in pomodoroConfigs" :key="config._id" class="list-group-item">
             <div class="d-flex flex-column justify-content-start gap-2">
-              <div class="d-flex flex-row justify-content-between gap-4">
-                <div class="d-flex justify-content-start">
-                  <input type="text" v-model="config.name" class="form-control" v-if="config.edit">
-                  <div class="d-flex justify-content-start align-items-center gap-2" v-else>
-                    <h2 class="m-0">
-                      {{ config.name }}
-                    </h2>
-                    <button class="d-flex align-items-center " v-if="!config.edit">
-                      <Icon icon="fluent:share-48-regular" />
-                    </button>
-                  </div>
-                </div>
-                <div class="d-flex justify-content-end gap-2">
-                  <button @click="deleteConfig(config._id)" class="d-flex align-items-center text-danger"
-                    :disabled="config.edit">
+              <div class="d-flex flex-row justify-content-between gap-4" style="flex-basis: 3rem">
+                <div class="d-flex justify-content-start align-items-center gap-2" v-if="config.edit">
+                  <input type="text" v-model="config.name" class="form-control">
+                  <button @click="deleteConfig(config._id)" class="d-flex align-items-center text-danger">
                     <Icon icon="fluent:delete-32-regular" />
                   </button>
+                </div>
+                <div class="d-flex justify-content-start align-items-center gap-2" v-else>
+                  <h2 class="m-0">
+                    {{ config.name }}
+                  </h2>
+                  <button class="d-flex align-items-center mt-1" v-if="!config.edit">
+                    <Icon icon="fluent:share-48-regular" />
+                  </button>
+                </div>
+                <div class="d-flex justify-content-end gap-2">
                   <button @click="saveConfig(config)" class="d-flex align-items-center" :disabled="!config.edit"
                     v-if="config.edit">
                     <Icon icon="fluent:save-32-regular" />
@@ -57,8 +56,7 @@
                   </button>
                 </div>
               </div>
-
-              <div class="d-flex flex-column gap-1">
+              <div class="w-100 w-sm-50 d-33 d-flex flex-column gap-1">
                 <div class="d-flex flex-row justify-content-start align-items-center gap-1">
                   <p class="m-0">Pomodoro:</p>
                   <div class="flex-grow input-group input-group-sm">
@@ -109,27 +107,23 @@ export default {
     this.pomodoroConfigs = await loadConfigs()
   },
   methods: {
-    createPomodoro(config) {
-      createPomodoro(config)
+    async createPomodoro(config) {
+      await createPomodoro(config)
         .then(p => {
           this.pomodoro = p
         })
     },
-    saveConfig(config) {
-      updatePomodoroConfig(config)
+    async saveConfig(config) {
+      await updatePomodoroConfig(config)
       config.edit = false
     },
     async deleteConfig(id) {
-      deletePomodoroConfig(id)
+      await deletePomodoroConfig(id)
       this.pomodoroConfigs = await loadConfigs()
-    }
-  },
-  watch: {
-    'pomodoro.finished'(finished) {
-      // quando il pomodoro finisce, elimino anche l'istanza salvata
-      if (finished) {
-        this.pomodoro = null
-      }
+    },
+    async deletePomodoro() {
+      this.pomodoro = null
+      this.pomodoroConfigs = await loadConfigs()
     }
   },
   components: {
