@@ -4,24 +4,28 @@
       <PomodoroTimer @pomodoroFinished="deletePomodoro()" :pomodoro="pomodoro" />
     </div>
     <div v-else>
-      <div>
+      <div class="mt-2 mb-4 w-50 mx-auto">
         <div class="row">
-          <label for="name" class="col">Nome: </label>
-          <input type="text" name="name" v-model="form_config.name" class="col" />
+          <label for="name" class="col-auto">Nome: </label>
+          <input type="text" name="name" v-model="form_config.name" class="col form-control" />
         </div>
         <div class="row">
-          <label for="cycles" class="col">Cicli: </label>
-          <input type="number" name="cycles" v-model="form_config.cycles" class="col" />
+          <label for="cycles" class="col-auto">Cicli: </label>
+          <input type="number" name="cycles" v-model="form_config.cycles" class="col form-control" />
         </div>
         <div class="row">
-          <label for="pomodoroTime" class="col">Studio: </label>
-          <input type="number" name="pomodoroTime" v-model="form_config.pomodoroTime" class="col" />
+          <label for="pomodoroTime" class="col-auto">Studio: </label>
+          <input type="number" name="pomodoroTime" v-model="form_config.pomodoroTime" class="col form-control" />
         </div>
         <div class="row">
-          <label for="breakTime" class="col">Pausa: </label>
-          <input type="number" name="breakTime" v-model="form_config.breakTime" class="col" />
+          <label for="breakTime" class="col-auto">Pausa: </label>
+          <input type="number" name="breakTime" v-model="form_config.breakTime" class="col form-control" />
         </div>
-        <button @click="createPomodoro(form_config)">Crea</button>
+        <div class="row">
+          <div class="col-4 mx-auto">
+            <button @click="createPomodoro(form_config)" class="btn btn-primary">Crea</button>
+          </div>
+        </div>
       </div>
       <div class="w-100 w-md-75 mx-auto">
         <ul class="list-group">
