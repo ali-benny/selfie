@@ -37,7 +37,7 @@
 
 <script>
 import { Icon } from '@iconify/vue'
-import { Pomodoro, deletePomodoro } from './pomodoro.js'
+import { Pomodoro, deletePomodoro } from '../../router/pomodoro/pomodoro.js'
 
 export default {
   props: {
@@ -49,13 +49,13 @@ export default {
   methods: {
     deletePomodoro() {
       deletePomodoro(this.pomodoro)
-      this.$emit("pomodoroFinished")
+      this.$emit('pomodoroFinished')
     }
   },
   watchers: {
     'pomodoro.finished'(finished) {
       if (finished) {
-        this.$emit("pomodoroFinished")
+        this.$emit('pomodoroFinished')
       }
     }
   },
