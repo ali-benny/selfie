@@ -7,8 +7,8 @@ import AttachesTool from '@editorjs/attaches'
 import CodeTool from '@editorjs/code'
 import Table from '@editorjs/table'
 import Link from '@editorjs/link'
-import LinkAutocomplete from '@editorjs/link-autocomplete'
 import { API_URL } from '../../../../const.js'
+import { MDParser, MDImporter } from 'editorjs-md-parser'
 
 /**
  * note's title to be displayed into the editor
@@ -16,13 +16,11 @@ import { API_URL } from '../../../../const.js'
 let title = ''
 
 export function getEditNoteTitle() {
-  // console.log('GETtitle: ' + title)
   return title
 }
 
 export function getEditNoteId() {
   const searchParams = new URLSearchParams(window.location.search)
-  console.log('note ID: ' + searchParams.get('edit'))
   return searchParams?.get('edit')
 }
 
@@ -31,18 +29,15 @@ export function getEditNoteId() {
  *
  * @return {EditorJS.data} | {}
  */
-async function getEditNoteData() {
+export async function getEditNoteData() {
   const noteId = getEditNoteId()
   let noteData = {}
   if (noteId) {
-    const response = await fetch(API_URL + '/search', {
-      method: 'POST',
+    const response = await fetch(`${API_URL}/notes/${noteId}`, {
+      method: 'GET',
       headers: {
         'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        query: noteId
-      })
+      }
     })
     if (response.ok) {
       noteData = await response.json()
@@ -64,6 +59,7 @@ export async function initializeEditor() {
   const edit_note = await getEditNoteData()
   const editor = new EditorJS({
     holder: 'editorjs',
+    autofocus: true,
     // inlineToolbar: ['link', 'marker', 'bold', 'italic'],
     data: edit_note,
     tools: {
@@ -86,15 +82,49 @@ export async function initializeEditor() {
         class: ImageTool,
         config: {
           endpoints: {
-            byFile: API_URL + '/upload',
-            byUrl: API_URL + '/upload'
+            byFile: API_URL + '/upload'
+          },
+          uploader: {
+            async uploadByFile(file) {
+              try {
+                console.log('Iniziando upload del file:', file.name)
+
+                const response = await fetch(API_URL + '/upload', {
+                  method: 'POST',
+                  body: file,
+                  headers: {
+                    'Content-Type': file.type
+                  }
+                })
+
+                const result = await response.json()
+                console.log('Risposta ricevuta:', result)
+
+                if (!result.success) {
+                  throw new Error(result.message || 'Upload fallito')
+                }
+
+                return {
+                  success: 1,
+                  file: {
+                    url: result.file.url
+                  }
+                }
+              } catch (error) {
+                console.error('Errore durante upload:', error)
+                return {
+                  success: 0,
+                  message: error.message
+                }
+              }
+            }
           }
         }
       },
       attaches: {
         class: AttachesTool,
         config: {
-          endpoint: '/upload'
+          endpoint: API_URL + '/upload'
         }
       },
       code: {
@@ -108,15 +138,27 @@ export async function initializeEditor() {
       link: {
         class: Link,
         config: {
-          endpoint:
-            'http://localhost/phppot/javascript/create-web-text-editor-javascript/ajax-endpoint/fetch-url-metadata.php'
+          endpoint: API_URL + '/fetchUrl'
         }
       },
-      link: {
-        class: LinkAutocomplete,
+      markdownParser: {
+        class: MDParser,
         config: {
-          endpoint: '/',
-          queryParam: 'search'
+          filename: 'test',
+          timestamp: true,
+          callback: (blocksData) => {
+            console.log('Callback MDParser', blocksData)
+          }
+        }
+      },
+      markdownImporter: {
+        class: MDImporter,
+        config: {
+          append: true,
+          extensions: ['md', 'txt'],
+          callback: (blocksData) => {
+            console.log('Callback MDImporter', blocksData)
+          }
         }
       }
     }

@@ -1,6 +1,6 @@
 import { API_URL } from '../../../../const'
 
-export async function getTags(noteId) {
+export async function getTags() {
   try {
     const response = await fetch(API_URL + `/tags`)
     if (!response.ok) {

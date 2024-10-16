@@ -2,8 +2,8 @@
 import { ref, onMounted, computed } from 'vue'
 import { Icon } from '@iconify/vue'
 import edjsHTML from 'editorjs-html'
-import { API_URL } from '~/const.js'
-import { getNotes, saveNoteMongo } from '@/router/note/editor/note.js'
+import { API_URL } from '../../const.js'
+import { getNotes, saveNoteMongo, deleteNote } from '@/router/note/editor/note.js'
 import { useToast } from 'vue-toastification'
 
 const props = defineProps(['viewMode', 'lastModified', 'edit', 'extended'])
@@ -20,34 +20,13 @@ onMounted(async () => {
   }
 })
 
-async function deleteNote(id) {
-  const response = await fetch(API_URL + '/delete', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      collection: 'Note',
-      id: id
-    })
-  })
-
-  if (response.ok) {
-    notes.value = await getNotes()
-    toast.success('Note deleted successfully!')
-  } else {
-    toast.error('Failed to delete note')
-  }
-}
-
 async function duplicateNote(id) {
   try {
-    const response = await fetch(API_URL + '/search', {
-      method: 'POST',
+    const response = await fetch(API_URL + `/notes/${id}`, {
+      method: 'GET',
       headers: {
         'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ query: id })
+      }
     })
 
     if (!response.ok) {
@@ -95,7 +74,8 @@ function parseHtml(data) {
   if (!data || !Array.isArray(data.blocks)) {
     return ''
   }
-  return edjsParser.parse(data).join('')
+  const html = edjsParser.parse(data).join('')
+  return html.replace(/src="\/uploads\//g, `src="${API_URL}/uploads/`)
 }
 
 function truncate(data, length) {
@@ -110,6 +90,17 @@ const filteredNotes = computed(() => {
   }
   return notes.value
 })
+
+async function removeNote(id) {
+  try {
+    await deleteNote(id)
+    notes.value = await getNotes()
+    toast.success('Note deleted successfully')
+  } catch (error) {
+    console.error('Failed to delete note:', error)
+    toast.error('Failed to delete note')
+  }
+}
 </script>
 
 <template>
@@ -117,19 +108,19 @@ const filteredNotes = computed(() => {
     <li
       v-for="note in filteredNotes"
       :key="note._id"
-      class="list-group-item d-flex flex-row flex-wrap flex-md-nowrap justify-content-between"
+      class="list-group-item flex flex-row flex-wrap md:flex-nowrap justify-between"
     >
-      <div class="d-flex flex-column">
+      <div class="flex flex-column">
         <!-- DEBUG: note _id -->
         <!-- <p>{{ note._id }}</p>  -->
-        <h2>{{ note.name }}</h2>
+        <h1>{{ note.name }}</h1>
         <p>Author: {{ note.author }}</p>
-        <p v-if="props.extended" class="d-flex align-items-center gap-2">
+        <p v-if="props.extended" class="flex items-center gap-2">
           <Icon icon="ic:round-update" /> {{ formatDate(note.date) }}
         </p>
         <!-- Tags -->
-        <div v-if="props.extended" class="d-flex flex-row gap-2 flex-wrap">
-          <p v-for="tag in note.tags" class="d-flex px-2 rounded-5 bg-primary-subtle">
+        <div v-if="props.extended" class="flex flex-row gap-2 flex-wrap">
+          <p v-for="tag in note.tags" class="flex px-2 rounded-xl bg-primary-subtle">
             {{ tag }}
           </p>
         </div>
@@ -137,7 +128,7 @@ const filteredNotes = computed(() => {
       <div
         v-if="props.extended"
         id="preview"
-        class="d-flex w-75 m-3 p-3 flex-grow-1 flex-wrap rounded-4 bg-light"
+        class="flex w-75 m-3 p-3 flex-grow-1 flex-wrap rounded-4 bg-light"
         v-html="truncate(note.data, 200)"
       ></div>
       <!-- <img
@@ -148,12 +139,12 @@ const filteredNotes = computed(() => {
           /> -->
       <div
         v-if="props.edit"
-        class="d-flex flex-md-column flex-row flex-wrap justify-content-center gap-2 mx-auto mt-2"
+        class="flex flex-md-column flex-row flex-wrap justify-content-center gap-2 mx-auto mt-2"
       >
         <RouterLink
           :to="`/editor?edit=${note._id}`"
           role="button"
-          class="btn btn-ghost btn-primary fs-5 d-flex justify-content-center align-items-center"
+          class="btn btn-ghost btn-primary text-xl flex justify-content-center align-items-center"
           title="Edit note"
         >
           <Icon icon="fluent:note-edit-24-regular" /> Modifica
@@ -161,15 +152,15 @@ const filteredNotes = computed(() => {
         <button
           @click="duplicateNote(note._id)"
           role="button"
-          class="btn btn-ghost btn-outline-primary fs-5 d-flex justify-content-center align-items-center"
+          class="btn btn-ghost btn-outline-primary text-xl flex justify-content-center align-items-center"
           title="Duplicate note"
         >
           <Icon icon="fluent:copy-24-regular" /> Duplica
         </button>
         <button
-          @click="deleteNote(note._id)"
+          @click="removeNote(note._id)"
           role="button"
-          class="btn btn-ghost btn-outline-danger fs-5 d-flex justify-content-center align-items-center"
+          class="btn btn-ghost btn-outline-danger text-xl flex justify-content-center align-items-center"
           title="Delete note"
         >
           <Icon icon="fluent:delete-24-regular" /> Elimina
@@ -182,33 +173,33 @@ const filteredNotes = computed(() => {
       <div
         v-for="note in filteredNotes"
         :key="note._id"
-        class="col-xl-3 col-lg-4 col-md-6 col-sm-12 d-flex p-2"
+        class="col-xl-3 col-lg-4 col-md-6 col-sm-12 flex p-2"
       >
-        <div class="card d-flex flex-column flex-grow-1 p-3">
+        <div class="card flex flex-column flex-grow-1 p-3">
           <h2>{{ note.name }}</h2>
           <p>Author: {{ note.author }}</p>
-          <p class="d-flex align-items-center gap-2">
+          <p class="flex align-items-center gap-2">
             <Icon icon="ic:round-update" /> {{ formatDate(note.date) }}
           </p>
           <!-- Tags -->
-          <div class="d-flex flex-row flex-wrap gap-2">
-            <p v-for="tag in note.tags" class="d-flex px-2 rounded-5 bg-primary-subtle">
+          <div class="flex flex-row flex-wrap gap-2">
+            <p v-for="tag in note.tags" class="flex px-2 rounded-5 bg-primary-subtle">
               {{ tag }}
             </p>
           </div>
           <div
             id="preview"
-            class="d-flex flex-column flex-grow-1 bg-light card p-2"
+            class="flex flex-column flex-grow-1 bg-light card p-2"
             v-html="truncate(note.data, 200)"
           ></div>
           <div
             v-if="props.edit"
-            class="d-flex flex-row flex-wrap gap-2 mx-auto justify-content-center mt-2"
+            class="flex flex-row flex-wrap gap-2 mx-auto justify-content-center mt-2"
           >
             <RouterLink
               :to="`/editor?edit=${note._id}`"
               role="button"
-              class="btn btn-ghost btn-primary fs-5 d-flex justify-content-center align-items-center"
+              class="btn btn-ghost btn-primary text-2xl flex justify-content-center align-items-center"
               title="Edit note"
             >
               <Icon icon="fluent:note-edit-24-regular" />
@@ -216,15 +207,15 @@ const filteredNotes = computed(() => {
             <button
               @click="duplicateNote(note._id)"
               role="button"
-              class="btn btn-ghost btn-outline-primary fs-5 d-flex justify-content-center align-items-center"
+              class="btn btn-ghost btn-outline-primary text-2xl flex justify-content-center align-items-center"
               title="Duplicate note"
             >
               <Icon icon="fluent:copy-24-regular" />
             </button>
             <button
-              @click="deleteNote(note._id)"
+              @click="removeNote(note._id)"
               role="button"
-              class="btn btn-ghost btn-outline-danger fs-5 d-flex justify-content-center align-items-center"
+              class="btn btn-ghost btn-outline-danger text-2xl flex justify-content-center align-items-center"
               title="Delete note"
             >
               <Icon icon="fluent:delete-24-regular" />
