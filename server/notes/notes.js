@@ -2,7 +2,6 @@ import express from 'express'
 import mongoose from 'mongoose'
 import { connected, connect } from '../app.js'
 import bodyParser from 'body-parser'
-import upload from './upload.js'
 
 const app = express()
 
@@ -218,57 +217,6 @@ app.get('/tags', async (req, res) => {
   }
 })
 
-/**
- *   ****** UPLOAD IMAGE ******   *
- */
-
-app.post('/upload', upload.single('file'), async (req, res) => {
-  try {
-    if (!connected['upload']) await connect('upload')
-    const newImage = new Image({
-      filename: req.file.filename,
-      path: req.file.path,
-      size: req.file.size,
-      mimetype: req.file.mimetype
-    })
-
-    await newImage.save()
-
-    res.status(200).json({
-      success: 1,
-      file: {
-        url: `/uploads/${req.file.filename}`
-      }
-    })
-  } catch (error) {
-    console.error(error)
-    res.status(500).json({ success: 0, message: 'Upload error!' })
-  }
-})
-
-app.post('/upload/image', upload.single('image'), async (req, res) => {
-  try {
-    if (!connected['image']) await connect('image')
-    const newImage = new Image({
-      filename: req.file.filename,
-      path: req.file.path,
-      size: req.file.size,
-      mimetype: req.file.mimetype
-    })
-
-    await newImage.save()
-
-    res.status(200).json({
-      success: 1,
-      file: {
-        url: `/uploads/${req.file.filename}`
-      }
-    })
-  } catch (error) {
-    console.error(error)
-    res.status(500).json({ success: 0, message: 'Upload error!' })
-  }
-})
 
 /** 
  * Including Block external link url

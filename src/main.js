@@ -1,7 +1,6 @@
-import './assets/main.css'
+// import './assets/main.css'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'jquery'
-import 'bootstrap'
 import './assets/tailwind.css'
 import '../const.js'
 import { createApp } from 'vue'

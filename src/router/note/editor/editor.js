@@ -82,8 +82,42 @@ export async function initializeEditor() {
         class: ImageTool,
         config: {
           endpoints: {
-            byFile: API_URL + '/upload/image',
-            byUrl: API_URL + '/upload/image'
+            byFile: API_URL + '/upload'
+          },
+          uploader: {
+            async uploadByFile(file) {
+              try {
+                console.log('Iniziando upload del file:', file.name)
+
+                const response = await fetch(API_URL + '/upload', {
+                  method: 'POST',
+                  body: file,
+                  headers: {
+                    'Content-Type': file.type
+                  }
+                })
+
+                const result = await response.json()
+                console.log('Risposta ricevuta:', result)
+
+                if (!result.success) {
+                  throw new Error(result.message || 'Upload fallito')
+                }
+
+                return {
+                  success: 1,
+                  file: {
+                    url: result.file.url
+                  }
+                }
+              } catch (error) {
+                console.error('Errore durante upload:', error)
+                return {
+                  success: 0,
+                  message: error.message
+                }
+              }
+            }
           }
         }
       },

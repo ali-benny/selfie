@@ -1,6 +1,6 @@
 <template>
   <Popper>
-    <button class="btn fs-4 d-flex align-items-center">
+    <button class="btn text-xl flex align-items-center">
       <Icon icon="typcn:user-add" />
     </button>
     <template #content>
@@ -12,7 +12,7 @@
             :class="[
               'flex',
               'gap-2',
-              'justify-content-between',
+              'justify-between',
               'rounded-md',
               'p-1',
               'px-3',
@@ -79,18 +79,21 @@ function select(user) {
 }
 
 function sendshare() {
-  // Logica per condividere il contenuto con gli utenti selezionati
   if (props.content === null) {
     toast.warning('Salva la nota prima di condividerla')
   }
-  console.log('Condividi con:', sharewith.value)
-  console.log('Contenuto da condividere:', props.content)
-  console.log('Tipo di contenuto:', props.type)
-  
+
+  switch (props.type) {
+    case 'Nota':
+      break
+    case 'Pomodoro':
+      break
+    case 'Evento':
+      break
+  }
   sharewith.value = []
   toast.success(`${props.type} condiviso con successo!`)
 }
-
 </script>
 
 <style scoped>

@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <div class="d-flex justify-content-between m-2 flex-wrap">
+    <div class="flex justify-between m-2 flex-wrap">
       <div class="row">
         <input
           type="text"
@@ -10,7 +10,7 @@
           v-focus="isChecked"
         />
         <button
-          class="btn col col-1 fs-4"
+          class="btn col col-1 text-xl"
           :class="isChecked ? 'text-success' : 'text-primary'"
           @click="toggleIcon"
         >
@@ -19,10 +19,10 @@
         </button>
       </div>
 
-      <div class="d-flex flex-end align-items-center">
+      <div class="flex flex-end align-items-center">
         <UserShare :content="id" type="Nota"></UserShare>
         <button
-          class="btn fs-4 btn-warning my-2 rounded-4 d-flex align-items-center"
+          class="btn text-xl btn-warning my-2 rounded-4 flex align-items-center"
           @click="saveNote"
         >
           <Icon icon="fluent:save-32-filled" /> Salva

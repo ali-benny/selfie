@@ -4,9 +4,9 @@ import { Icon } from '@iconify/vue'
 </script>
 
 <template>
-  <div class="d-flex flex-column">
+  <div class="flex flex-column">
     <nav class="navbar bg-body-secondary">
-      <div class="container-fluid d-flex justify-content-around fs-4">
+      <div class="container-fluid flex justify-content-around text-xl">
         <RouterLink to="/"><Icon icon="ic:round-dashboard" /></RouterLink>
         <RouterLink to="/note"><Icon icon="fluent:notebook-32-filled" /></RouterLink>
         <RouterLink to="/user"><Icon icon="fluent:settings-48-filled" /></RouterLink>

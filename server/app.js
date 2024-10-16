@@ -16,8 +16,9 @@ app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use('/api', notes)
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')))
 app.use('/api', users)
+app.use('/uploads', express.static('uploads'));
+app.use('/api', upload)
 
 app.listen(PORT, () => {
   console.log(`Server running at ${SERVER_URL}`)
