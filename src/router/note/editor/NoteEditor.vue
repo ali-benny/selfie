@@ -18,16 +18,16 @@
           <Icon icon="fluent:checkmark-12-filled" v-else />
         </button>
       </div>
-      <button class="btn fs-4" @click="share = !share">
-        <Icon icon="typcn:user-add" />
-      </button>
-      <UserShare v-if="share"></UserShare>
-      <button
-        class="btn fs-4 btn-warning my-2 rounded-4 d-flex align-items-center"
-        @click="saveNote"
-      >
-        <Icon icon="fluent:save-32-filled" /> Salva
-      </button>
+
+      <div class="d-flex flex-end align-items-center">
+        <UserShare :content="id" type="Nota"></UserShare>
+        <button
+          class="btn fs-4 btn-warning my-2 rounded-4 d-flex align-items-center"
+          @click="saveNote"
+        >
+          <Icon icon="fluent:save-32-filled" /> Salva
+        </button>
+      </div>
     </div>
     <div>
       <v-autocomplete
@@ -52,7 +52,6 @@
 
 <script>
 import { initializeEditor, getEditNoteTitle, getEditNoteId } from './editor.js'
-import { Icon } from '@iconify/vue'
 import { getNoteTags, saveNoteMongo } from './note.js'
 import { useToast } from 'vue-toastification'
 import { getTags, createTag } from '@/router/note/editor/tags'
@@ -84,7 +83,8 @@ export default {
       title: 'Untitled',
       selectedTags: [],
       tags: [],
-      share: false
+      share: false,
+      id: ''
     }
   },
   methods: {
@@ -122,7 +122,6 @@ export default {
     }
   },
   components: {
-    Icon,
     UserShare
   }
 }

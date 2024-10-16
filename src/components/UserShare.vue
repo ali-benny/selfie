@@ -1,15 +1,104 @@
 <template>
-  <div
-    class="d-flex rounded-lg shadow bg-light p-3 z-3"
-    style="position: fixed; right: 15%; top: 12%"
-  >
-    <div v-for="user in users" :key="user._id" class="bg-body-secondary rounded-4 p-2">
-      {{ user.name }}
-    </div>
-  </div>
+  <Popper>
+    <button class="btn fs-4 d-flex align-items-center">
+      <Icon icon="typcn:user-add" />
+    </button>
+    <template #content>
+      <div class="rounded-lg shadow bg-light p-2 z-3 flex flex-col w-screen md:w-max">
+        <div class="overflow-y-auto max-h-48 flex flex-col flex-grow my-2">
+          <button
+            v-for="user in users"
+            :key="user._id"
+            :class="[
+              'flex',
+              'gap-2',
+              'justify-content-between',
+              'rounded-md',
+              'p-1',
+              'px-3',
+              'my-1',
+              'bg-body-secondary',
+              'items-center',
+              { 'bg-primary-subtle': sharewith.includes(user) }
+            ]"
+            @click="select(user)"
+          >
+            {{ user.name }}
+            <span v-if="sharewith.includes(user)" class="text-primary"
+              ><Icon icon="fluent:checkmark-12-filled"
+            /></span>
+          </button>
+        </div>
+        <button
+          class="btn btn-outline-primary mt-2 flex items-center justify-center rounded-md gap-2"
+          @click="sendshare()"
+        >
+          Condividi<Icon icon="fluent:send-person-16-filled" />
+        </button>
+      </div>
+    </template>
+  </Popper>
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
 import { API_URL } from '../../const'
-const users = await fetch(`${API_URL}/users`).json()
+import { useToast } from 'vue-toastification'
+const toast = useToast()
+
+const users = ref([])
+const sharewith = ref([])
+
+const props = defineProps({
+  content: {
+    type: [String, Object],
+    required: true
+  },
+  type: {
+    type: String,
+    required: true
+  }
+})
+
+onMounted(async () => {
+  try {
+    const response = await fetch(`${API_URL}/users`)
+    const data = await response.json()
+    users.value = data
+  } catch (error) {
+    console.error('Error fetching users:', error)
+  }
+})
+
+function select(user) {
+  if (sharewith.value.includes(user)) {
+    sharewith.value = sharewith.value.filter((u) => u !== user)
+  } else {
+    sharewith.value.push(user)
+  }
+}
+
+function sendshare() {
+  // Logica per condividere il contenuto con gli utenti selezionati
+  if (props.content === null) {
+    toast.warning('Salva la nota prima di condividerla')
+  }
+  console.log('Condividi con:', sharewith.value)
+  console.log('Contenuto da condividere:', props.content)
+  console.log('Tipo di contenuto:', props.type)
+  
+  sharewith.value = []
+  toast.success(`${props.type} condiviso con successo!`)
+}
+
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s;
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active in <2.1.8 */ {
+  opacity: 0;
+}
+</style>
