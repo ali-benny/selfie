@@ -106,16 +106,16 @@ function truncate(data, length) {
 </script>
 
 <template>
-  <div class="d-flex flex-column flex-grow-1">
+  <div class="flex flex-column flex-grow">
     <h1>Le tue note</h1>
     <a
       href="/editor"
-      class="btn btn-success floating-btn rounded-circle d-flex align-items-center p-2 fs-2"
+      class="btn btn-success floating-btn rounded-circle flex items-center p-2 text-2xl"
       title="Add new note"
     >
       <Icon icon="fluent:note-add-24-filled" />
     </a>
-    <div class="d-flex justify-content-end my-2">
+    <div class="flex content-end my-2">
       <div class="dropdown">
         <button
           class="btn btn-default dropdown-toggle"

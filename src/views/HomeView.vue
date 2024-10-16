@@ -1,6 +1,6 @@
 <template>
-  <div class="dashboard-container d-flex flex-column vh-100 p-5">
-    <div class="flex-grow-1 d-flex flex-column overflow-hidden">
+  <div class="dashboard-container flex flex-column vh-100 p-5">
+    <div class="flex-grow-1 flex flex-column overflow-hidden">
       <div class="row flex-grow-1 mb-3">
         <div class="col-md-6">
           <div class="h-100 p-3 bg-light rounded shadow-sm">Calendario</div>

@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <div class="d-flex justify-content-between m-2 flex-wrap">
+    <div class="flex justify-between m-2 flex-wrap">
       <div class="row">
         <input
           type="text"
@@ -10,7 +10,7 @@
           v-focus="isChecked"
         />
         <button
-          class="btn col col-1 fs-4"
+          class="btn col col-1 text-xl"
           :class="isChecked ? 'text-success' : 'text-primary'"
           @click="toggleIcon"
         >
@@ -18,12 +18,16 @@
           <Icon icon="fluent:checkmark-12-filled" v-else />
         </button>
       </div>
-      <button
-        class="btn fs-4 btn-warning my-2 rounded-4 d-flex align-items-center"
-        @click="saveNote"
-      >
-        <Icon icon="fluent:save-32-filled" /> Salva
-      </button>
+
+      <div class="flex flex-end align-items-center">
+        <UserShare :content="id" type="Nota"></UserShare>
+        <button
+          class="btn text-xl btn-warning my-2 rounded-4 flex align-items-center"
+          @click="saveNote"
+        >
+          <Icon icon="fluent:save-32-filled" /> Salva
+        </button>
+      </div>
     </div>
     <div>
       <v-autocomplete
@@ -48,18 +52,20 @@
 
 <script>
 import { initializeEditor, getEditNoteTitle, getEditNoteId } from './editor.js'
-import { Icon } from '@iconify/vue'
 import { getNoteTags, saveNoteMongo } from './note.js'
 import { useToast } from 'vue-toastification'
 import { getTags, createTag } from '@/router/note/editor/tags'
+import UserShare from '@/components/UserShare.vue'
 
 export default {
   async mounted() {
-    this.editor = await initializeEditor()
     this.id = getEditNoteId()
-    this.title = getEditNoteTitle()
     this.tags = await getTags(this.id)
-    this.selectedTags = await getNoteTags(this.id)
+    this.editor = await initializeEditor()
+    if (this.id != null) {
+      this.title = getEditNoteTitle()
+      this.selectedTags = await getNoteTags(this.id)
+    }
   },
   directives: {
     focus: {
@@ -76,33 +82,38 @@ export default {
       isChecked: false,
       title: 'Untitled',
       selectedTags: [],
-      tags: []
+      tags: [],
+      share: false,
+      id: ''
     }
   },
   methods: {
     toggleIcon() {
       this.isChecked = !this.isChecked
     },
-    saveNote() {
+    async saveNote() {
       const toast = useToast()
-      this.editor
-        .save()
-        .then(async (outputData) => {
-          try {
-            saveNoteMongo(this.id, this.title, outputData, this.selectedTags)
-            toast.success('Note saved successfully!')
-          } catch (error) {
-            console.error('Failed to save EditorJS data:', error)
-            toast.error('Failed to save the note')
-          }
-        })
-        .catch((error) => {
-          console.error('Failed to save EditorJS data:', error)
-          toast.error('Failed to save the note')
-        })
+      if (!this.editor) {
+        console.error('Editor not initialized')
+        toast.error('Editor not ready. Please try again.')
+        return
+      }
+      try {
+        const outputData = await this.editor.save()
+        this.id = await saveNoteMongo(this.id, this.title, outputData, this.selectedTags)
+        toast.success('Note saved successfully!')
+      } catch (error) {
+        console.error('Failed to save EditorJS data:', error)
+        toast.error('Failed to save the note')
+      }
     },
-    addTag(event) {
+    async addTag(event) {
       const newTag = event.target.value
+      if (this.id == null) {
+        // needed a note id => save it
+        const outputData = await this.editor.save()
+        this.id = await saveNoteMongo(this.id, this.title, outputData, this.selectedTags)
+      }
       if (newTag && !this.tags.includes(newTag)) {
         createTag(this.id, newTag)
         this.tags.push(newTag)
@@ -111,7 +122,7 @@ export default {
     }
   },
   components: {
-    Icon
+    UserShare
   }
 }
 </script>
