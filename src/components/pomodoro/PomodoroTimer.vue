@@ -1,41 +1,24 @@
 <template>
   <div v-if="this.pomodoro">
-    <div class="row justify-content-center">
-      <div class="col-auto display-5">
-        {{ message }}
-      </div>
-      <div class="row justify-content-center">
-        <div class="col-auto">
-          {{ pomodoro.cycle }} / {{ pomodoro.config.cycles }}
-        </div>
-      </div>
-    </div>
-    <div class="row justify-content-center">
-      <div class="col-auto display-1 user-select-none digital">
+    <div class="d-flex flex-column align-items-center">
+      <div class="digital fs-1">
         {{ formattedTime }}
       </div>
+      <div class="d-flex flex-row justify-content-center align-items-center">
+        <button v-if="pomodoro.started" @click="pomodoro.restart()" class="btn button-success">
+          <Icon icon="fluent:arrow-reset-24-regular" />
+        </button>
+        <button v-if="pomodoro.running" @click="pomodoro.pause()" class="btn button-success">
+          <Icon icon="fluent:pause-24-regular" />
+        </button>
+        <button v-else @click="pomodoro.play()" class="btn button-success">
+          <Icon icon="fluent:play-24-regular" />
+        </button>
+        <button v-if="pomodoro.started" @click="pomodoro.skip()" class="btn button-success">
+          <Icon icon="fluent:fast-forward-24-regular" />
+        </button>
+      </div>
     </div>
-    <div class="row justify-content-center">
-      <div v-if="pomodoro.started" @click="pomodoro.restart()" class="col-auto clickable">
-        <Icon icon="fluent:arrow-reset-20-regular" style="color: black" />
-      </div>
-      <div v-if="pomodoro.running" @click="pomodoro.pause()" class="col-auto user-select-none clickable">
-        <Icon icon="fluent:pause-20-regular" style="color: black" />
-      </div>
-      <div v-else @click="pomodoro.play()" class="col-auto user-select-none clickable">
-        <Icon icon="fluent:play-20-regular" style="color: black" />
-      </div>
-      <div v-if="pomodoro.started" @click="pomodoro.skip()" class="col-auto clickable">
-        <Icon icon="fluent:fast-forward-20-regular" style="color: black" />
-      </div>
-    </div>
-    <div class="row">
-      <button @click="deletePomodoro()" class="col">
-        <Icon icon="fluent:delete-20-regular" />
-      </button>
-    </div>
-    <p> {{ pomodoro }}
-    </p>
   </div>
 </template>
 
@@ -63,6 +46,7 @@ export default {
       let config = await loadLatestConfig()
       this.pomodoro = await createPomodoro(config)
     }
+    this.pomdoro.running = false
   },
   methods: {
     deletePomodoro() {
