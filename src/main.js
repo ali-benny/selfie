@@ -6,7 +6,7 @@ import '../const.js'
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import vuetify from './plugins/vuetify'
-import Popper from "vue3-popper";
+import Popper from 'vue3-popper'
 import { Icon } from '@iconify/vue'
 
 import App from './App.vue'
@@ -25,6 +25,6 @@ app.use(Toast, options)
 app.use(createPinia())
 app.use(router)
 app.use(vuetify)
-app.component("Popper", Popper)
-app.component("Icon", Icon)
+app.component('Popper', Popper)
+app.component('Icon', Icon)
 app.mount('#app')

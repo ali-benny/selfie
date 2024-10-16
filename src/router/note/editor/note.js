@@ -31,7 +31,7 @@ export async function saveNoteMongo(id, filename, data, tags) {
     return responseData._id
   } else {
     console.error('Failed to save note')
-    return id? id : null
+    return id ? id : null
   }
 }
 
