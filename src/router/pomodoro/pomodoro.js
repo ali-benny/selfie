@@ -3,13 +3,13 @@ import { API_URL } from '../../../const.js'
 /*
  * TODO: spostare pomodoroMessage e breakMessage
  */
-export const defaultConfig = {
-  pomodoroTime: 25,
-  breakTime: 5,
-  cycles: 4,
-  pomodoroMessage: 'Work!',
-  breakMessage: 'Relax :)'
-}
+// export const defaultConfig = {
+//   pomodoroTime: 25,
+//   breakTime: 5,
+//   cycles: 4,
+//   pomodoroMessage: 'Work!',
+//   breakMessage: 'Relax :)'
+// }
 
 /*
  * Carica un pomodoro dal DB
@@ -49,6 +49,7 @@ export async function updatePomodoro(pomodoro) {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        initialTimer: pomodoro.initialTimer,
         timer: pomodoro.timer,
         phase: pomodoro.phase,
         cycle: pomodoro.cycle,
@@ -158,6 +159,27 @@ export async function deletePomodoroConfig(id) {
   }
 }
 
+/*
+ * Carica la config usata più di recente
+ */
+export async function loadLatestConfig() {
+  try {
+    const response = await fetch(API_URL + '/pomodoros/configs/latest', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+
+    if (!response.ok) {
+      throw new Error(`ERROR - loadPomodoro, response status ${response.status}`)
+    }
+    return response.json()
+  } catch (error) {
+    console.error(error.message)
+  }
+}
+
 export class Pomodoro {
   static createTimerStep(pomodoro) {
     return () => {
@@ -169,7 +191,8 @@ export class Pomodoro {
 
   constructor({
     id,
-    config = defaultConfig,
+    config,
+    initialTimer = null,
     timer = null,
     phase = null,
     cycle = 1,
@@ -178,7 +201,8 @@ export class Pomodoro {
   }) {
     this.id = id
     this.config = config
-    this.timer = timer ? timer : config.pomodoroTime * 60
+    this.initialTimer = initialTimer ? initialTimer : this.config.pomodoroTime * 60
+    this.timer = timer ? timer : this.initialTimer
     this.phase = phase
     this.cycle = cycle
     this.started = started
@@ -192,17 +216,21 @@ export class Pomodoro {
    * il timer. Infine viene salvato lo stato del Pomodoro sul db
    */
   play() {
-    if (this.finished || this.running) {
+    if (this.finished) {
       return
     }
 
     if (!this.started) {
       this.started = true
       this.phase = 'pomodoro'
-      this.timer = this.config.pomodoroTime * 60
+      this.initialTimer = this.config.pomodoroTime * 60
     }
 
     this.running = true
+
+    if (this.intervalId) {
+      clearInterval(this.intervalId)
+    }
     this.intervalId = setInterval(Pomodoro.createTimerStep(this), 1000)
 
     updatePomodoro(this)
@@ -244,29 +272,28 @@ export class Pomodoro {
   skip() {
     if (!this.started || this.finished) return
 
-    if (this.running) {
-      clearInterval(this.intervalId)
-    }
-
     switch (this.phase) {
       case 'pomodoro':
         this.phase = 'break'
-        this.timer = this.config.breakTime * 60
+        if (this.cycle % this.config.longBreakInterval == 0) {
+          this.initialTimer = this.config.longBreakTime * 60
+        } else {
+          this.initialTimer = this.config.shortBreakTime * 60
+        }
         break
       case 'break':
-        if (++this.cycle >= this.config.cycles) {
+        this.cycle++
+        if (this.config.value && this.cycle >= this.config.cycles) {
           this.finish()
         } else {
           this.phase = 'pomodoro'
-          this.timer = this.config.pomodoroTime * 60
+          this.initialTimer = this.config.pomodoroTime * 60
         }
         break
     }
 
-    if (this.running) {
-      this.intervalId = setInterval(Pomodoro.createTimerStep(this), 1000)
-      updatePomodoro(this)
-    }
+    this.timer = this.initialTimer
+    this.play()
   }
 
   /*
@@ -277,11 +304,10 @@ export class Pomodoro {
 
     if (this.running) {
       clearInterval(this.intervalId)
-      this.intervalId = setInterval(Pomodoro.createTimerStep(this), 1000)
+      this.play()
     }
-    this.timer =
-      this.phase === 'pomodoro' ? this.config.pomodoroTime * 60 : this.config.breakTime * 60
 
+    this.timer = this.initialTimer
     updatePomodoro(this)
   }
 

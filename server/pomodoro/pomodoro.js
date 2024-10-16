@@ -17,18 +17,26 @@ const PomodoroConfigSchema = new mongoose.Schema({
   },
   pomodoroTime: {
     type: Number,
-    default: 25 * 60,
     required: true
   },
-  breakTime: {
+  shortBreakTime: {
     type: Number,
-    default: 5 * 60,
+    required: true
+  },
+  longBreakTime: {
+    type: Number,
+    required: true
+  },
+  longBreakInterval: {
+    type: Number,
     required: true
   },
   cycles: {
-    type: Number,
-    default: 4,
-    required: true
+    type: Number
+  },
+  lastUsed: {
+    type: Date,
+    default: null
   }
 })
 
@@ -39,26 +47,21 @@ const PomodoroConfigSchema = new mongoose.Schema({
  */
 const PomodoroSchema = new mongoose.Schema({
   config: PomodoroConfigSchema,
+  initialTimer: {
+    type: Number
+  },
   timer: {
-    type: Number,
-    default: 0,
-    required: true
+    type: Number
   },
   phase: {
     type: String,
-    enum: ['pomodoro', 'break'],
-    default: 'pomodoro',
-    required: true
+    enum: ['pomodoro', 'break']
   },
   cycle: {
-    type: Number,
-    default: 1,
-    required: true
+    type: Number
   },
   running: {
-    type: Boolean,
-    default: false,
-    required: true
+    type: Boolean
   },
   started: {
     type: Boolean,
@@ -115,8 +118,9 @@ app.post('/pomodoros', async (req, res) => {
       config = await PomodoroConfig.findById(req.body.config._id)
     } else {
       config = new PomodoroConfig({ ...req.body.config })
-      await config.save()
     }
+    config.lastUsed = Date.now()
+    await config.save()
 
     const pomodoro = new Pomodoro({ config: config })
     await pomodoro.save()
@@ -179,6 +183,19 @@ app.delete('/pomodoros/configs/:id', async (req, res) => {
     await PomodoroConfig.deleteOne({ _id: id }).then(() => {
       res.status(200).send('Config deleted successfully!')
     })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+/*
+ * Returns the lastUsed PomdoroConfig
+ */
+app.get('/pomodoros/configs/latest', async (req, res) => {
+  try {
+    const latest = await PomodoroConfig.findOne().sort({ lastUsed: -1 })
+    res.status(200).json(latest)
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: err.message })

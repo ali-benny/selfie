@@ -3,7 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import NoteList from './note/Notes.vue'
 import NoteEditor from './note/editor/NoteEditor.vue'
 import UserView from '../views/UserView.vue'
-import PomodoroDashboard from './pomodoro/PomodoroDashboard.vue'
+import PomodoroDash from './pomodoro/PomodoroDash.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -31,7 +31,7 @@ const router = createRouter({
     {
       path: '/pomodoro',
       name: 'pomodoro',
-      component: PomodoroDashboard,
+      component: PomodoroDash,
       props: true
     }
   ]
