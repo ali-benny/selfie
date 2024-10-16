@@ -172,7 +172,9 @@ app.delete('/notes/:id', async (req, res) => {
   }
 })
 
-// Ottieni i tag di una nota specifica
+/**
+ * Get tags for a note
+ */
 app.get('/:id/tags', async (req, res) => {
   try {
     const note = await Note.findById(req.params.id)
@@ -186,6 +188,9 @@ app.get('/:id/tags', async (req, res) => {
 })
 
 // Aggiungi un tag a una nota esistente
+/**
+ * Add tag to a note
+ */
 app.post('/:id/tags', async (req, res) => {
   try {
     const note = await Note.findById(req.params.id)

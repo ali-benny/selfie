@@ -18,6 +18,10 @@
           <Icon icon="fluent:checkmark-12-filled" v-else />
         </button>
       </div>
+      <button class="btn fs-4" @click="share = !share">
+        <Icon icon="typcn:user-add" />
+      </button>
+      <UserShare v-if="share"></UserShare>
       <button
         class="btn fs-4 btn-warning my-2 rounded-4 d-flex align-items-center"
         @click="saveNote"
@@ -52,6 +56,7 @@ import { Icon } from '@iconify/vue'
 import { getNoteTags, saveNoteMongo } from './note.js'
 import { useToast } from 'vue-toastification'
 import { getTags, createTag } from '@/router/note/editor/tags'
+import UserShare from '@/components/UserShare.vue'
 
 export default {
   async mounted() {
@@ -59,10 +64,8 @@ export default {
     this.tags = await getTags(this.id)
     this.editor = await initializeEditor()
     if (this.id != null) {
-      this.selectedTags = await getNoteTags(this.id)
-
       this.title = getEditNoteTitle()
-      console.log('-Note Title:', this.title)
+      this.selectedTags = await getNoteTags(this.id)
     }
   },
   directives: {
@@ -80,7 +83,8 @@ export default {
       isChecked: false,
       title: 'Untitled',
       selectedTags: [],
-      tags: []
+      tags: [],
+      share: false
     }
   },
   methods: {
@@ -96,15 +100,20 @@ export default {
       }
       try {
         const outputData = await this.editor.save()
-        await saveNoteMongo(this.id, this.title, outputData, this.selectedTags)
+        this.id = await saveNoteMongo(this.id, this.title, outputData, this.selectedTags)
         toast.success('Note saved successfully!')
       } catch (error) {
         console.error('Failed to save EditorJS data:', error)
         toast.error('Failed to save the note')
       }
     },
-    addTag(event) {
+    async addTag(event) {
       const newTag = event.target.value
+      if (this.id == null) {
+        // needed a note id => save it
+        const outputData = await this.editor.save()
+        this.id = await saveNoteMongo(this.id, this.title, outputData, this.selectedTags)
+      }
       if (newTag && !this.tags.includes(newTag)) {
         createTag(this.id, newTag)
         this.tags.push(newTag)
@@ -113,7 +122,8 @@ export default {
     }
   },
   components: {
-    Icon
+    Icon,
+    UserShare
   }
 }
 </script>
