@@ -1,22 +1,43 @@
 <template>
-  <div v-if="this.pomodoro">
-    <div class="d-flex flex-column align-items-center">
-      <div class="digital fs-1">
-        {{ formattedTime }}
+  <div class="w-100 h-100 flex flex-col justify-center" v-if="this.pomodoro">
+    <div class="w-100 h-min flex flex-col items-center gap-y-24">
+      <div class="self-stretch flex flex-row justify-evenly lg:justify-center flex-wrap gap-x-4 lg:gap-x-32 gap-y-4">
+        <div class="flex flex-col items-center gap-y-1">
+          <p class="m-0 font-medium leading-4">Pomodoro</p>
+          <p class="m-0 leading-4"> {{ pomodoroTime }} </p>
+        </div>
+        <div class="flex flex-col items-center gap-y-1">
+          <p class="m-0 font-medium leading-4">Pausa breve</p>
+          <p class="m-0 leading-4"> {{ shortBreakTime }} </p>
+        </div>
+        <div class="flex flex-col items-center gap-y-1">
+          <p class="m-0 font-medium leading-4">Pausa lunga</p>
+          <p class="m-0 leading-4"> {{ longBreakTime }} </p>
+        </div>
       </div>
-      <div class="d-flex flex-row justify-content-center align-items-center">
-        <button v-if="pomodoro.started" @click="pomodoro.restart()" class="btn button-success">
-          <Icon icon="fluent:arrow-reset-24-regular" />
-        </button>
-        <button v-if="pomodoro.running" @click="pomodoro.pause()" class="btn button-success">
-          <Icon icon="fluent:pause-24-regular" />
-        </button>
-        <button v-else @click="pomodoro.play()" class="btn button-success">
-          <Icon icon="fluent:play-24-regular" />
-        </button>
-        <button v-if="pomodoro.started" @click="pomodoro.skip()" class="btn button-success">
-          <Icon icon="fluent:fast-forward-24-regular" />
-        </button>
+
+      <div>
+        <p class="digital select-none text-7xl m-0 leading-4">
+          {{ timer }}
+        </p>
+      </div>
+      <div class="relative mx-auto">
+        <div class="flex flex-col">
+          <button v-if="pomodoro.running" @click="pomodoro.pause()" class="text-2xl">
+            Stop
+          </button>
+          <button v-else @click="pomodoro.play()" class="text-2xl">
+            Start
+          </button>
+          <button v-if="pomodoro.started" @click="pomodoro.restart()" class="text-sm">
+            Reset
+          </button>
+        </div>
+        <div class="w-100 h-100 absolute inset-x-full top-0 flex justify-end items-center">
+          <button v-if="pomodoro.started" @click="pomodoro.skip()" class="text-xl">
+            <Icon icon="fluent:fast-forward-28-regular" />
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -28,7 +49,8 @@ import { loadPomodoro, deletePomodoro, createPomodoro, loadLatestConfig } from '
 
 export default {
   emits: [
-    'start',
+    'play',
+    'pause',
     'finish'
   ],
   expose: [
@@ -46,7 +68,8 @@ export default {
       let config = await loadLatestConfig()
       this.pomodoro = await createPomodoro(config)
     }
-    this.pomdoro.running = false
+
+    this.pomodoro.running = false
   },
   methods: {
     deletePomodoro() {
@@ -58,12 +81,26 @@ export default {
         await deletePomodoro(this.pomodoro)
       }
       this.pomodoro = await createPomodoro(config)
+    },
+    formatClockTime(time) {
+      if (!time)
+        return '00:00'
+      let minutes = Math.floor(time / 60)
+      let seconds = time % 60
+      return (minutes < 10 ? '0' : '') + minutes + ":" + (seconds < 10 ? '0' : '') + seconds
+    },
+    formatConfigTime(time) {
+      if (!time)
+        return '0 min.'
+      return time + ' min.'
     }
   },
-  watchers: {
-    'pomodoro.started'(started) {
+  watch: {
+    'pomodoro.running'(started) {
       if (started) {
-        this.$emit('start')
+        this.$emit('play')
+      } else {
+        this.$emit('pause')
       }
     },
     'pomodoro.finished'(finished) {
@@ -73,12 +110,17 @@ export default {
     }
   },
   computed: {
-    formattedTime() {
-      if (!this.pomodoro)
-        return "00:00"
-      let minutes = Math.floor(this.pomodoro.timer / 60)
-      let seconds = this.pomodoro.timer % 60
-      return (minutes < 10 ? '0' : '') + minutes + ":" + (seconds < 10 ? '0' : '') + seconds
+    timer() {
+      return this.formatClockTime(this.pomodoro?.timer)
+    },
+    pomodoroTime() {
+      return this.formatConfigTime(this.pomodoro?.config.pomodoroTime)
+    },
+    shortBreakTime() {
+      return this.formatConfigTime(this.pomodoro?.config.shortBreakTime)
+    },
+    longBreakTime() {
+      return this.formatConfigTime(this.pomodoro?.config.longBreakTime)
     },
     message() {
       if (!this.pomodoro.started) {
@@ -88,7 +130,8 @@ export default {
         return "Good job!"
       }
       return this.pomodoro.message()
-    }
+    },
+
   },
   components: {
     Icon
@@ -98,10 +141,6 @@ export default {
 
 <style>
 .digital {
-  font-family: Digital;
-}
-
-.clickable {
-  cursor: pointer;
+  font-family: Digital-7;
 }
 </style>

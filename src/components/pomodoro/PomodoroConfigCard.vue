@@ -1,31 +1,27 @@
 <template>
-  <div class="card p-3 d-flex flex-column justify-content-start align-items-stretch">
-    <button class="edit-button d-flex justify-content-center align-items-center p-1">
+  <div class="card p-3 flex flex-col justify-start items-stretch">
+    <button class="absolute top-2 right-2 z-10 flex justify-center align-center p-1">
       <Icon icon="fluent:edit-48-filled" />
     </button>
-    <div class="d-flex flex-column justify-content-start align-items-center gap-1">
-      <Icon icon="fluent-emoji-flat:tomato" class="big-icon" />
-      <h3 class="m-0 flex-grow-1 fs-5"> {{ config.name }}</h3>
+
+    <div class="flex flex-col justify-start items-center">
+      <Icon icon="fluent-emoji-flat:tomato" class="text-5xl" />
+      <h3 class="m-0 flex-grow text-xl"> {{ config.name }}</h3>
     </div>
-    <!-- ### DURATA TOTALE ### -->
-    <!-- <div class="d-flex justify-content-start align-items-center gap-1 mt-1"> -->
-    <!--   <Icon icon="fluent:clock-32-regular" /> -->
-    <!--   <p class="m-0 text-black-50 fs-6"> {{ totalDuration }} </p> -->
-    <!-- </div> -->
 
     <div class="mt-2">
-      <div class="d-flex justify-content-start align-items-center gap-2">
-        <Icon icon="fluent-emoji-flat:tomato" :inline="true" color="blue" class="fs-5" />
+      <div class="flex justify-start items-center gap-2">
+        <Icon icon="fluent-emoji-flat:tomato" :inline="true" color="blue" class="text-xl" />
         <p class="m-0"> {{ config.pomodoroTime }}'</p>
       </div>
-      <div class="d-flex justify-content-start align-items-center gap-2">
-        <Icon icon="fluent-emoji-flat:teacup-without-handle" :inline="true" class="fs-5" />
+      <div class="flex justify-start items-center gap-2">
+        <Icon icon="fluent-emoji-flat:teacup-without-handle" :inline="true" class="text-xl" />
         <p class="m-0"> {{ config.shortBreakTime }}'</p>
       </div>
-      <div class="d-flex justify-content-start align-items-center gap-2">
-        <Icon icon="fluent-emoji-flat:zzz" class="fs-5" />
+      <div class="flex justify-start items-center gap-2">
+        <Icon icon="fluent-emoji-flat:zzz" class="text-xl" />
         <p class="m-0">
-          {{ config.longBreakTime }}'<span class="text-black-50"> ogni {{ config.longBreakInterval }}</span>
+          {{ config.longBreakTime }}'<span class="text-black-50"> ogni {{ config.longBreakInterval }} pause</span>
         </p>
       </div>
       <div class="mt-2 text-center">

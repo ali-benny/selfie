@@ -1,20 +1,24 @@
 <template>
-  <div class="container">
+  <div class="container flex flex-col items-stretch">
+
     <!--- Pomodoro Timer -->
-    <div class="w-100">
-      <PomodoroTimer @start="showConfigs = false" @finish="showConfigs = true" ref="pomodoroTimer" />
+    <div class="mt-5 basis-80">
+      <PomodoroTimer @play="showConfigs = false" @pause="showConfigs = true" class="h-max" ref="pomodoroTimer" />
     </div>
 
+
     <!-- Pomodoro configs -->
-    <div class="w-100" v-if="showConfigs">
-      <PomodoroConfigList @select="reloadPomodoro" />
+    <div class="mt-3" v-if="showConfigs">
+      <h2>
+        I tuoi focus
+      </h2>
+      <PomodoroConfigList class="mt-1" @select="reloadPomodoro" />
     </div>
   </div>
 
 </template>
 
 <script>
-// import { defineAsyncComponent } from 'vue'
 import PomodoroTimer from '../../components/pomodoro/PomodoroTimer.vue'
 import PomodoroConfigList from '../../components/pomodoro/PomodoroConfigList.vue'
 

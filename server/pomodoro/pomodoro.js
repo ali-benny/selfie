@@ -190,7 +190,7 @@ app.delete('/pomodoros/configs/:id', async (req, res) => {
 })
 
 /*
- * Returns the lastUsed PomdoroConfig
+ * Returns the lastUsed PomodoroConfig
  */
 app.get('/pomodoros/configs/latest', async (req, res) => {
   try {
