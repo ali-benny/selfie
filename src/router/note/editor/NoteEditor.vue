@@ -52,7 +52,7 @@
 
 <script>
 import { initializeEditor, getEditNoteTitle, getEditNoteId } from './editor.js'
-import { getNoteTags, saveNoteMongo } from './note.js'
+import { getNoteTags, saveNoteMongo, saveTodoMongo } from './note.js'
 import { useToast } from 'vue-toastification'
 import { getTags, createTag } from '@/router/note/editor/tags'
 import UserShare from '@/components/UserShare.vue'
@@ -101,6 +101,21 @@ export default {
       try {
         const outputData = await this.editor.save()
         this.id = await saveNoteMongo(this.id, this.title, outputData, this.selectedTags)
+
+        // Check for checklist type and save to todo collection
+        const checklistBlocks = outputData.blocks.filter((block) => block.type === 'checklist')
+        for (const block of checklistBlocks) {
+          for (const item of block.data.items) {
+            const todo = {
+              text: item.text,
+              checked: item.checked,
+              from: { id: this.id, type: 'note'},
+              author: 'User', // TODO: get User
+              readers: this.readers
+            }
+            await saveTodoMongo(todo)
+          }
+        }
         toast.success('Note saved successfully!')
       } catch (error) {
         console.error('Failed to save EditorJS data:', error)
