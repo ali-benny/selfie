@@ -19,8 +19,8 @@
 </template>
 
 <script>
-import PomodoroTimer from '../../components/pomodoro/PomodoroTimer.vue'
-import PomodoroConfigList from '../../components/pomodoro/PomodoroConfigList.vue'
+import PomodoroConfigList from '@/components/pomodoro/PomodoroConfigList.vue';
+import PomodoroTimer from '@/components/pomodoro/PomodoroTimer.vue';
 
 export default {
   data() {

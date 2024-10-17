@@ -44,7 +44,6 @@
 </template>
 
 <script>
-import { Icon } from '@iconify/vue'
 import { loadPomodoro, deletePomodoro, createPomodoro, loadLatestConfig } from '../../router/pomodoro/pomodoro.js'
 
 export default {
@@ -132,9 +131,6 @@ export default {
       return this.pomodoro.message()
     },
 
-  },
-  components: {
-    Icon
   }
 }
 </script>

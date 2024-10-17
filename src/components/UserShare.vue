@@ -6,34 +6,28 @@
     <template #content>
       <div class="rounded-lg shadow bg-light p-2 z-3 flex flex-col w-screen md:w-max">
         <div class="overflow-y-auto max-h-48 flex flex-col flex-grow my-2">
-          <button
-            v-for="user in users"
-            :key="user._id"
-            :class="[
-              'flex',
-              'gap-2',
-              'justify-between',
-              'rounded-md',
-              'p-1',
-              'px-3',
-              'my-1',
-              'bg-body-secondary',
-              'items-center',
-              { 'bg-primary-subtle': sharewith.includes(user) }
-            ]"
-            @click="select(user)"
-          >
+          <button v-for="user in users" :key="user._id" :class="[
+            'flex',
+            'gap-2',
+            'justify-between',
+            'rounded-md',
+            'p-1',
+            'px-3',
+            'my-1',
+            'bg-body-secondary',
+            'items-center',
+            { 'bg-primary-subtle': sharewith.includes(user) }
+          ]" @click="select(user)">
             {{ user.name }}
-            <span v-if="sharewith.includes(user)" class="text-primary"
-              ><Icon icon="fluent:checkmark-12-filled"
-            /></span>
+            <span v-if="sharewith.includes(user)" class="text-primary">
+              <Icon icon="fluent:checkmark-12-filled" />
+            </span>
           </button>
         </div>
-        <button
-          class="btn btn-outline-primary mt-2 flex items-center justify-center rounded-md gap-2"
-          @click="sendshare()"
-        >
-          Condividi<Icon icon="fluent:send-person-16-filled" />
+        <button class="btn btn-outline-primary mt-2 flex items-center justify-center rounded-md gap-2"
+          @click="sendshare()">
+          Condividi
+          <Icon icon="fluent:send-person-16-filled" />
         </button>
       </div>
     </template>
@@ -101,7 +95,12 @@ function sendshare() {
 .fade-leave-active {
   transition: opacity 0.5s;
 }
-.fade-enter, .fade-leave-to /* .fade-leave-active in <2.1.8 */ {
+
+.fade-enter,
+.fade-leave-to
+
+/* .fade-leave-active in <2.1.8 */
+  {
   opacity: 0;
 }
 </style>

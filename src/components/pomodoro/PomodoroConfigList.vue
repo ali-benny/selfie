@@ -1,8 +1,9 @@
 <template>
-  <div class="w-100 overflow-hidden">
+  <div class="w-100 overflow-visible">
     <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 gx-2 gy-1" v-if="configs">
-      <div class="col d-flex" v-for="config in configs" :key="config._id">
-        <PomodoroConfigCard @select="$emit('select', config)" :config="config" class="flex-grow-1" />
+      <div class="col d-flex" v-for="(config, idx) in configs" :key="config._id">
+        <PomodoroConfigCard @select="$emit('select', config)" @delete="this.loadConfigs" v-model:config="configs[idx]"
+          class="flex-grow-1" />
       </div>
     </div>
   </div>
@@ -26,7 +27,12 @@ export default {
     }
   },
   async created() {
-    this.configs = await loadConfigs()
+    await this.loadConfigs()
+  },
+  methods: {
+    async loadConfigs() {
+      this.configs = await loadConfigs()
+    }
   },
   components: {
     PomodoroConfigCard

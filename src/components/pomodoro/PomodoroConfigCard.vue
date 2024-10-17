@@ -1,12 +1,17 @@
 <template>
   <div class="card p-3 flex flex-col justify-start items-stretch">
-    <button class="absolute top-2 right-2 z-10 flex justify-center align-center p-1">
-      <Icon icon="fluent:edit-48-filled" />
-    </button>
+    <div class="absolute top-2 right-2 z-10 flex justify-center align-center p-1">
+      <PomodoroConfigForm :config="config" @update:config="$emit('update:config', $event)" @delete="$emit('delete')" />
+    </div>
 
     <div class="flex flex-col justify-start items-center">
       <Icon icon="fluent-emoji-flat:tomato" class="text-5xl" />
-      <h3 class="m-0 flex-grow text-xl"> {{ config.name }}</h3>
+      <div class="flex justify-start items-center gap-2">
+        <h3 class="m-0 flex-grow text-xl"> {{ config.name }}</h3>
+        <button class="flex items-center mt-1">
+          <Icon icon="fluent:share-48-regular" class="text-gray-500" />
+        </button>
+      </div>
     </div>
 
     <div class="mt-2">
@@ -34,7 +39,7 @@
 </template>
 
 <script>
-import { Icon } from '@iconify/vue'
+import PomodoroConfigForm from './PomodoroConfigForm.vue'
 
 export default {
   props: {
@@ -43,7 +48,9 @@ export default {
     }
   },
   emits: [
-    'select'
+    'select',
+    'update:config',
+    'delete'
   ],
   computed: {
     /*
@@ -60,20 +67,7 @@ export default {
     */
   },
   components: {
-    Icon
+    PomodoroConfigForm
   }
 }
 </script>
-
-<style>
-.edit-button {
-  position: absolute;
-  top: 7px;
-  right: 7px;
-  z-index: 1;
-}
-
-.big-icon {
-  font-size: 64px;
-}
-</style>
