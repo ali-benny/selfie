@@ -1,6 +1,6 @@
 <template>
   <div class="w-100 h-100 flex flex-col justify-center" v-if="this.pomodoro">
-    <div class="w-100 h-min flex flex-col items-center gap-y-24">
+    <div class="w-100 h-min flex flex-col items-center gap-y-5">
       <div class="self-stretch flex flex-row justify-evenly lg:justify-center flex-wrap gap-x-4 lg:gap-x-32 gap-y-4">
         <div class="flex flex-col items-center gap-y-1">
           <p class="m-0 font-medium leading-4">Pomodoro</p>
@@ -16,8 +16,14 @@
         </div>
       </div>
 
-      <div>
-        <p class="digital select-none text-7xl m-0 leading-4">
+      <div class="h-80 w-80 relative flex flex-col justify-center items-center">
+
+        <div class="absolute">
+          <PomodoroAnimation :duration="pomodoro.initialTimer" :timer="pomodoro.timer" :phase="pomodoro.phase"
+            ref="pomodoroAnimation" />
+        </div>
+
+        <p class=" digital select-none text-7xl m-0 leading-4">
           {{ timer }}
         </p>
       </div>
@@ -44,7 +50,8 @@
 </template>
 
 <script>
-import { loadPomodoro, deletePomodoro, createPomodoro, loadLatestConfig } from '../../router/pomodoro/pomodoro.js'
+import PomodoroAnimation from './PomodoroAnimation.vue'
+import { defaultConfig, loadPomodoro, deletePomodoro, createPomodoro, loadLatestConfig } from '../../router/pomodoro/pomodoro.js'
 
 export default {
   emits: [
@@ -61,10 +68,9 @@ export default {
     }
   },
   async created() {
-    // Prendo il pomodoro esistente se esiste, altrimenti ne creo uno nuovo con l'ultima config usata
     this.pomodoro = await loadPomodoro();
     if (this.pomodoro == null) {
-      let config = await loadLatestConfig()
+      let config = await loadLatestConfig() || defaultConfig
       this.pomodoro = await createPomodoro(config)
     }
 
@@ -98,8 +104,10 @@ export default {
     'pomodoro.running'(started) {
       if (started) {
         this.$emit('play')
+        this.pomodoroAnimation?.play()
       } else {
         this.$emit('pause')
+        this.pomodoroAnimation?.pause()
       }
     },
     'pomodoro.finished'(finished) {
@@ -121,6 +129,9 @@ export default {
     longBreakTime() {
       return this.formatConfigTime(this.pomodoro?.config.longBreakTime)
     },
+    pomodoroAnimation() {
+      return this.$refs.pomodoroAnimation
+    },
     message() {
       if (!this.pomodoro.started) {
         return "Start pomodoro now!"
@@ -130,12 +141,13 @@ export default {
       }
       return this.pomodoro.message()
     },
-
+  },
+  components: {
+    PomodoroAnimation
   }
 }
 </script>
-
-<style>
+<style scoped>
 .digital {
   font-family: Digital-7;
 }

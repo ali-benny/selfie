@@ -5,19 +5,24 @@
     </button>
     <template #content="{ close }">
       <form @submit.prevent="saveConfig(close)">
+        <!-- Header e delete -->
         <div class="w-screen sm:w-80 h-100 flex flex-col items-stretch py-4 px-3 gap-2">
           <div class="flex flex-row justify-between items-center">
             <h4 class="font-bold">Modifica il tuo focus</h4>
             <button class="btn" @click="deleteConfig(close)">
-              <Icon :inline icon="fluent:delete-32-regular" color="red" />
+              <Icon icon="fluent:delete-32-regular" color="red" />
             </button>
           </div>
+
+          <!-- Nome -->
           <div class="flex flex-row items-center gap-1">
             <label for="config-name" class="m-0 shrink-0">Nome:</label>
             <div class="input-group input-group-sm">
               <input type="text" name="config-name" v-model="form_config.name" class="form-control" required>
             </div>
           </div>
+
+          <!-- Pomdoro time -->
           <div class="flex flex-row justify-start items-center gap-1">
             <label for="pomodoroTime" class="m-0 shrink-0">Pomodoro:</label>
             <div class="input-group input-group-sm">
@@ -25,6 +30,8 @@
               <span class="input-group-text">minuti</span>
             </div>
           </div>
+
+          <!-- Short break time -->
           <div class="flex flex-row content-start items-center gap-1">
             <label for="shortBreakTime" class="shrink-0 m-0">Pausa breve:</label>
             <div class="input-group input-group-sm">
@@ -33,6 +40,8 @@
               <span class="input-group-text">minuti</span>
             </div>
           </div>
+
+          <!-- Long break time  -->
           <div class="flex flex-row content-start items-center gap-1">
             <label for="longBreakTime" class="m-0 shrink-0">Pausa lunga:</label>
             <div class="input-group input-group-sm">
@@ -41,11 +50,25 @@
               <span class="input-group-text">minuti</span>
             </div>
           </div>
+
+          <!-- Long break interval  -->
           <div class="flex flex-row content-start items-center gap-1">
             <label for="longBreakInterval" class="m-0 shrink-0">Intervallo pausa lunga:</label>
             <input type="number" name="longBreakInterval" v-model="form_config.longBreakInterval" class="form-control"
               required>
           </div>
+
+          <!-- Colore -->
+          <div class="flex flex-row content-start items-center gap-1">
+            <label for="color" class="m-0 shrink-0">Colore:</label>
+            <select name="color" v-model="form_config.color" class="form-control" required>
+              <option v-for="(color, idx) in colors" :key="idx" :value="{ name: color.name, hex: color.hex }">
+                {{ color.name }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Pulsanti  -->
           <div class="flex flex-row justify-center gap-1">
             <button type="button" class="btn btn-outline-secondary" @click="close()">
               Annulla
@@ -59,6 +82,7 @@
 </template>
 
 <script>
+import { flavors } from '@catppuccin/palette'
 import { deletePomodoroConfig, updatePomodoroConfig } from '@/router/pomodoro/pomodoro';
 
 export default {
@@ -73,7 +97,21 @@ export default {
   ],
   data() {
     return {
-      form_config: null
+      form_config: null,
+      colors: [
+        flavors.latte.colors.rosewater,
+        flavors.latte.colors.flamingo,
+        flavors.latte.colors.pink,
+        flavors.latte.colors.mauve,
+        flavors.latte.colors.red,
+        flavors.latte.colors.maroon,
+        flavors.latte.colors.peach,
+        flavors.latte.colors.teal,
+        flavors.latte.colors.sky,
+        flavors.latte.colors.sapphire,
+        flavors.latte.colors.blue,
+        flavors.latte.colors.lavender
+      ]
     }
   },
   created() {

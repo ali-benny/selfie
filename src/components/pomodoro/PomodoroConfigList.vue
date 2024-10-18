@@ -1,9 +1,9 @@
 <template>
-  <div class="w-100 overflow-visible">
-    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 gx-2 gy-1" v-if="configs">
-      <div class="col d-flex" v-for="(config, idx) in configs" :key="config._id">
+  <div class="w-full overflow-visible">
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-2 gap-y-1" v-if="configs">
+      <div class="flex" v-for="(config, idx) in configs" :key="config._id">
         <PomodoroConfigCard @select="$emit('select', config)" @delete="this.loadConfigs" v-model:config="configs[idx]"
-          class="flex-grow-1" />
+          class="grow" />
       </div>
     </div>
   </div>
@@ -11,7 +11,7 @@
 
 <script>
 import PomodoroConfigCard from './PomodoroConfigCard.vue'
-import { loadConfigs } from '../../router/pomodoro/pomodoro.js'
+import { loadLatestConfigs } from '../../router/pomodoro/pomodoro.js'
 
 export default {
   emits: {
@@ -31,7 +31,7 @@ export default {
   },
   methods: {
     async loadConfigs() {
-      this.configs = await loadConfigs()
+      this.configs = await loadLatestConfigs()
     }
   },
   components: {

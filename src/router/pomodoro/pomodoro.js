@@ -3,13 +3,13 @@ import { API_URL } from '../../../const.js'
 /*
  * TODO: spostare pomodoroMessage e breakMessage
  */
-// export const defaultConfig = {
-//   pomodoroTime: 25,
-//   breakTime: 5,
-//   cycles: 4,
-//   pomodoroMessage: 'Work!',
-//   breakMessage: 'Relax :)'
-// }
+export const defaultConfig = {
+  name: 'Pomodoro',
+  pomodoroTime: 25,
+  shortBreakTime: 5,
+  longBreakTime: 15,
+  longBreakInterval: 4
+}
 
 /*
  * Carica un pomodoro dal DB
@@ -111,6 +111,24 @@ export async function deletePomodoro(pomodoro) {
 export async function loadConfigs() {
   try {
     const response = await fetch(API_URL + '/pomodoros/configs', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+
+    if (!response.ok) {
+      throw new Error(`ERROR - loadPomodoro, response status ${response.status}`)
+    }
+    return response.json()
+  } catch (error) {
+    console.error(error.message)
+  }
+}
+
+export async function loadLatestConfigs() {
+  try {
+    const response = await fetch(API_URL + '/pomodoros/configs?sort=lastUsed,-1', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
