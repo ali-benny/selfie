@@ -5,7 +5,7 @@ import { createPinia } from 'pinia'
 import vuetify from './plugins/vuetify'
 import Popper from 'vue3-popper'
 import { Icon } from '@iconify/vue'
-import { Transition } from 'vue';
+import { Transition } from 'vue'
 
 import App from './App.vue'
 import router from './router'

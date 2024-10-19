@@ -18,8 +18,6 @@ onMounted(async () => {
 const orderBy = (criteria) => {
   order.value = criteria
 }
-
-
 </script>
 
 <template>

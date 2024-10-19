@@ -3,16 +3,13 @@
     <div class="col-md-6 bg-base-200 p-3 rounded-xl shadow-sm">Calendario</div>
     <div class="col-span-2 p-3 rounded-xl shadow-sm bg-base-200/50">
       <h4>Note Recenti</h4>
-      <NoteView
-        viewMode="list"
-        :lastModified="2"
-        :edit="false"
-        :extended="false"
-      ></NoteView>
+      <NoteView viewMode="list" :lastModified="2" :edit="false" :extended="false"></NoteView>
     </div>
     <div class="h-100 p-3 bg-light rounded-xl shadow-sm bg-base-200/50">Pomodoro Timer</div>
     <div class="col-span-2">
-      <div class="h-100 p-3 bg-light rounded-xl shadow-sm bg-base-200/50">Gantt View dei Progetti</div>
+      <div class="h-100 p-3 bg-light rounded-xl shadow-sm bg-base-200/50">
+        Gantt View dei Progetti
+      </div>
     </div>
   </div>
 </template>
