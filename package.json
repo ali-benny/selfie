@@ -19,6 +19,7 @@
   "dependencies": {
     "@catppuccin/daisyui": "^1.1.2",
     "@editorjs/attaches": "^1.3.0",
+    "@editorjs/checklist": "^1.6.0",
     "@editorjs/code": "^2.9.0",
     "@editorjs/editorjs": "^2.29.1",
     "@editorjs/image": "^2.9.0",
