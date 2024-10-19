@@ -85,3 +85,26 @@ export async function getNoteTags(noteId) {
     return []
   }
 }
+
+export async function saveTodoMongo(todo) {
+  const response = await fetch(API_URL + '/todo', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      text: todo.text,
+      checked: todo.checked,
+      author: todo.author,
+      reader: todo.reader,
+      from: todo.from
+    })
+  })
+
+  if (response.ok) {
+    await response.json()
+    console.log('Todo saved successfully')
+  } else {
+    console.error('Failed to save todo')
+  }
+}

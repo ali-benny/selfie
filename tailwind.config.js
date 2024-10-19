@@ -1,17 +1,14 @@
 /** @type {import('tailwindcss').Config} */
-const plugin = require('tailwindcss/plugin')
+const { addDynamicIconSelectors } = require('@iconify/tailwind')
+import catppuccin from '@catppuccin/daisyui'
+
 export default {
-  content: ['./index.html', './src/**/*.{vue,js,ts,jsx,tsx}'],
+  content: ['./index.html', './src/**/*.{vue,js,ts}'],
   theme: {
     extend: {}
   },
-  plugins: [
-    plugin(function ({ addBase, theme }) {
-      addBase({
-        h1: { fontSize: theme('fontSize.2xl') },
-        h2: { fontSize: theme('fontSize.xl') },
-        h3: { fontSize: theme('fontSize.lg') }
-      })
-    })
-  ]
+  plugins: [require('@tailwindcss/typography'), require('daisyui'), addDynamicIconSelectors()],
+  daisyui: {
+    themes: [catppuccin('macchiato', { primary: 'blue' })]
+  }
 }

@@ -145,7 +145,7 @@ app.put('/notes/:id', async (req, res) => {
       const resp = await note.save()
       console.log('Saved!')
     }
-    res.status(200).send('Note saved successfully')
+    res.status(200).json('Note saved successfully')
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: err.message })

@@ -1,17 +1,16 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
-import { Icon } from '@iconify/vue'
 </script>
 
 <template>
-  <div class="flex flex-column">
-    <nav class="navbar bg-body-secondary">
-      <div class="container-fluid flex justify-content-around text-xl">
-        <RouterLink to="/"><Icon icon="ic:round-dashboard" /></RouterLink>
-        <RouterLink to="/note"><Icon icon="fluent:notebook-32-filled" /></RouterLink>
-        <RouterLink to="/user"><Icon icon="fluent:settings-48-filled" /></RouterLink>
-      </div>
-    </nav>
-    <div id="app"><RouterView /></div>
+  <div class="navbar bg-base-300 justify-around rounded-b-xl text-2xl !text-primary">
+    <RouterLink class="hover:!text-accent" to="/"><Icon icon="ic:round-dashboard" /></RouterLink>
+    <RouterLink class="hover:!text-accent" to="/note"
+      ><Icon icon="fluent:notebook-32-filled"
+    /></RouterLink>
+    <RouterLink class="hover:!text-accent" to="/user"
+      ><Icon icon="fluent:settings-48-filled"
+    /></RouterLink>
   </div>
+  <div id="app"><RouterView /></div>
 </template>

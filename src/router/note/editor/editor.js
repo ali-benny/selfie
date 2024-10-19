@@ -7,6 +7,7 @@ import AttachesTool from '@editorjs/attaches'
 import CodeTool from '@editorjs/code'
 import Table from '@editorjs/table'
 import Link from '@editorjs/link'
+import Checklist from '@editorjs/checklist'
 import { API_URL } from '../../../../const.js'
 import { MDParser, MDImporter } from 'editorjs-md-parser'
 
@@ -74,6 +75,10 @@ export async function initializeEditor() {
         inlineToolbar: true
       },
       list: List,
+      checklist: {
+        class: Checklist,
+        inlineToolbar: true
+      },
       paragraph: {
         class: Paragraph,
         inlineToolbar: true

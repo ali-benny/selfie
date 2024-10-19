@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url';
 const router = express.Router();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const UPLOAD_DIR = path.join(__dirname, '../../uploads');
+const UPLOAD_DIR = path.join('./uploads');
 
 // Middleware per logging
 const logMiddleware = (req, res, next) => {
@@ -26,14 +26,8 @@ const uploadMiddleware = express.raw({
 
 router.post('/upload', uploadMiddleware, async (req, res) => {
   try {
-    console.log('Ricevuta richiesta di upload');
-    console.log('Content-Type:', req.headers['content-type']);
-    console.log('Body size:', req.body?.length || 'N/A');
-
-    // Assicurati che la directory esista
     await fs.mkdir(UPLOAD_DIR, { recursive: true });
 
-    // Gestisci il file
     const contentType = req.headers['content-type'];
     const extension = contentType.includes('image/') 
       ? contentType.split('/')[1] 
@@ -44,9 +38,7 @@ router.post('/upload', uploadMiddleware, async (req, res) => {
     const fileUrl = `/uploads/${fileName}`;
 
     await fs.writeFile(filePath, req.body);
-    console.log('File salvato:', filePath);
 
-    // Risposta ESATTA come richiesta da Editor.js
     const response = {
       success: 1,
       file: {
@@ -54,7 +46,6 @@ router.post('/upload', uploadMiddleware, async (req, res) => {
       }
     };
 
-    console.log('Invio risposta:', response);
     res.json(response);
 
   } catch (error) {
