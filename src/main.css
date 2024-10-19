@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.prose {
+  color: inherit; /* Rimuove il colore specifico */
+  max-width: none; /* Rimuove la larghezza massima */
+}

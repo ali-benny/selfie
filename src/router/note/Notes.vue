@@ -1,17 +1,11 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { Icon } from '@iconify/vue'
-import edjsHTML from 'editorjs-html'
-import { API_URL } from '../../../const.js'
-import { getNotes, saveNoteMongo } from './editor/note.js'
-import { useToast } from 'vue-toastification'
-import { RouterLink } from 'vue-router'
+import { ref, onMounted, computed } from 'vue'
+import { getNotes } from './editor/note.js'
 import NoteView from '@/components/NoteView.vue'
 
 const notes = ref([])
 const viewMode = ref('list')
-const edjsParser = edjsHTML()
-const toast = useToast()
+const order = ref('title')
 
 onMounted(async () => {
   try {
@@ -21,128 +15,79 @@ onMounted(async () => {
   }
 })
 
-async function deleteNote(id) {
-  const response = await fetch(API_URL + '/delete', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      collection: 'Note',
-      id: id
-    })
-  })
-
-  if (response.ok) {
-    notes.value = await getNotes()
-    toast.success('Note deleted successfully!')
-  } else {
-    toast.error('Failed to delete note')
-  }
+const orderBy = (criteria) => {
+  order.value = criteria
 }
 
-async function duplicateNote(id) {
-  try {
-    const response = await fetch(API_URL + '/search', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ query: id })
-    })
 
-    if (!response.ok) {
-      throw new Error('Error - duplicating note')
-    }
-
-    const note = await response.json()
-
-    const newFilename = 'Copia di ' + note.name
-    const newData = { ...note.data }
-
-    // create new note
-    await saveNoteMongo(null, newFilename, newData, note.tags)
-
-    notes.value = await getNotes()
-    toast.success('Note duplicated successfully')
-  } catch (error) {
-    toast.error('Error - duplicating note:', error)
-  }
-}
-
-function orderBy(ordertype) {
-  let sortedNotes = []
-  if (ordertype === 'title') {
-    sortedNotes = [...notes.value].sort((a, b) => a.name.localeCompare(b.name))
-  } else if (ordertype === 'date') {
-    sortedNotes = [...notes.value].sort((a, b) => new Date(a.date) - new Date(b.date))
-  } else if (ordertype === 'author') {
-    sortedNotes = [...notes.value].sort((a, b) => a.author.localeCompare(b.author))
-  }
-  notes.value = sortedNotes
-}
-
-function formatDate(isoString) {
-  const date = new Date(isoString)
-  const day = String(date.getDate()).padStart(2, '0')
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const year = date.getFullYear()
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
-  return `${day}/${month}/${year} ${hours}:${minutes}`
-}
-
-function parseHtml(data) {
-  if (!data || !Array.isArray(data.blocks)) {
-    return ''
-  }
-  return edjsParser.parse(data).join('')
-}
-
-function truncate(data, length) {
-  const parsedData = parseHtml(data)
-  return parsedData.length > length ? parsedData.substring(0, length) + '...' : parsedData
-}
 </script>
 
 <template>
-  <div class="flex flex-column flex-grow">
-    <h1>Le tue note</h1>
+  <div class="flex flex-col">
     <a
       href="/editor"
-      class="btn btn-success floating-btn rounded-circle flex items-center p-2 text-2xl"
+      class="btn btn-success floating-btn btn-circle !text-base-100 shadow-xl text-2xl"
       title="Add new note"
     >
       <Icon icon="fluent:note-add-24-filled" />
     </a>
-    <div class="flex content-end my-2">
-      <div class="dropdown">
-        <button
-          class="btn btn-default dropdown-toggle"
-          type="button"
-          data-bs-toggle="dropdown"
-          aria-expanded="false"
-        >
-          Ordina per
-        </button>
-        <ul class="dropdown-menu" role="menu">
-          <li><button class="dropdown-item" @click="orderBy('title')">Titolo</button></li>
-          <li><button class="dropdown-item" @click="orderBy('date')">Data</button></li>
-          <li><button class="dropdown-item" @click="orderBy('author')">Autore</button></li>
-        </ul>
-      </div>
-      <div class="btn-group" role="group" aria-label="Note View Mode">
-        <input type="radio" class="btn-check" id="list" value="list" v-model="viewMode" />
-        <label class="btn btn-outline-primary" for="list"
-          ><Icon icon="fluent:apps-list-24-filled"
-        /></label>
-        <input type="radio" class="btn-check" id="grid" value="grid" v-model="viewMode" />
-        <label class="btn btn-outline-primary" for="grid"
-          ><Icon icon="fluent:grid-16-filled"
-        /></label>
+    <div class="flex justify-between items-center px-2 md:px-5">
+      <h1 class="text-2xl font-semibold">Le tue note</h1>
+      <div class="flex justify-end items-center my-2">
+        <div class="mx-2">
+          <button
+            class="btn btn-default rounded-box"
+            v-if="order === 'title'"
+            @click="orderBy('date')"
+          >
+            Ordina per Titolo
+          </button>
+          <button
+            class="btn btn-default rounded-box"
+            v-else-if="order === 'date'"
+            @click="orderBy('author')"
+          >
+            Ordina per Data
+          </button>
+          <button
+            class="btn btn-default rounded-box"
+            v-else-if="order === 'author'"
+            @click="orderBy('title')"
+          >
+            Ordina per Autore
+          </button>
+        </div>
+        <div class="join rounded-box" aria-label="Note View Mode">
+          <input
+            type="radio"
+            class="btn btn-sm join-item"
+            id="list"
+            name="options"
+            value="list"
+            v-model="viewMode"
+            aria-label="List"
+          />
+          <!-- <label class="btn btn-outline btn-primary join-item" for="list">
+          <Icon icon="fluent:apps-list-24-filled" />
+        </label> -->
+          <input
+            type="radio"
+            class="btn btn-sm join-item"
+            id="grid"
+            name="options"
+            value="grid"
+            v-model="viewMode"
+            aria-label="Grid"
+          />
+          <!-- <label class="btn btn-outline btn-primary join-item" for="grid">
+          <Icon icon="fluent:grid-16-filled" />
+        </label> -->
+        </div>
       </div>
     </div>
-    <NoteView :viewMode="viewMode" :edit="true" :extended="true"></NoteView>
+    <div class="flex justify-center">
+      <NoteView :order="order" :viewMode="viewMode" :edit="true" :extended="true"></NoteView>
+    </div>
   </div>
 </template>
 
