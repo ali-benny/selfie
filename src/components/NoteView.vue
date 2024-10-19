@@ -157,7 +157,7 @@ async function removeNote(id) {
           <Icon icon="fluent:note-edit-24-regular" /> Modifica
         </RouterLink> -->
         <button
-          @click="duplicateNote(note._id)"
+          @click.stop.prevent="duplicateNote(note._id)"
           role="button"
           class="btn btn-outline btn-primary text-xl flex justify-center items-center"
           title="Duplicate note"
@@ -165,7 +165,7 @@ async function removeNote(id) {
           <Icon icon="fluent:copy-24-regular" /> Duplica
         </button>
         <button
-          @click="removeNote(note._id)"
+          @click.stop.prevent="removeNote(note._id)"
           role="button"
           class="btn btn-error btn-outline text-xl flex justify-center items-center"
           title="Delete note"
@@ -211,7 +211,7 @@ async function removeNote(id) {
           <Icon icon="fluent:note-edit-24-regular" />
         </RouterLink> -->
         <button
-          @click="duplicateNote(note._id)"
+          @click.stop.prevent="duplicateNote(note._id)"
           role="button"
           class="btn btn-outline btn-primary text-2xl flex justify-center items-center"
           title="Duplicate note"
@@ -219,7 +219,7 @@ async function removeNote(id) {
           <Icon icon="fluent:copy-24-regular" />
         </button>
         <button
-          @click="removeNote(note._id)"
+          @click.stop.prevent="removeNote(note._id)"
           role="button"
           class="btn btn-outline btn-error text-2xl flex justify-center items-center"
           title="Delete note"
