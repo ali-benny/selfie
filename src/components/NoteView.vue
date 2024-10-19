@@ -14,8 +14,17 @@ const props = defineProps({
   order: String
 })
 const notes = ref([])
-const edjsParser = edjsHTML()
 const toast = useToast()
+
+const checklistParser = (block) => {
+  const items = block.data.items
+    .map((item) => {
+      return `<input type="checkbox" class="checkbox checkbox-sm" ${item.checked ? 'checked="checked"' : 'disabled'}/><span class="label-text">${item.text}</span>`
+    })
+    .join('')
+  return `<label class="label cursor-pointer flex justify-start gap-1">${items}</label>`
+}
+const edjsParser = edjsHTML({ checklist: checklistParser })
 
 onMounted(async () => {
   try {
@@ -135,7 +144,7 @@ async function removeNote(id) {
       <div
         v-if="props.extended"
         id="preview"
-        class="grid col-span-4 p-3 grow rounded-lg bg-base-300"
+        class="col-span-4 p-3 rounded-lg bg-base-300"
         v-html="truncate(note.data, 200)"
       ></div>
       <!-- <img
