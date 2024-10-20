@@ -6,6 +6,7 @@ import notes from './notes/notes.js'
 import users from './users/users.js'
 import upload from './notes/upload.js'
 import pomodoro from './pomodoro/pomodoro.js'
+import todo from './todo/todo.js'
 
 import fs from 'fs'
 import path from 'path'
@@ -20,8 +21,9 @@ app.use(express.urlencoded({ extended: true }))
 app.use('/api', notes)
 app.use('/api', users)
 app.use('/api', upload)
-app.use('/api', pomodoro)
 app.use('/uploads', express.static('uploads'))
+app.use('/api', todo)
+app.use('/api', pomodoro)
 
 app.listen(PORT, () => {
   console.log(`Server running at ${SERVER_URL}`)

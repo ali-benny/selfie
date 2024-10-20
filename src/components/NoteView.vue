@@ -6,11 +6,25 @@ import { API_URL } from '../../const.js'
 import { getNotes, saveNoteMongo, deleteNote } from '@/router/note/editor/note.js'
 import { useToast } from 'vue-toastification'
 
-const props = defineProps(['viewMode', 'lastModified', 'edit', 'extended'])
-
+const props = defineProps({
+  viewMode: String,
+  lastModified: Number,
+  edit: Boolean,
+  extended: Boolean,
+  order: String
+})
 const notes = ref([])
-const edjsParser = edjsHTML()
 const toast = useToast()
+
+const checklistParser = (block) => {
+  const items = block.data.items
+    .map((item) => {
+      return `<input type="checkbox" class="checkbox checkbox-sm" ${item.checked ? 'checked="checked"' : 'disabled'}/><span class="label-text">${item.text}</span>`
+    })
+    .join('')
+  return `<label class="label cursor-pointer flex justify-start gap-1">${items}</label>`
+}
+const edjsParser = edjsHTML({ checklist: checklistParser })
 
 onMounted(async () => {
   try {
@@ -84,6 +98,7 @@ function truncate(data, length) {
 }
 
 const filteredNotes = computed(() => {
+  if (props.order) orderBy(props.order)
   if (props.lastModified) {
     orderBy('date')
     return notes.value.slice(props.lastModified, notes.value.length - 1)
@@ -104,23 +119,24 @@ async function removeNote(id) {
 </script>
 
 <template>
-  <ul class="list-group" v-if="props.viewMode == 'list'">
-    <li
+  <ul class="m-2 gap-2 flex flex-col max-w-screen-xl" v-if="props.viewMode == 'list'">
+    <RouterLink
+      :to="`/editor?edit=${note._id}`"
       v-for="note in filteredNotes"
       :key="note._id"
-      class="list-group-item flex flex-row flex-wrap md:flex-nowrap justify-between"
+      class="bg-base-200 rounded-box md:grid md:grid-cols-6 flex flex-wrap md:flex-nowrap p-3 gap-2 justify-between hover:bg-base-content/20 hover:cursor-pointer"
     >
-      <div class="flex flex-column">
+      <div class="flex flex-col flex-none">
         <!-- DEBUG: note _id -->
         <!-- <p>{{ note._id }}</p>  -->
-        <h1>{{ note.name }}</h1>
-        <p>Author: {{ note.author }}</p>
+        <h1 class="font-bold text-lg">{{ note.name }}</h1>
+        <p class="">Author: {{ note.author }}</p>
         <p v-if="props.extended" class="flex items-center gap-2">
           <Icon icon="ic:round-update" /> {{ formatDate(note.date) }}
         </p>
         <!-- Tags -->
         <div v-if="props.extended" class="flex flex-row gap-2 flex-wrap">
-          <p v-for="tag in note.tags" class="flex px-2 rounded-xl bg-primary-subtle">
+          <p v-for="tag in note.tags" class="flex px-2 rounded-xl font-semibold bg-primary/50">
             {{ tag }}
           </p>
         </div>
@@ -128,7 +144,7 @@ async function removeNote(id) {
       <div
         v-if="props.extended"
         id="preview"
-        class="flex w-75 m-3 p-3 flex-grow-1 flex-wrap rounded-4 bg-light"
+        class="col-span-4 p-3 rounded-lg bg-base-300"
         v-html="truncate(note.data, 200)"
       ></div>
       <!-- <img
@@ -139,90 +155,87 @@ async function removeNote(id) {
           /> -->
       <div
         v-if="props.edit"
-        class="flex flex-md-column flex-row flex-wrap justify-content-center gap-2 mx-auto mt-2"
+        class="md:grid flex md:flex-col flex-wrap justify-center gap-2 mx-auto mt-2"
       >
-        <RouterLink
+        <!-- <RouterLink
           :to="`/editor?edit=${note._id}`"
           role="button"
-          class="btn btn-ghost btn-primary text-xl flex justify-content-center align-items-center"
+          class="btn btn-primary text-xl flex justify-center items-center"
           title="Edit note"
         >
           <Icon icon="fluent:note-edit-24-regular" /> Modifica
-        </RouterLink>
+        </RouterLink> -->
         <button
-          @click="duplicateNote(note._id)"
+          @click.stop.prevent="duplicateNote(note._id)"
           role="button"
-          class="btn btn-ghost btn-outline-primary text-xl flex justify-content-center align-items-center"
+          class="btn btn-outline btn-primary text-xl flex justify-center items-center"
           title="Duplicate note"
         >
           <Icon icon="fluent:copy-24-regular" /> Duplica
         </button>
         <button
-          @click="removeNote(note._id)"
+          @click.stop.prevent="removeNote(note._id)"
           role="button"
-          class="btn btn-ghost btn-outline-danger text-xl flex justify-content-center align-items-center"
+          class="btn btn-error btn-outline text-xl flex justify-center items-center"
           title="Delete note"
         >
           <Icon icon="fluent:delete-24-regular" /> Elimina
         </button>
       </div>
-    </li>
+    </RouterLink>
   </ul>
-  <div v-if="props.viewMode == 'grid'" class="container-fluid">
-    <div class="row">
-      <div
-        v-for="note in filteredNotes"
-        :key="note._id"
-        class="col-xl-3 col-lg-4 col-md-6 col-sm-12 flex p-2"
-      >
-        <div class="card flex flex-column flex-grow-1 p-3">
-          <h2>{{ note.name }}</h2>
-          <p>Author: {{ note.author }}</p>
-          <p class="flex align-items-center gap-2">
-            <Icon icon="ic:round-update" /> {{ formatDate(note.date) }}
-          </p>
-          <!-- Tags -->
-          <div class="flex flex-row flex-wrap gap-2">
-            <p v-for="tag in note.tags" class="flex px-2 rounded-5 bg-primary-subtle">
-              {{ tag }}
-            </p>
-          </div>
-          <div
-            id="preview"
-            class="flex flex-column flex-grow-1 bg-light card p-2"
-            v-html="truncate(note.data, 200)"
-          ></div>
-          <div
-            v-if="props.edit"
-            class="flex flex-row flex-wrap gap-2 mx-auto justify-content-center mt-2"
-          >
-            <RouterLink
-              :to="`/editor?edit=${note._id}`"
-              role="button"
-              class="btn btn-ghost btn-primary text-2xl flex justify-content-center align-items-center"
-              title="Edit note"
-            >
-              <Icon icon="fluent:note-edit-24-regular" />
-            </RouterLink>
-            <button
-              @click="duplicateNote(note._id)"
-              role="button"
-              class="btn btn-ghost btn-outline-primary text-2xl flex justify-content-center align-items-center"
-              title="Duplicate note"
-            >
-              <Icon icon="fluent:copy-24-regular" />
-            </button>
-            <button
-              @click="removeNote(note._id)"
-              role="button"
-              class="btn btn-ghost btn-outline-danger text-2xl flex justify-content-center align-items-center"
-              title="Delete note"
-            >
-              <Icon icon="fluent:delete-24-regular" />
-            </button>
-          </div>
-        </div>
+  <div
+    v-if="props.viewMode == 'grid'"
+    class="m-2 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3"
+  >
+    <RouterLink
+      :to="`/editor?edit=${note._id}`"
+      v-for="note in filteredNotes"
+      :key="note._id"
+      class="card flex flex-col gap-1 p-3 bg-base-200 h-full hover:bg-base-content/20 hover:cursor-pointer"
+    >
+      <h2 class="text-xl font-bold">{{ note.name }}</h2>
+      <p>Author: {{ note.author }}</p>
+      <p class="flex align-items-center gap-2">
+        <Icon icon="ic:round-update" /> {{ formatDate(note.date) }}
+      </p>
+      <!-- Tags -->
+      <div class="flex flex-row flex-wrap gap-2">
+        <p v-for="tag in note.tags" class="flex px-2 rounded-xl !bg-primary/50 font-semibold">
+          {{ tag }}
+        </p>
       </div>
-    </div>
+      <div
+        id="preview"
+        class="flex flex-col grow text-balance bg-base-300 card p-2"
+        v-html="truncate(note.data, 200)"
+      ></div>
+      <div v-if="props.edit" class="flex flex-row flex-wrap gap-2 mx-auto justify-center mt-2">
+        <!-- <RouterLink
+          :to="`/editor?edit=${note._id}`"
+          role="button"
+          class="btn btn-primary text-2xl flex justify-center items-center"
+          title="Edit note"
+        >
+          <Icon icon="fluent:note-edit-24-regular" />
+        </RouterLink> -->
+        <button
+          @click.stop.prevent="duplicateNote(note._id)"
+          role="button"
+          class="btn btn-outline btn-primary text-2xl flex justify-center items-center"
+          title="Duplicate note"
+        >
+          <Icon icon="fluent:copy-24-regular" />
+        </button>
+        <button
+          @click.stop.prevent="removeNote(note._id)"
+          role="button"
+          class="btn btn-outline btn-error text-2xl flex justify-center items-center"
+          title="Delete note"
+        >
+          <Icon icon="fluent:delete-24-regular" />
+        </button>
+      </div>
+    </RouterLink>
   </div>
 </template>
