@@ -1,15 +1,15 @@
 <template>
-  <div class="container flex flex-col items-stretch">
+  <div class="flex flex-col items-stretch">
 
     <!--- Pomodoro Timer -->
     <div class="mt-5 basis-80">
-      <PomodoroTimer @play="showConfigs = false" @pause="showConfigs = true" class="h-max" ref="pomodoroTimer" />
+      <PomodoroTimer @play="showConfigs = false" @pause="showConfigs = true" class="h-max" ref="pomodoroTimer"/>
     </div>
 
 
     <!-- Pomodoro configs -->
-    <div class="mt-3" v-if="showConfigs">
-      <h2>
+    <div class="m-3" v-if="showConfigs">
+      <h2 class="font-bold text-lg">
         I tuoi focus
       </h2>
       <PomodoroConfigList class="mt-1" @select="reloadPomodoro" />

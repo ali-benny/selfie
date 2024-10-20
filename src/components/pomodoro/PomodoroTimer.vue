@@ -1,49 +1,65 @@
 <template>
   <div class="w-100 h-100 flex flex-col justify-center" v-if="this.pomodoro">
-    <div class="w-100 h-min flex flex-col items-center gap-y-5">
-      <div class="self-stretch flex flex-row justify-evenly lg:justify-center flex-wrap gap-x-4 lg:gap-x-32 gap-y-4">
+    <div class="w-100 h-min flex flex-col items-center justify-center gap-y-5">
+      <div
+        class="self-stretch flex flex-row justify-evenly lg:justify-center flex-wrap gap-x-4 lg:gap-x-32 gap-y-4"
+      >
         <div class="flex flex-col items-center gap-y-1">
           <p class="m-0 font-medium leading-4">Pomodoro</p>
-          <p class="m-0 leading-4"> {{ pomodoroTime }} </p>
+          <p class="m-0 leading-4">{{ pomodoroTime }}</p>
         </div>
         <div class="flex flex-col items-center gap-y-1">
           <p class="m-0 font-medium leading-4">Pausa breve</p>
-          <p class="m-0 leading-4"> {{ shortBreakTime }} </p>
+          <p class="m-0 leading-4">{{ shortBreakTime }}</p>
         </div>
         <div class="flex flex-col items-center gap-y-1">
           <p class="m-0 font-medium leading-4">Pausa lunga</p>
-          <p class="m-0 leading-4"> {{ longBreakTime }} </p>
+          <p class="m-0 leading-4">{{ longBreakTime }}</p>
         </div>
       </div>
 
       <div class="h-80 w-80 relative flex flex-col justify-center items-center">
-
         <div class="absolute">
-          <PomodoroAnimation :duration="pomodoro.initialTimer" :timer="pomodoro.timer" :phase="pomodoro.phase"
-            ref="pomodoroAnimation" />
+          <PomodoroAnimation
+            :duration="pomodoro.initialTimer"
+            :timer="pomodoro.timer"
+            :phase="pomodoro.phase"
+            ref="pomodoroAnimation"
+            :color="pomodoro.config.color.hex"
+          />
         </div>
 
-        <p class=" digital select-none text-7xl m-0 leading-4">
+        <p class="digital select-none text-7xl m-0 leading-4">
           {{ timer }}
         </p>
       </div>
-      <div class="relative mx-auto">
-        <div class="flex flex-col">
-          <button v-if="pomodoro.running" @click="pomodoro.pause()" class="text-2xl">
-            Stop
+      <div :class="['grid', pomodoro.started ? 'grid-cols-3' : '']">
+        <button
+          v-if="pomodoro.started"
+          @click="pomodoro.restart()"
+          class="text-sm btn btn-xs btn-outline btn-error"
+        >
+          Reset
+        </button>
+        <div class="flex flex-col items-center">
+          <button
+            v-if="pomodoro.running"
+            @click="pomodoro.pause()"
+            class="text-2xl hover:text-success"
+          >
+            <Icon icon="mingcute:pause-fill" />
           </button>
-          <button v-else @click="pomodoro.play()" class="text-2xl">
-            Start
-          </button>
-          <button v-if="pomodoro.started" @click="pomodoro.restart()" class="text-sm">
-            Reset
+          <button v-else @click="pomodoro.play()" class="text-2xl hover:text-success">
+            <Icon icon="mingcute:play-fill" />
           </button>
         </div>
-        <div class="w-100 h-100 absolute inset-x-full top-0 flex justify-end items-center">
-          <button v-if="pomodoro.started" @click="pomodoro.skip()" class="text-xl">
-            <Icon icon="fluent:fast-forward-28-regular" />
-          </button>
-        </div>
+        <button
+          v-if="pomodoro.started"
+          @click="pomodoro.skip()"
+          class="text-xl hover:text-success mx-3"
+        >
+          <Icon icon="mingcute:fast-forward-fill" />
+        </button>
       </div>
     </div>
   </div>
@@ -51,26 +67,26 @@
 
 <script>
 import PomodoroAnimation from './PomodoroAnimation.vue'
-import { defaultConfig, loadPomodoro, deletePomodoro, createPomodoro, loadLatestConfig } from '../../router/pomodoro/pomodoro.js'
+import {
+  defaultConfig,
+  loadPomodoro,
+  deletePomodoro,
+  createPomodoro,
+  loadLatestConfig
+} from '../../router/pomodoro/pomodoro.js'
 
 export default {
-  emits: [
-    'play',
-    'pause',
-    'finish'
-  ],
-  expose: [
-    'replacePomodoro'
-  ],
+  emits: ['play', 'pause', 'finish'],
+  expose: ['replacePomodoro'],
   data() {
     return {
-      pomodoro: null,
+      pomodoro: null
     }
   },
   async created() {
-    this.pomodoro = await loadPomodoro();
+    this.pomodoro = await loadPomodoro()
     if (this.pomodoro == null) {
-      let config = await loadLatestConfig() || defaultConfig
+      let config = (await loadLatestConfig()) || defaultConfig
       this.pomodoro = await createPomodoro(config)
     }
 
@@ -88,15 +104,13 @@ export default {
       this.pomodoro = await createPomodoro(config)
     },
     formatClockTime(time) {
-      if (!time)
-        return '00:00'
+      if (!time) return '00:00'
       let minutes = Math.floor(time / 60)
       let seconds = time % 60
-      return (minutes < 10 ? '0' : '') + minutes + ":" + (seconds < 10 ? '0' : '') + seconds
+      return (minutes < 10 ? '0' : '') + minutes + ':' + (seconds < 10 ? '0' : '') + seconds
     },
     formatConfigTime(time) {
-      if (!time)
-        return '0 min.'
+      if (!time) return '0 min.'
       return time + ' min.'
     }
   },
@@ -134,13 +148,13 @@ export default {
     },
     message() {
       if (!this.pomodoro.started) {
-        return "Start pomodoro now!"
+        return 'Start pomodoro now!'
       }
       if (this.pomodoro.finished) {
-        return "Good job!"
+        return 'Good job!'
       }
       return this.pomodoro.message()
-    },
+    }
   },
   components: {
     PomodoroAnimation

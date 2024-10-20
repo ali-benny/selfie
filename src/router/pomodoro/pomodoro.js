@@ -8,7 +8,8 @@ export const defaultConfig = {
   pomodoroTime: 25,
   shortBreakTime: 5,
   longBreakTime: 15,
-  longBreakInterval: 4
+  longBreakInterval: 4,
+  color: '#7dc4e4'
 }
 
 /*
@@ -54,7 +55,8 @@ export async function updatePomodoro(pomodoro) {
         phase: pomodoro.phase,
         cycle: pomodoro.cycle,
         started: pomodoro.started,
-        running: pomodoro.running
+        running: pomodoro.running,
+        color: pomodoro.color
       })
     })
     if (!response.ok) {
@@ -227,6 +229,7 @@ export class Pomodoro {
     this.running = running
     this.finished = false
     this.intervalId = null
+    this.color = '#7dc4e4'
   }
 
   /*

@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.prose {
+  color: inherit; /* Rimuove il colore specifico */
+  max-width: none; /* Rimuove la larghezza massima */
+}
+
+/* NOTE: preso da https://blog.logrocket.com/best-practices-for-loading-fonts-in-vue/ */
+@font-face {
+  font-family: 'Digital-7';
+  font-weight: 400;
+  font-style: normal;
+  font-display: auto;
+  unicode-range: U+003A, U+0030-0039;
+  src:
+    local(Digital),
+    url('fonts/Digital/digital-font.ttf') format('truetype');
+}

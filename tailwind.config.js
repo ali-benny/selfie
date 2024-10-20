@@ -7,7 +7,11 @@ export default {
   theme: {
     extend: {}
   },
-  plugins: [require('@tailwindcss/typography'), require('daisyui'), addDynamicIconSelectors()],
+  plugins: [
+    require('@tailwindcss/typography'),
+    require('daisyui'),
+    addDynamicIconSelectors()
+  ],
   daisyui: {
     themes: [catppuccin('macchiato', { primary: 'blue' })]
   }
