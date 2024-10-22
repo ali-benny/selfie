@@ -1,37 +1,16 @@
 <template>
-  <svg
-    class="w-full h-full overflow-visible"
-    viewBox="0 0 100 100"
-    xmlns="http://www.w3.org/2000/svg"
-  >
+  <svg class="w-full h-full overflow-visible" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
     <g class="fill-none stroke-none">
-      <circle cx="50%" cy="50%" r="50%" class="stroke-neutral" />
-      <path
-        :class="{ hidden: isBreakPhase }"
-        ref="pomodoroProgress"
-        class="progress"
-        :stroke="color"
-        pathLength="1"
-        d="M 50, 0  
-            a 50,50 0 1,1 0,100
-            a 50,50 0 1,1 0,-100"
-      />
-      <path
-        :class="{ hidden: isPomodoroPhase }"
-        ref="breakProgress"
-        class="progress"
-        :stroke="color"
-        pathLength="1"
-        d="
-              M 50, 0  
-              a 50,50 0 1,0 0,100
-              a 50,50 0 1,0 0,-100"
-      />
+      <circle cx="50" cy="50" r="50" class="stroke-neutral" />
+
+      <line id="dot" x1="50" y1="0" x2="50" y2="0" :stroke="breakColor" pathLength="1" />
+      <circle id="progress" cx="50" cy="50" r="50" ref="progress" :stroke="color" pathLength="1" />
     </g>
   </svg>
 </template>
 
 <script>
+import { flavors } from '@catppuccin/palette'
 let animation
 
 export default {
@@ -46,11 +25,20 @@ export default {
     },
     phase: {
       type: String,
-      required: true
+      default: 'pomodoro'
     },
-    color: {
+    pomodoroColor: {
       type: String,
-      default: '#ed8796'
+      default: flavors.macchiato.colors.red.hex
+    },
+    breakColor: {
+      type: String,
+      default: flavors.macchiato.colors.blue.hex
+    }
+  },
+  data() {
+    return {
+      anim: Object
     }
   },
   expose: ['play', 'pause', 'restart'],
@@ -61,7 +49,7 @@ export default {
   },
   methods: {
     async play() {
-      await new Promise((r) => setTimeout(r, 1000)) // ci mette il timer a ripartire
+      animation.currentTime = (this.duration - this.timer) * 1000
       animation.play()
     },
     pause() {
@@ -72,14 +60,15 @@ export default {
 
       animation = this.progress.animate(this.animationKeyframes, {
         duration: this.duration * 1000,
-        direction: 'reverse'
+        fill: 'forwards'
       })
+      this.anim = animation
       return animation
     }
   },
   computed: {
     progress() {
-      return this.isPomodoroPhase ? this.$refs.pomodoroProgress : this.$refs.breakProgress
+      return this.$refs.progress
     },
     isPomodoroPhase() {
       return this.phase === 'pomodoro'
@@ -87,36 +76,53 @@ export default {
     isBreakPhase() {
       return this.phase === 'break'
     },
+    color() {
+      if (this.isPomodoroPhase)
+        return this.pomodoroColor
+      return this.breakColor
+    },
     animationKeyframes() {
       if (this.isPomodoroPhase) {
         return {
-          stroke: [this.color, this.color],
-          strokeDashoffset: [1, 0],
+          stroke: [this.pomodoroColor, this.breakColor],
+          strokeDashoffset: [0, 1],
           easing: 'linear'
         }
       }
       return {
-        stroke: [this.color, this.color],
-        strokeDashoffset: [0, 1],
+        stroke: [this.breakColor, this.pomodoroColor],
+        strokeDashoffset: [-1, 0],
         easing: 'linear'
       }
     }
   },
   watch: {
-    duration() {
+    'phase'() {
       animation = this.restart()
+    },
+    'timer'(timer) {
+      animation.currentTime = (this.duration - timer) * 1000
     }
   }
 }
 </script>
 
 <style scoped>
-path {
+#progress {
   stroke-linecap: round;
   stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transform: rotate(-90deg);
+  transform-origin: center;
 }
 
-g > * {
-  stroke-width: 0.5rem;
+#dot {
+  stroke-dasharray: 1;
+  stroke-dashoffset: -.999;
+  stroke-linecap: round;
+}
+
+g>* {
+  stroke-width: 0.4rem;
 }
 </style>

@@ -1,9 +1,7 @@
 <template>
   <div class="w-100 h-100 flex flex-col justify-center" v-if="this.pomodoro">
     <div class="w-100 h-min flex flex-col items-center justify-center gap-y-5">
-      <div
-        class="self-stretch flex flex-row justify-evenly lg:justify-center flex-wrap gap-x-4 lg:gap-x-32 gap-y-4"
-      >
+      <div class="self-stretch flex flex-row justify-evenly lg:justify-center flex-wrap gap-x-4 lg:gap-x-32 gap-y-4">
         <div class="flex flex-col items-center gap-y-1">
           <p class="m-0 font-medium leading-4">Pomodoro</p>
           <p class="m-0 leading-4">{{ pomodoroTime }}</p>
@@ -20,13 +18,8 @@
 
       <div class="h-80 w-80 relative flex flex-col justify-center items-center">
         <div class="absolute">
-          <PomodoroAnimation
-            :duration="pomodoro.initialTimer"
-            :timer="pomodoro.timer"
-            :phase="pomodoro.phase"
-            ref="pomodoroAnimation"
-            :color="pomodoro.config.color.hex"
-          />
+          <PomodoroAnimation :duration="pomodoro.initialTimer" :timer="pomodoro.timer" :phase="pomodoro.phase"
+            ref="pomodoroAnimation" />
         </div>
 
         <p class="digital select-none text-7xl m-0 leading-4">
@@ -34,30 +27,18 @@
         </p>
       </div>
       <div :class="['grid', pomodoro.started ? 'grid-cols-3' : '']">
-        <button
-          v-if="pomodoro.started"
-          @click="pomodoro.restart()"
-          class="text-sm btn btn-xs btn-outline btn-error"
-        >
+        <button v-if="pomodoro.started" @click="pomodoro.restart()" class="text-sm btn btn-xs btn-outline btn-error">
           Reset
         </button>
         <div class="flex flex-col items-center">
-          <button
-            v-if="pomodoro.running"
-            @click="pomodoro.pause()"
-            class="text-2xl hover:text-success"
-          >
+          <button v-if="pomodoro.running" @click="pomodoro.pause()" class="text-2xl hover:text-success">
             <Icon icon="mingcute:pause-fill" />
           </button>
           <button v-else @click="pomodoro.play()" class="text-2xl hover:text-success">
             <Icon icon="mingcute:play-fill" />
           </button>
         </div>
-        <button
-          v-if="pomodoro.started"
-          @click="pomodoro.skip()"
-          class="text-xl hover:text-success mx-3"
-        >
+        <button v-if="pomodoro.started" @click="pomodoro.skip()" class="text-xl hover:text-success mx-3">
           <Icon icon="mingcute:fast-forward-fill" />
         </button>
       </div>
