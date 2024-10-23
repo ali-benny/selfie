@@ -27,18 +27,18 @@
         </p>
       </div>
       <div :class="['grid', pomodoro.started ? 'grid-cols-3' : '']">
-        <button v-if="pomodoro.started" @click="pomodoro.restart()" class="text-sm btn btn-xs btn-outline btn-error">
+        <button v-if="pomodoro.started" @click="this.restart()" class="text-sm btn btn-xs btn-outline btn-error">
           Reset
         </button>
         <div class="flex flex-col items-center">
-          <button v-if="pomodoro.running" @click="pomodoro.pause()" class="text-2xl hover:text-success">
+          <button v-if="pomodoro.running" @click="this.pause()" class="text-2xl hover:text-success">
             <Icon icon="mingcute:pause-fill" />
           </button>
-          <button v-else @click="pomodoro.play()" class="text-2xl hover:text-success">
+          <button v-else @click="this.play()" class="text-2xl hover:text-success">
             <Icon icon="mingcute:play-fill" />
           </button>
         </div>
-        <button v-if="pomodoro.started" @click="pomodoro.skip()" class="text-xl hover:text-success mx-3">
+        <button v-if="pomodoro.started" @click="this.skip()" class="text-xl hover:text-success mx-3">
           <Icon icon="mingcute:fast-forward-fill" />
         </button>
       </div>
@@ -74,6 +74,24 @@ export default {
     this.pomodoro.running = false
   },
   methods: {
+    play() {
+      this.pomodoro.play()
+      this.pomodoroAnimation.play()
+      this.$emit('play')
+    },
+    pause() {
+      this.pomodoro.pause()
+      this.pomodoroAnimation.pause()
+      this.$emit('pause')
+    },
+    restart() {
+      this.pomodoro.restart()
+      this.pomodoroAnimation.restart()
+    },
+    skip() {
+      this.pomodoro.skip()
+      this.pomodoroAnimation.restart()
+    },
     deletePomodoro() {
       deletePomodoro(this.pomodoro)
       this.$emit('finish')
@@ -96,20 +114,11 @@ export default {
     }
   },
   watch: {
-    'pomodoro.running'(started) {
-      if (started) {
-        this.$emit('play')
-        this.pomodoroAnimation?.play()
-      } else {
-        this.$emit('pause')
-        this.pomodoroAnimation?.pause()
-      }
-    },
     'pomodoro.finished'(finished) {
       if (finished) {
         this.$emit('finish')
       }
-    }
+    },
   },
   computed: {
     timer() {

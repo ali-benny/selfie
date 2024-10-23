@@ -56,33 +56,21 @@ export default {
       animation.pause()
     },
     restart() {
-      if (animation) animation.cancel()
+      if (animation) {
+        animation.finish()
+        animation = null
+      }
 
-      animation = this.progress.animate(this.animationKeyframes, {
+      animation = this.progress.animate(this.animationKeyframes(), {
         duration: this.duration * 1000,
         fill: 'forwards'
       })
+
       this.anim = animation
       return animation
-    }
-  },
-  computed: {
-    progress() {
-      return this.$refs.progress
-    },
-    isPomodoroPhase() {
-      return this.phase === 'pomodoro'
-    },
-    isBreakPhase() {
-      return this.phase === 'break'
-    },
-    color() {
-      if (this.isPomodoroPhase)
-        return this.pomodoroColor
-      return this.breakColor
     },
     animationKeyframes() {
-      if (this.isPomodoroPhase) {
+      if (this.isPomodoroPhase()) {
         return {
           stroke: [this.pomodoroColor, this.breakColor],
           strokeDashoffset: [0, 1],
@@ -94,11 +82,26 @@ export default {
         strokeDashoffset: [-1, 0],
         easing: 'linear'
       }
+    },
+    isPomodoroPhase() {
+      return this.phase === 'pomodoro'
+    }
+  },
+  computed: {
+    progress() {
+      return this.$refs.progress
+    },
+    color() {
+      if (this.isPomodoroPhase)
+        return this.pomodoroColor
+      return this.breakColor
     }
   },
   watch: {
-    'phase'() {
-      animation = this.restart()
+    'phase'(oldPhase, newPhase) {
+      if (oldPhase && newPhase) {
+        this.restart()
+      }
     },
     'timer'(timer) {
       animation.currentTime = (this.duration - timer) * 1000
