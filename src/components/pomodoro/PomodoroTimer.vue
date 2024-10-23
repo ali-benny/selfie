@@ -19,7 +19,7 @@
       <div class="h-80 w-80 relative flex flex-col justify-center items-center">
         <div class="absolute">
           <PomodoroAnimation :duration="pomodoro.initialTimer" :timer="pomodoro.timer" :phase="pomodoro.phase"
-            ref="pomodoroAnimation" />
+            ref="animation" />
         </div>
 
         <p class="digital select-none text-7xl m-0 leading-4">
@@ -76,31 +76,28 @@ export default {
   methods: {
     play() {
       this.pomodoro.play()
-      this.pomodoroAnimation.play()
+      this.animation.play()
       this.$emit('play')
     },
     pause() {
       this.pomodoro.pause()
-      this.pomodoroAnimation.pause()
+      this.animation.pause()
       this.$emit('pause')
     },
     restart() {
       this.pomodoro.restart()
-      this.pomodoroAnimation.restart()
+      this.animation.restart()
     },
     skip() {
       this.pomodoro.skip()
-      this.pomodoroAnimation.restart()
-    },
-    deletePomodoro() {
-      deletePomodoro(this.pomodoro)
-      this.$emit('finish')
+      this.animation.restart()
     },
     async replacePomodoro(config) {
       if (this.pomodoro) {
         await deletePomodoro(this.pomodoro)
       }
       this.pomodoro = await createPomodoro(config)
+      this.animation.reload()
     },
     formatClockTime(time) {
       if (!time) return '00:00'
@@ -118,7 +115,7 @@ export default {
       if (finished) {
         this.$emit('finish')
       }
-    },
+    }
   },
   computed: {
     timer() {
@@ -133,8 +130,8 @@ export default {
     longBreakTime() {
       return this.formatConfigTime(this.pomodoro?.config.longBreakTime)
     },
-    pomodoroAnimation() {
-      return this.$refs.pomodoroAnimation
+    animation() {
+      return this.$refs.animation
     },
     message() {
       if (!this.pomodoro.started) {

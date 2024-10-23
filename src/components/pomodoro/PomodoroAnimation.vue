@@ -1,16 +1,19 @@
 <template>
   <svg class="w-full h-full overflow-visible" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
     <g class="fill-none stroke-none">
-      <circle cx="50" cy="50" r="50" class="stroke-neutral" />
 
-      <line id="dot" x1="50" y1="0" x2="50" y2="0" :stroke="breakColor" pathLength="1" />
-      <circle id="progress" cx="50" cy="50" r="50" ref="progress" :stroke="color" pathLength="1" />
+      <circle cx="50" cy="50" r="50" class="stroke-neutral" />
+      <line id="dot" x1="50" y1="0" x2="50" y2="0" :stroke="breakColor" class="linecap-round" pathLength="1" />
+      <circle id="progress" cx="50" cy="50" r="50" ref="progress" class="linecap-round" pathLength=" 1" />
+
+      <circle cx="50" cy="50" r="50" :stroke="pomodoroColor" :class="['fill-none', { 'hidden': this.phase }]" />
     </g>
   </svg>
 </template>
 
 <script>
 import { flavors } from '@catppuccin/palette'
+
 let animation
 
 export default {
@@ -36,29 +39,24 @@ export default {
       default: flavors.macchiato.colors.blue.hex
     }
   },
-  data() {
-    return {
-      anim: Object
-    }
-  },
-  expose: ['play', 'pause', 'restart'],
+  expose: ['play', 'pause', 'restart', 'reload'],
   mounted() {
-    animation = this.restart()
-    animation.currentTime = (this.duration - this.timer) * 1000
-    animation.pause()
+    this.reload()
   },
   methods: {
-    async play() {
+    play() {
       animation.currentTime = (this.duration - this.timer) * 1000
       animation.play()
     },
     pause() {
       animation.pause()
     },
+    /* Termina l'animazione in corso (se esiste), e ne fa partire una nuova con la stessa 
+     * durata e fase
+     */
     restart() {
       if (animation) {
         animation.finish()
-        animation = null
       }
 
       animation = this.progress.animate(this.animationKeyframes(), {
@@ -66,42 +64,49 @@ export default {
         fill: 'forwards'
       })
 
-      this.anim = animation
       return animation
+    },
+    /* Crea una nuova animazione e aggiorna il tempo della stessa basandosi sul timer.
+     * L'animazione non viene fatta partire
+     */
+    reload() {
+      animation = this.restart()
+      animation.currentTime = (this.duration - this.timer) * 1000
+      animation.pause()
     },
     animationKeyframes() {
       if (this.isPomodoroPhase()) {
-        return {
-          stroke: [this.pomodoroColor, this.breakColor],
-          strokeDashoffset: [0, 1],
-          easing: 'linear'
-        }
+        return this.pomodoroKeyframes
       }
-      return {
-        stroke: [this.breakColor, this.pomodoroColor],
-        strokeDashoffset: [-1, 0],
-        easing: 'linear'
-      }
+      return this.breakKeyframes
     },
+    /* true iff phase is unset or phase is pomodoro */
     isPomodoroPhase() {
-      return this.phase === 'pomodoro'
+      return !(this.phase) || this.phase === 'pomodoro'
     }
   },
   computed: {
     progress() {
       return this.$refs.progress
     },
-    color() {
-      if (this.isPomodoroPhase)
-        return this.pomodoroColor
-      return this.breakColor
+    pomodoroKeyframes() {
+      return {
+        stroke: [this.pomodoroColor, this.breakColor],
+        strokeDashoffset: [0, 1],
+        easing: 'linear'
+      }
+    },
+    breakKeyframes() {
+      return {
+        stroke: [this.breakColor, this.pomodoroColor],
+        strokeDashoffset: [-1, 0],
+        easing: 'linear'
+      }
     }
   },
   watch: {
-    'phase'(oldPhase, newPhase) {
-      if (oldPhase && newPhase) {
-        this.restart()
-      }
+    'duration'() {
+      this.restart()
     },
     'timer'(timer) {
       animation.currentTime = (this.duration - timer) * 1000
@@ -111,18 +116,15 @@ export default {
 </script>
 
 <style scoped>
-#progress {
+.linecap-round {
   stroke-linecap: round;
+}
+
+#progress {
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
   transform: rotate(-90deg);
   transform-origin: center;
-}
-
-#dot {
-  stroke-dasharray: 1;
-  stroke-dashoffset: -.999;
-  stroke-linecap: round;
 }
 
 g>* {
