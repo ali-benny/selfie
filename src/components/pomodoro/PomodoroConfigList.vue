@@ -1,6 +1,6 @@
 <template>
   <div class="w-full overflow-visible">
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-2 gap-y-1" v-if="configs">
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-2" v-if="configs">
       <div class="flex" v-for="(config, idx) in configs" :key="config._id">
         <PomodoroConfigCard @select="$emit('select', config)" @delete="this.loadConfigs" v-model:config="configs[idx]"
           class="grow" />
@@ -21,6 +21,7 @@ export default {
       return false
     }
   },
+  expose: ['loadConfigs'],
   data() {
     return {
       configs: null

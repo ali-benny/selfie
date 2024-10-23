@@ -146,6 +146,26 @@ export async function loadLatestConfigs() {
   }
 }
 
+/*
+ * Crea la Config
+ */
+export async function createPomodoroConfig(config) {
+  try {
+    const response = await fetch(API_URL + '/pomodoros/configs/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...config
+      })
+    })
+    if (!response.ok) {
+      throw new Error(`ERROR - createPomodoroConfig, response status ${response.status}`)
+    }
+  } catch (error) {
+    console.error(error.message)
+  }
+}
+
 export async function updatePomodoroConfig(config) {
   try {
     const response = await fetch(API_URL + '/pomodoros/configs/' + config._id, {

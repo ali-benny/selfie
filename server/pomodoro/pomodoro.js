@@ -184,6 +184,22 @@ app.get('/pomodoros/configs', async (req, res) => {
 })
 
 /*
+ * Creates a new config
+ */
+app.post('/pomodoros/configs/', async (req, res) => {
+  try {
+    const config = new PomodoroConfig(req.body)
+    config.lastUsed = Date.now()
+    await config.save()
+
+    res.status(200).send('Config created successfully!')
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+/*
  * Edits the properties of the Config specified
  */
 app.patch('/pomodoros/configs/:id', async (req, res) => {
