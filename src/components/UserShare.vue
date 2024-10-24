@@ -75,7 +75,7 @@ function select(user) {
 
 function sendshare() {
   if (props.content === null) {
-    toast.warning('Salva la nota prima di condividerla')
+    toast.warning('Please, save your note before sharing')
   }
 
   switch (props.type) {
@@ -87,7 +87,7 @@ function sendshare() {
       break
   }
   sharewith.value = []
-  toast.success(`${props.type} condiviso con successo!`)
+  toast.success(`${props.type} shared successfully!`)
 }
 </script>
 

@@ -79,6 +79,7 @@ const saveNewImage = async () => {
           updatedUser.image = newImage.value
         }
         newImage.value = ''
+        toast.success('Avatar updated!')
       } else {
         console.error('Failed to save new image: ', response.status)
       }
@@ -90,7 +91,7 @@ const saveNewImage = async () => {
 
 let editBirthday = ''
 const editLoggedUser = async () => {
-  if (editUser.value) {
+  if (editUser.value && editBirthday != '') {
     try {
       const response = await fetch(`${API_URL}/users/${userStore.loggedUser._id}`, {
         method: 'PATCH',
@@ -101,7 +102,7 @@ const editLoggedUser = async () => {
       })
       if (response.ok) {
         userStore.setLoggedUser({ ...userStore.loggedUser, birthday: editBirthday })
-        toast.success('Modifiche salvate!')
+        toast.success('Changes saved on your account!')
       } else {
         console.error('Failed to save user info: ', response.status)
       }
@@ -118,7 +119,7 @@ onMounted(fetchUsers)
 <template>
   <div class="flex flex-col md:flex-row vh-100 p-3">
     <div class="flex flex-col md:w-25 items-center prose">
-      <h1>Il tuo profilo</h1>
+      <h1 class="flex flex-row gap-3">Your<div class="italic">Selfie</div></h1>
       <div class="bg-base-300 relative rounded-box p-3 w-full flex flex-col gap-2">
         <div class="absolute right-0 top-0">
           <button
@@ -166,19 +167,26 @@ onMounted(fetchUsers)
         @update:selectedUserId="selectUser"
       />
       <div class="divider"></div>
-      <div>
-        <h2 class="mt-0">Change Profile Image</h2>
-        <button @click="generateNewImage" class="btn btn-accent mb-3">
-          <Icon class="text-xl" icon="fluent:emoji-sparkle-16-filled" />Generate New Image
-        </button>
-        <div v-if="newImage">
-          <img :src="newImage" alt="New Profile Image" class="mask mask-squircle w-24 h-24 m-0" />
-          <button @click="saveNewImage" class="btn btn-primary mt-3">Save Image</button>
+      <h2 class="mt-0">Change Profile Avatar</h2>
+      <div class="flex flex-row justify-around items-center">
+        <div class="flex flex-col gap-2">
+          <button @click="generateNewImage" class="btn btn-accent">
+            <Icon class="text-xl" icon="fluent:emoji-sparkle-16-filled" />Generate New Avatar
+          </button>
+          <button v-if="newImage" @click="saveNewImage" class="btn btn-success">
+            <Icon icon="fluent:save-edit-20-filled" class="text-xl" />Save Image
+          </button>
         </div>
+        <img
+          v-if="newImage"
+          :src="newImage"
+          alt="New Profile Image"
+          class="mask mask-squircle w-32 m-0"
+        />
       </div>
       <div class="divider"></div>
       <div class="flex flex-col gap-3">
-        <h2>Registra un nuovo utente</h2>
+        <h2>Register a new user</h2>
         <div class="flex flex-row gap-2 w-full">
           <input
             type="text"
