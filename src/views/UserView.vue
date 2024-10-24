@@ -83,7 +83,7 @@ onMounted(fetchUsers)
 
 <template>
   <div class="flex flex-row vh-100 p-3">
-    <div class="flex flex-col w-25 justify-content-center">
+    <div class="hidden md:flex flex-col w-25 justify-content-center">
       <div class="flex h-75"></div>
     </div>
     <div class="flex flex-col grow m-5 prose">

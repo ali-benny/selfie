@@ -8,17 +8,11 @@ const props = defineProps({
 
 const emit = defineEmits(['update:selectedUserId'])
 
-const isOpen = ref(false)
 const selectedUser = ref({})
-
-const toggleDropdown = () => {
-  isOpen.value = !isOpen.value
-}
 
 const selectUser = (user) => {
   selectedUser.value = user
   emit('update:selectedUserId', user._id)
-  isOpen.value = false
 }
 
 watch(
@@ -31,8 +25,8 @@ watch(
 </script>
 
 <template>
-  <div class="relative">
-    <button @click="toggleDropdown" class="btn btn-primary btn-ghost w-50 justify-between">
+  <Popper>
+    <button class="btn btn-primary btn-ghost w-full justify-between">
       <div class="flex items-center gap-4">
         <img
           :src="selectedUser?.image"
@@ -44,23 +38,22 @@ watch(
       </div>
       <Icon icon="fluent:chevron-down-16-filled" />
     </button>
-    <ul
-      v-if="isOpen"
-      class="flex flex-col z-3 w-full bg-base-200 border border-base-300 rounded-md shadow-lg"
-    >
-      <li
-        v-for="user in users"
-        :key="user._id"
-        @click="selectUser(user)"
-        class="cursor-pointer hover:bg-base-300 p-2 flex items-center space-x-4"
-      >
-        <div :class="['avatar', user.logged ? 'online' : '']">
-          <div class="mask mask-squircle !bg-primary w-10">
-            <img :src="user.image" alt="User Image" class="m-0" />
+    <template #content>
+      <ul class="flex flex-col z-3 left-0 m-0 p-3 bg-base-200 rounded-box shadow-xl overflow-y-auto w-fit max-h-60">
+        <li
+          v-for="user in users"
+          :key="user._id"
+          @click="selectUser(user)"
+          class="cursor-pointer hover:bg-base-300 p-2 m-0 flex items-center space-x-4 w-80 rounded-lg"
+        >
+          <div :class="['avatar', user.logged ? 'online' : '']">
+            <div class="mask mask-squircle !bg-primary w-10">
+              <img :src="user.image" alt="User Image" class="m-0" />
+            </div>
           </div>
-        </div>
-        <span>{{ user.name }}</span>
-      </li>
-    </ul>
-  </div>
+          <span>{{ user.name }}</span>
+        </li>
+      </ul>
+    </template>
+  </Popper>
 </template>
