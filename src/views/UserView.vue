@@ -116,8 +116,8 @@ onMounted(fetchUsers)
 </script>
 
 <template>
-  <div class="flex flex-row vh-100 p-3">
-    <div class="hidden md:flex flex-col w-25 items-center prose">
+  <div class="flex flex-col md:flex-row vh-100 p-3">
+    <div class="flex flex-col md:w-25 items-center prose">
       <h1>Il tuo profilo</h1>
       <div class="bg-base-300 relative rounded-box p-3 w-full flex flex-col gap-2">
         <div class="absolute right-0 top-0">
@@ -157,7 +157,7 @@ onMounted(fetchUsers)
         <!-- TODO: quando esisteranno i gruppi servirà una funzione che da group._id [salvato nel loggedUser] dia il group.name -->
       </div>
     </div>
-    <div class="md:divider md:divider-horizontal"></div>
+    <div class="divider divider-primary md:divider-horizontal"></div>
     <div class="flex flex-col grow m-5 prose">
       <h1>Login with</h1>
       <UserDropdown
