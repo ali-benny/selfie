@@ -11,6 +11,13 @@ const UsersSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true
+  },
+  image: {
+    type: Object
+  },
+  logged: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -73,6 +80,24 @@ app.delete('/users/:id', async (req, res) => {
     await Users.deleteOne({ _id: id }).then(() => {
       res.status(200).send('User deleted successfully!')
     })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+/*
+ * Updates the logged user
+ */
+app.patch('/users/logged/:id', async (req, res) => {
+  const id = req.params.id
+  try {
+    // Deselect all users
+    await Users.updateMany({}, { $set: { logged: false } })
+    // Select the specified user
+    await Users.findByIdAndUpdate(id, { $set: { logged: true } })
+
+    res.status(200).send('User logged successfully!')
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: err.message })
