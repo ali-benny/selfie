@@ -1,4 +1,4 @@
-import { API_URL } from "../../../const";
+import { API_URL } from '../../../const'
 
 export async function getUsers() {
   const response = await fetch(API_URL + '/users', {
@@ -23,18 +23,18 @@ export const createUser = async (userData) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(userData)
-    });
+    })
     if (response.ok) {
-      return await response.json();
+      return await response.json()
     } else {
-      console.error('Failed to create user');
-      throw new Error('Failed to create user');
+      console.error('Failed to create user')
+      throw new Error('Failed to create user')
     }
   } catch (error) {
-    console.error('Error creating user:', error);
-    throw error;
+    console.error('Error creating user:', error)
+    throw error
   }
-};
+}
 
 export const getUserById = async (userId) => {
   try {
@@ -43,18 +43,18 @@ export const getUserById = async (userId) => {
       headers: {
         'Content-Type': 'application/json'
       }
-    });
+    })
     if (response.ok) {
-      return await response.json();
+      return await response.json()
     } else {
-      console.error('Failed to fetch user by ID');
-      throw new Error('Failed to fetch user by ID');
+      console.error('Failed to fetch user by ID')
+      throw new Error('Failed to fetch user by ID')
     }
   } catch (error) {
-    console.error('Error fetching user by ID:', error);
-    throw error;
+    console.error('Error fetching user by ID:', error)
+    throw error
   }
-};
+}
 
 export const updateUser = async (userId, userData) => {
   try {
@@ -64,18 +64,18 @@ export const updateUser = async (userId, userData) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(userData)
-    });
+    })
     if (response.ok) {
-      return await response.json();
+      return await response.json()
     } else {
-      console.error('Failed to update user');
-      throw new Error('Failed to update user');
+      console.error('Failed to update user')
+      throw new Error('Failed to update user')
     }
   } catch (error) {
-    console.error('Error updating user:', error);
-    throw error;
+    console.error('Error updating user:', error)
+    throw error
   }
-};
+}
 
 export const deleteUser = async (userId) => {
   try {
@@ -84,15 +84,15 @@ export const deleteUser = async (userId) => {
       headers: {
         'Content-Type': 'application/json'
       }
-    });
+    })
     if (response.ok) {
-      return await response.json();
+      return await response.json()
     } else {
-      console.error('Failed to delete user');
-      throw new Error('Failed to delete user');
+      console.error('Failed to delete user')
+      throw new Error('Failed to delete user')
     }
   } catch (error) {
-    console.error('Error deleting user:', error);
-    throw error;
+    console.error('Error deleting user:', error)
+    throw error
   }
-};
+}
