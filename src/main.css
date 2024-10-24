@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 .prose {
+  margin: 0;
   color: inherit; /* Rimuove il colore specifico */
   max-width: none; /* Rimuove la larghezza massima */
 }

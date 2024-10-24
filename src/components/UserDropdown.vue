@@ -34,12 +34,12 @@ watch(
           v-if="selectedUser.image != undefined"
           class="mask mask-squircle !bg-primary w-12 h-12 m-0"
         />
-        <span>{{ selectedUser.name || 'Select User' }}</span>
+        <span>{{ selectedUser.name || 'Select User' }} {{  selectedUser.surname? selectedUser.surname : '' }}</span>
       </div>
       <Icon icon="fluent:chevron-down-16-filled" />
     </button>
     <template #content>
-      <ul class="flex flex-col z-3 left-0 m-0 p-3 bg-base-200 rounded-box shadow-xl overflow-y-auto w-fit max-h-60">
+      <ul class="flex flex-col z-3 left-0 m-0 p-3 bg-base-200 rounded-box shadow-xl overflow-y-auto w-fit max-h-72">
         <li
           v-for="user in users"
           :key="user._id"
@@ -51,7 +51,7 @@ watch(
               <img :src="user.image" alt="User Image" class="m-0" />
             </div>
           </div>
-          <span>{{ user.name }}</span>
+          <span>{{ user.name }} {{  user.surname? user.surname : '' }}</span>
         </li>
       </ul>
     </template>

@@ -9,6 +9,14 @@ export const useUserStore = defineStore('user', {
       logged: false
     }
   }),
+  getters: {
+    loggedUserWithDate(state) {
+      return {
+        ...state.loggedUser,
+        birthday: state.loggedUser.birthday ? new Date(state.loggedUser.birthday) : null
+      }
+    }
+  },
   actions: {
     setLoggedUser(user) {
       this.loggedUser = user

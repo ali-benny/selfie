@@ -3,7 +3,7 @@
     <div class="flex flex-row items-center">
       <input
         type="text"
-        class="input input-bordered input-primary text-2xl font-bold w-dvw md:w-auto"
+        class="input border !input-bordered input-primary text-2xl font-bold w-dvw md:w-auto"
         v-model="title"
       />
       <!-- <button

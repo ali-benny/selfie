@@ -14,6 +14,10 @@ const UsersSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  surname: {
+    type: String,
+    required: true
+  },
   image: {
     type: String,
     default: ''
@@ -21,6 +25,19 @@ const UsersSchema = new mongoose.Schema({
   logged: {
     type: Boolean,
     default: false
+  },
+  birthday: {
+    type: Date,
+    default: Date.now
+  },
+  password: {
+    // TODO: password obbligatoria [criptata?]
+    type: String,
+    default: '' 
+  },
+  groups: {
+    type: Object,
+    default: []
   }
 })
 
@@ -90,7 +107,7 @@ app.patch('/users/:id/image', async (req, res) => {
 app.post('/users', async (req, res) => {
   try {
     // TODO: fare dei check sul nome? niente cifre, o caratteri speciali?
-    const user = new Users({ name: req.body.name })
+    const user = new Users({ name: req.body.name, surname: req.body.surname, birthday: req.body.birthday})
     await user.save()
 
     res.status(200).json(user)
