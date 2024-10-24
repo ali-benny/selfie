@@ -33,7 +33,7 @@ const UsersSchema = new mongoose.Schema({
   password: {
     // TODO: password obbligatoria [criptata?]
     type: String,
-    default: '' 
+    default: ''
   },
   groups: {
     type: Object,
@@ -76,8 +76,9 @@ app.get('/users', async (req, res) => {
  */
 app.patch('/users/:id', async (req, res) => {
   const id = req.params.id
+  const { birthday } = req.body
   try {
-    await Users.findByIdAndUpdate(id, { $set: req.body })
+    await Users.findByIdAndUpdate(id, { $set: { birthday: new Date(birthday) } })
 
     res.status(200).send('User updated successfully!')
   } catch (err) {
@@ -107,7 +108,11 @@ app.patch('/users/:id/image', async (req, res) => {
 app.post('/users', async (req, res) => {
   try {
     // TODO: fare dei check sul nome? niente cifre, o caratteri speciali?
-    const user = new Users({ name: req.body.name, surname: req.body.surname, birthday: req.body.birthday})
+    const user = new Users({
+      name: req.body.name,
+      surname: req.body.surname,
+      birthday: req.body.birthday
+    })
     await user.save()
 
     res.status(200).json(user)

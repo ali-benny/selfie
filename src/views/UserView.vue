@@ -6,11 +6,14 @@ import UserDropdown from '../components/UserDropdown.vue'
 import { useUserStore } from '../stores/account'
 import { createAvatar } from '@dicebear/core'
 import { adventurer } from '@dicebear/collection'
+import { useToast } from 'vue-toastification'
+const toast = useToast()
 
 const users = ref([])
 const newUser = ref({ name: '' })
 const userStore = useUserStore()
 const newImage = ref('')
+const editUser = ref(false)
 
 const fetchUsers = async () => {
   try {
@@ -85,6 +88,30 @@ const saveNewImage = async () => {
   }
 }
 
+let editBirthday = ''
+const editLoggedUser = async () => {
+  if (editUser.value) {
+    try {
+      const response = await fetch(`${API_URL}/users/${userStore.loggedUser._id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ birthday: editBirthday })
+      })
+      if (response.ok) {
+        userStore.setLoggedUser({ ...userStore.loggedUser, birthday: editBirthday })
+        toast.success('Modifiche salvate!')
+      } else {
+        console.error('Failed to save user info: ', response.status)
+      }
+    } catch (error) {
+      console.error('Failed to save user info:', error)
+    }
+  }
+  editUser.value = !editUser.value
+}
+
 onMounted(fetchUsers)
 </script>
 
@@ -92,25 +119,42 @@ onMounted(fetchUsers)
   <div class="flex flex-row vh-100 p-3">
     <div class="hidden md:flex flex-col w-25 items-center prose">
       <h1>Il tuo profilo</h1>
-      <div
-        class="bg-base-300 rounded-box p-3 w-full flex flex-col justify-center items-center gap-2"
-      >
-        <div class="flex flex-row gap-2 justify-center items-center ">
-          <img :src="userStore.loggedUser.image" class="w-48 m-0" />
+      <div class="bg-base-300 relative rounded-box p-3 w-full flex flex-col gap-2">
+        <div class="absolute right-0 top-0">
+          <button
+            :class="[
+              'btn rounded-box btn-sm',
+              editUser ? 'btn-success text-lg' : 'hover:text-success btn-ghost'
+            ]"
+            @click="editLoggedUser"
+          >
+            <div v-if="!editUser">
+              <Icon icon="fluent:edit-16-filled" />
+            </div>
+            <div v-else>
+              <Icon icon="fluent:save-edit-20-filled" />
+            </div>
+          </button>
+        </div>
+        <div class="flex flex-row gap-2 justify-center items-center">
+          <img :src="userStore.loggedUser.image" class="mask mask-squircle w-48 m-0" />
           <h3 class="m-0">{{ userStore.loggedUser.name }} {{ userStore.loggedUser.surname }}</h3>
         </div>
-        <h4 class="flex items-center gap-2 m-0">
+        <h4 class="flex items-center justify-center gap-2 m-0" v-if="!editUser">
           <Icon icon="mingcute:birthday-2-fill" />
           {{
-            userStore.loggedUserWithDate.birthday.toLocaleString('it-IT', {
+            userStore.loggedUserWithDate.birthday?.toLocaleString('it-IT', {
               day: '2-digit',
               month: '2-digit',
-              year: '2-digit'
+              year: 'numeric'
             })
           }}
         </h4>
+        <h4 class="flex items-center justify-center gap-2 m-0" v-if="editUser">
+          <Icon icon="mingcute:birthday-2-fill" />
+          <input type="date" class="input input-sm" v-model="editBirthday" />
+        </h4>
         <!-- TODO: quando esisteranno i gruppi servirà una funzione che da group._id [salvato nel loggedUser] dia il group.name -->
-        <h4 v-for="group in userStore.loggedUser.groups">{{ group.name }}</h4>
       </div>
     </div>
     <div class="md:divider md:divider-horizontal"></div>
