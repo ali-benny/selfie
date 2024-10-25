@@ -1,9 +1,9 @@
 <template>
   <div class="w-full overflow-visible">
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-2" v-if="configs">
-      <div class="flex" v-for="(config, idx) in configs" :key="config._id">
-        <PomodoroConfigCard @select="$emit('select', config)" @delete="this.loadConfigs" v-model:config="configs[idx]"
-          class="grow" />
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 items-stretch gap-4">
+      <div v-for="(config, idx) in configs" :key="config._id">
+        <PomodoroConfigCard @select="onSelect(config)" @delete="this.loadConfigs" v-model:config="configs[idx]"
+          :class="{ selected: isSelected(config) }" />
       </div>
     </div>
   </div>
@@ -11,7 +11,7 @@
 
 <script>
 import PomodoroConfigCard from './PomodoroConfigCard.vue'
-import { loadLatestConfigs } from '../../router/pomodoro/pomodoro.js'
+import { loadConfigs } from '../../router/pomodoro/pomodoro.js'
 
 export default {
   emits: {
@@ -21,10 +21,11 @@ export default {
       return false
     }
   },
-  expose: ['loadConfigs'],
+  expose: ['loadConfigs', 'selected'],
   data() {
     return {
-      configs: null
+      configs: null,
+      selected: null
     }
   },
   async created() {
@@ -32,7 +33,14 @@ export default {
   },
   methods: {
     async loadConfigs() {
-      this.configs = await loadLatestConfigs()
+      this.configs = await loadConfigs()
+    },
+    onSelect(config) {
+      this.selected = config
+      this.$emit('select', config)
+    },
+    isSelected(config) {
+      return this.selected && config._id == this.selected._id
     }
   },
   components: {

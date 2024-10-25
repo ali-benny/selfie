@@ -1,47 +1,70 @@
 <template>
-  <div class="w-100 h-100 flex flex-col justify-center" v-if="this.pomodoro">
-    <div class="w-100 h-min flex flex-col items-center justify-center gap-y-5">
-      <div class="self-stretch flex flex-row justify-evenly lg:justify-center flex-wrap gap-x-4 lg:gap-x-32 gap-y-4">
-        <div class="flex flex-col items-center gap-y-1">
-          <p class="m-0 font-medium leading-4">Pomodoro</p>
-          <p class="m-0 leading-4">{{ pomodoroTime }}</p>
+  <div class="w-100 h-100 relative flex flex-col justify-center" v-if="this.pomodoro">
+
+    <div class="w-100 h-min">
+      <div class="w-full flex flex-col items-center gap-4">
+        <div class="h-60 w-60 sm:w-80 sm:h-80 relative flex justify-center items-center">
+          <div class="absolute">
+            <PomodoroAnimation :duration="pomodoro.initialTimer" :timer="pomodoro.timer" :phase="pomodoro.phase"
+              ref="animation" />
+          </div>
+
+          <div class="digital select-none text-7xl m-0 ">
+            {{ timer }}
+          </div>
         </div>
-        <div class="flex flex-col items-center gap-y-1">
-          <p class="m-0 font-medium leading-4">Pausa breve</p>
-          <p class="m-0 leading-4">{{ shortBreakTime }}</p>
-        </div>
-        <div class="flex flex-col items-center gap-y-1">
-          <p class="m-0 font-medium leading-4">Pausa lunga</p>
-          <p class="m-0 leading-4">{{ longBreakTime }}</p>
+        <div :class="['grid', pomodoro.started ? 'grid-cols-3' : '']">
+          <button v-if="pomodoro.started" @click="this.restart()" class="text-sm btn btn-xs btn-outline btn-error">
+            Reset
+          </button>
+          <div class="flex flex-col items-center">
+            <button v-if="pomodoro.running" @click="this.pause()" class="text-2xl hover:text-success">
+              <Icon icon="mingcute:pause-fill" />
+            </button>
+            <button v-else @click="this.play()" class="text-2xl hover:text-success">
+              <Icon icon="mingcute:play-fill" />
+            </button>
+          </div>
+          <button v-if="pomodoro.started" @click="this.skip()" class="text-xl hover:text-success mx-3">
+            <Icon icon="mingcute:fast-forward-fill" />
+          </button>
         </div>
       </div>
 
-      <div class="h-80 w-80 relative flex flex-col justify-center items-center">
-        <div class="absolute">
-          <PomodoroAnimation :duration="pomodoro.initialTimer" :timer="pomodoro.timer" :phase="pomodoro.phase"
-            ref="animation" />
-        </div>
+      <Popper class="absolute top-2 right-2" placement="bottom" arrow locked>
+        <button>
+          <Icon icon="fluent:info-24-regular" />
+        </button>
+        <template #content>
+          <div class="w-52 p-3 flex flex-col gap-1 text-sm">
+            <h5 class="font-bold mb-1">
+              Current focus
+            </h5>
+            <div class="flex gap-1">
+              <p class="m-0 font-semibold">Name:</p>
+              <p class="m-0">{{ this.pomodoro.config.name }}'</p>
+            </div>
 
-        <p class="digital select-none text-7xl m-0 leading-4">
-          {{ timer }}
-        </p>
-      </div>
-      <div :class="['grid', pomodoro.started ? 'grid-cols-3' : '']">
-        <button v-if="pomodoro.started" @click="this.restart()" class="text-sm btn btn-xs btn-outline btn-error">
-          Reset
-        </button>
-        <div class="flex flex-col items-center">
-          <button v-if="pomodoro.running" @click="this.pause()" class="text-2xl hover:text-success">
-            <Icon icon="mingcute:pause-fill" />
-          </button>
-          <button v-else @click="this.play()" class="text-2xl hover:text-success">
-            <Icon icon="mingcute:play-fill" />
-          </button>
-        </div>
-        <button v-if="pomodoro.started" @click="this.skip()" class="text-xl hover:text-success mx-3">
-          <Icon icon="mingcute:fast-forward-fill" />
-        </button>
-      </div>
+            <div class="flex flex-wrap gap-x-4 gap-y-1">
+              <div class="flex items-center gap-2">
+                <Icon icon="fluent-emoji-flat:tomato" :inline="true" class="text-lg" />
+                <p class="m-0">{{ this.pomodoro.config.pomodoroTime }}'</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <Icon icon="fluent-emoji-flat:teacup-without-handle" :inline="true" class="text-lg" />
+                <p class="m-0">{{ this.pomodoro.config.shortBreakTime }}'</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <Icon icon="fluent-emoji-flat:zzz" class="text-lg" />
+                <p class="m-0">
+                  {{ this.pomodoro.config.longBreakTime }}'<span class="text-black-50"> every {{
+                    this.pomodoro.config.longBreakInterval }} breaks</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </template>
+      </Popper>
     </div>
   </div>
 </template>
@@ -58,7 +81,7 @@ import {
 
 export default {
   emits: ['play', 'pause', 'finish'],
-  expose: ['replacePomodoro'],
+  expose: ['replacePomodoro', 'config'],
   data() {
     return {
       pomodoro: null
@@ -141,6 +164,9 @@ export default {
         return 'Good job!'
       }
       return this.pomodoro.message()
+    },
+    config() {
+      return this.pomodoro?.config
     }
   },
   components: {

@@ -1,45 +1,42 @@
 <template>
-  <div class="card p-3 hover:cursor-pointer hover:!bg-base-300 hover:shadow-xl hover:shadow-base-300/30"
-    @click="$emit('select')" :style="{ backgroundColor: config.color.hex + '40' }">
-    <!-- Form edit -->
-    <div @click.stop class="absolute top-2 right-2 flex justify-center align-center p-1">
-      <PomodoroConfigForm :config="config" @update:config="$emit('update:config', $event)" @delete="$emit('delete')">
-        <template #trigger>
-          <button class="z-10 hover:text-primary focus:text-primary">
-            <Icon icon="fluent:edit-48-filled" />
-          </button>
-        </template>
-      </PomodoroConfigForm>
-    </div>
+  <div class="max-w-56 sm:max-w-64 h-full card card-compact sm:card-normal" @click="$emit('select')">
+    <div class="card-body relative">
+      <!-- Form edit -->
+      <div @click.stop class="absolute top-4 right-4 flex justify-center align-center">
+        <PomodoroConfigForm :config="config" @update:config="$emit('update:config', $event)" @delete="$emit('delete')">
+          <template #trigger>
+            <button class="z-10 hover:text-secondary focus:text-primary">
+              <Icon icon="fluent:edit-48-filled" />
+            </button>
+          </template>
+        </PomodoroConfigForm>
+      </div>
 
-    <div class="h-full flex flex-col justify-start items-stretch gap-2">
       <!-- Icona e titolo -->
-      <div class="flex flex-col justify-start items-center">
+      <div class="card-title flex-col">
         <IconPomodoro :color="config.color.hex" class="text-5xl" />
-        <div class="flex justify-start items-center gap-2">
-          <h3 class="m-0 flex-grow text-xl text-center">{{ config.name }}</h3>
+        <div class="flex items-center gap-2">
+          <h3 class="grow text-center m-0">{{ config.name }}</h3>
           <button @click.stop class="flex items-center mt-1">
             <Icon icon="fluent:share-48-regular" class="!text-neutral hover:!text-accent" />
           </button>
         </div>
       </div>
 
-      <!-- Parametri della config -->
-      <div class="mt-2">
-        <div class="flex justify-start items-center gap-2">
-          <Icon icon="fluent-emoji-flat:tomato" :inline="true" color="blue" class="text-xl" />
-          <p class="m-0">{{ config.pomodoroTime }}'</p>
-        </div>
-        <div class="flex justify-start items-center gap-2">
-          <Icon icon="fluent-emoji-flat:teacup-without-handle" :inline="true" class="text-xl" />
-          <p class="m-0">{{ config.shortBreakTime }}'</p>
-        </div>
-        <div class="flex justify-start items-center gap-2">
-          <Icon icon="fluent-emoji-flat:zzz" class="text-xl" />
-          <p class="m-0">
-            {{ config.longBreakTime }}'<span class="text-black-50"> ogni {{ config.longBreakInterval }} pause</span>
-          </p>
-        </div>
+      <!-- Dati config -->
+      <div class="flex items-center gap-2">
+        <Icon icon="fluent-emoji-flat:tomato" :inline="true" class="text-xl" />
+        <p class="m-0">{{ config.pomodoroTime }}'</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <Icon icon="fluent-emoji-flat:teacup-without-handle" :inline="true" class="text-xl" />
+        <p class="m-0">{{ config.shortBreakTime }}'</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <Icon icon="fluent-emoji-flat:zzz" class="text-xl" />
+        <p class="m-0">
+          {{ config.longBreakTime }}'<span class="text-black-50"> every {{ config.longBreakInterval }} breaks</span>
+        </p>
       </div>
     </div>
   </div>
@@ -66,3 +63,15 @@ export default {
   }
 }
 </script>
+<style lang="postcss" scoped>
+.card {
+  @apply transition-all bg-base-200 shadow-lg shadow-base-200 border-2 border-base-300;
+}
+
+.card:hover,
+.selected {
+  @apply text-accent bg-accent-content border-2 cursor-pointer;
+  border-color: v-bind('config?.color.hex + 80') !important;
+  box-shadow: 0 10px 15px -3px v-bind('config?.color.hex + 40'), 0 4px 6px -4px v-bind('config?.color.hex + 30');
+}
+</style>
