@@ -118,7 +118,7 @@ onMounted(fetchUsers)
 
 <template>
   <div class="flex flex-col md:flex-row vh-100 p-3">
-    <div class="flex flex-col md:w-25 items-center prose">
+    <div class="flex flex-col md:w-80 items-center prose">
       <h1 class="flex flex-row gap-3">Your<div class="italic">Selfie</div></h1>
       <div class="bg-base-300 relative rounded-box p-3 w-full flex flex-col gap-2">
         <div class="absolute right-0 top-0">

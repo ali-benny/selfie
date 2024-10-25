@@ -10,9 +10,10 @@ const emit = defineEmits(['update:selectedUserId'])
 
 const selectedUser = ref({})
 
-const selectUser = (user) => {
+const selectUser = (user, close) => {
   selectedUser.value = user
   emit('update:selectedUserId', user._id)
+  close()
 }
 
 watch(
@@ -41,14 +42,14 @@ watch(
       </div>
       <Icon icon="fluent:chevron-down-16-filled" />
     </button>
-    <template #content>
+    <template #content="{close}">
       <ul
         class="flex flex-col z-3 left-0 m-0 p-3 bg-base-200 rounded-box shadow-xl overflow-y-auto w-fit max-h-72"
       >
         <li
           v-for="user in users"
           :key="user._id"
-          @click="selectUser(user)"
+          @click="selectUser(user, close)"
           class="cursor-pointer hover:bg-base-300 p-2 m-0 flex items-center space-x-4 w-80 rounded-lg"
         >
           <div :class="['avatar', user.logged ? 'online' : '']">
