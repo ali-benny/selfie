@@ -171,7 +171,7 @@ async function removeNote(id) {
           class="btn btn-outline btn-primary text-xl flex justify-center items-center"
           title="Duplicate note"
         >
-          <Icon icon="fluent:copy-24-regular" /> Duplica
+          <Icon icon="fluent:copy-24-regular" /> Duplicate
         </button>
         <button
           @click.stop.prevent="removeNote(note._id)"
@@ -179,7 +179,7 @@ async function removeNote(id) {
           class="btn btn-error btn-outline text-xl flex justify-center items-center"
           title="Delete note"
         >
-          <Icon icon="fluent:delete-24-regular" /> Elimina
+          <Icon icon="fluent:delete-24-regular" /> Delete
         </button>
       </div>
     </RouterLink>

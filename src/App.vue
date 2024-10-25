@@ -1,5 +1,7 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
+import { useUserStore } from './stores/account'
+
+const userStore = useUserStore()
 </script>
 
 <template>
@@ -8,9 +10,15 @@ import { RouterLink, RouterView } from 'vue-router'
     <RouterLink class="hover:!text-accent" to="/note"
       ><Icon icon="fluent:notebook-32-filled"
     /></RouterLink>
-    <RouterLink class="hover:!text-accent" to="/user"
-      ><Icon icon="fluent:settings-48-filled"
-    /></RouterLink>
+    <RouterLink class="hover:!text-accent" to="/user">
+      <img
+        v-if="userStore.loggedUser.image"
+        :src="userStore.loggedUser.image"
+        alt="User Image"
+        class="mask mask-squircle !bg-primary h-9 m-0"
+      />
+      <Icon v-else icon="fluent:settings-48-filled" />
+    </RouterLink>
   </div>
   <div id="app"><RouterView /></div>
 </template>

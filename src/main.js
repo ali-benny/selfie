@@ -16,7 +16,7 @@ import './main.css'
 const app = createApp(App)
 
 const options = {
-  // You can set your default options here
+  // You can set your default options here for Toast Notification
 }
 
 app.use(Toast, options)

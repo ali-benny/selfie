@@ -30,7 +30,7 @@ const orderBy = (criteria) => {
       <Icon icon="fluent:note-add-24-filled" />
     </a>
     <div class="flex justify-between items-center px-2 md:px-5">
-      <h1 class="text-2xl font-semibold">Le tue note</h1>
+      <h1 class="text-2xl font-semibold">Notes</h1>
       <div class="flex justify-end items-center my-2">
         <div class="mx-2">
           <button
@@ -38,21 +38,21 @@ const orderBy = (criteria) => {
             v-if="order === 'title'"
             @click="orderBy('date')"
           >
-            Ordina per Titolo
+            Order by Title
           </button>
           <button
             class="btn btn-default rounded-box"
             v-else-if="order === 'date'"
             @click="orderBy('author')"
           >
-            Ordina per Data
+            Order by Date
           </button>
           <button
             class="btn btn-default rounded-box"
             v-else-if="order === 'author'"
             @click="orderBy('title')"
           >
-            Ordina per Autore
+            Order by Author
           </button>
         </div>
         <div class="join rounded-box" aria-label="Note View Mode">
