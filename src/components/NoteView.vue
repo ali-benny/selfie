@@ -116,7 +116,8 @@ const filteredNotes = computed(() => {
   if (props.order) orderBy(props.order)
   if (props.lastModified) {
     orderBy('date')
-    return notes.value.slice(props.lastModified, notes.value.length - 1)
+    const start = notes.value.length >= props.lastModified? 0 : notes.value.length
+    return notes.value.slice(start, props.lastModified)
   }
   return notes.value
 })
