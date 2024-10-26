@@ -1,15 +1,17 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { getNotes } from './editor/note.js'
 import NoteView from '@/components/NoteView.vue'
+import { useUserStore } from '@/stores/account'
 
+const userStore = useUserStore()
 const notes = ref([])
 const viewMode = ref('list')
 const order = ref('title')
 
 onMounted(async () => {
   try {
-    notes.value = await getNotes()
+    notes.value = await getNotes(userStore.loggedUser._id)
   } catch (error) {
     console.error('Failed to fetch notes:', error)
   }
@@ -24,12 +26,12 @@ const orderBy = (criteria) => {
   <div class="flex flex-col">
     <a
       href="/editor"
-      class="btn btn-success floating-btn btn-circle !text-base-100 shadow-xl text-2xl"
+      class="btn btn-accent floating-btn btn-circle !text-base-100 shadow-xl text-2xl"
       title="Add new note"
     >
       <Icon icon="fluent:note-add-24-filled" />
     </a>
-    <div class="flex justify-between items-center px-2 md:px-5">
+    <div class="container mx-auto flex justify-between items-center px-2 md:px-5">
       <h1 class="text-2xl font-semibold">Notes</h1>
       <div class="flex justify-end items-center my-2">
         <div class="mx-2">

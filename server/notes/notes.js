@@ -34,14 +34,14 @@ const NoteSchema = new mongoose.Schema({
 
 const Note = mongoose.model('Note', NoteSchema)
 
-const ImageSchema = new mongoose.Schema({
-  filename: String,
-  path: String,
-  size: Number,
-  mimetype: String
-})
+// const ImageSchema = new mongoose.Schema({
+//   filename: String,
+//   path: String,
+//   size: Number,
+//   mimetype: String
+// })
 
-const Image = mongoose.model('Image', ImageSchema)
+// const Image = mongoose.model('Image', ImageSchema)
 
 app.use(bodyParser.json())
 app.use('/uploads', express.static('uploads'))
@@ -50,10 +50,11 @@ app.use('/uploads', express.static('uploads'))
  * Get all notes
  * Find from 'notes' collection get all documents
  */
-app.get('/notes', async (req, res) => {
+app.get('/:author/notes', async (req, res) => {
   try {
     if (!connected['note']) await connect('note')
-    const notes = await Note.find()
+    const author = req.params.author;
+    const notes = await Note.find({ author: author.toString() })
     res.status(200).json(notes)
   } catch (err) {
     console.error(err)
@@ -81,12 +82,12 @@ app.post('/notes/:id', async (req, res) => {
  * Create a new note
  */
 app.post('/notes', async (req, res) => {
-  const { filename, data, tags } = req.body
+  const { filename, data, tags, author } = req.body
   const note = new Note({
     name: filename,
     data: data,
-    author: 'User',
-    tags: tags,
+    author: author,
+    tags: tags
   })
   try {
     if (!connected['note']) await connect('note')
@@ -113,7 +114,7 @@ app.get('/notes/:id', async (req, res) => {
       res.status(404).json({ error: 'Note not found' })
     }
   } catch (err) {
-    console.error('NOTES/:id | '+err)
+    console.error('NOTES/:id | ' + err)
     res.status(500).json({ error: err.message })
   }
 })
@@ -123,7 +124,7 @@ app.get('/notes/:id', async (req, res) => {
  */
 app.put('/notes/:id', async (req, res) => {
   const { id } = req.params
-  const { filename, data, tags } = req.body
+  const { filename, data, tags, author, readers } = req.body
   console.log('Saving: ' + filename)
   if (!connected['note']) await connect('note')
   try {
@@ -132,15 +133,16 @@ app.put('/notes/:id', async (req, res) => {
       // i've already this note in mongodb
       await Note.updateOne(
         { _id: id },
-        { name: filename, data: data, date: new Date(), tags: tags }
+        { name: filename, data: data, date: new Date(), tags: tags, author: author, readers: readers }
       )
       console.log('Updated!')
     } else {
       const note = new Note({
         name: filename,
         data: data,
-        author: 'User',
-        tags: tags
+        author: author,
+        tags: tags,
+        readers: readers
       }) // TODO: get user from session
       const resp = await note.save()
       console.log('Saved!')
@@ -217,24 +219,42 @@ app.get('/tags', async (req, res) => {
   }
 })
 
+/**
+ * Get readers from Note by id
+ */
+app.get('/notes/:id/readers', async (req, res) => {
+  const { id } = req.params
+  try {
+    if (!connected['note']) await connect('note')
+    const note = await Note.findById(id)
+    if (note) {
+      res.status(200).json(note.readers)
+    } else {
+      res.status(404).json({ error: 'Note not found' })
+    }
+  } catch (err) {
+    console.error('NOTES/:id | ' + err)
+    res.status(500).json({ error: err.message })
+  }
+})
 
-/** 
+/**
  * Including Block external link url
  */
 
-import * as cheerio from 'cheerio';
+import * as cheerio from 'cheerio'
 
 app.get('/fetchUrl', async (req, res) => {
-  const url = req.query.url;
+  const url = req.query.url
 
   if (!url) {
-    return res.status(400).json({ success: 0, message: 'URL is required' });
+    return res.status(400).json({ success: 0, message: 'URL is required' })
   }
 
   try {
-    const response = await fetch(url);
-    const html = await response.text();
-    const $ = cheerio.load(html);
+    const response = await fetch(url)
+    const html = await response.text()
+    const $ = cheerio.load(html)
 
     const metadata = {
       success: 1,
@@ -246,13 +266,13 @@ app.get('/fetchUrl', async (req, res) => {
           url: $('meta[property="og:image"]').attr('content') || ''
         }
       }
-    };
+    }
 
-    res.json(metadata);
+    res.json(metadata)
   } catch (error) {
-    console.error('Error fetching URL:', error);
-    res.status(500).json({ success: 0, message: 'Failed to fetch URL metadata' });
+    console.error('Error fetching URL:', error)
+    res.status(500).json({ success: 0, message: 'Failed to fetch URL metadata' })
   }
-});
+})
 
 export default app
