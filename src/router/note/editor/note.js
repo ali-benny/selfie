@@ -10,7 +10,7 @@ import { API_URL } from '~/const'
  * @param {*} data note body contents
  * @param {*} tags note category tags
  * @param {*} author note author
- * @param {*} reader users who can read/edit the note
+ * @param {*} reader id users who can read/edit the note
  */
 export async function saveNoteMongo({ id = null, filename, data, tags, author, readers } = {}) {
   const method = id == null ? 'POST' : 'PUT'

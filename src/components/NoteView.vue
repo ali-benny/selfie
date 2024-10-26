@@ -149,7 +149,7 @@ async function removeNote(id) {
         <!-- DEBUG: note _id -->
         <!-- <p>{{ note._id }}</p>  -->
         <h1 class="font-bold text-lg">{{ note.name }}</h1>
-        <div class="flex flex-row flex-wrap items-center w-36">
+        <div class="flex flex-row items-center w-full">
           <div class="avatar w-10 m-2">
             <div class="ring-primary ring-offset-base-100 rounded-full ring ring-offset-2">
               <img
@@ -158,13 +158,22 @@ async function removeNote(id) {
               />
             </div>
           </div>
-          <div class="avatar-group -space-x-4 hover:-space-x-0 rtl:space-x-reverse">
-            <div v-for="reader in note.readers" :key="reader._id" class="avatar h-10">
+          <div class="avatar-group w-full -space-x-6 hover:-space-x-0 rtl:space-x-reverse">
+            <div
+              v-for="(reader, index) in note.readers.slice(0, 3)"
+              class="avatar h-10"
+              :key="index"
+            >
               <img
                 class="mask mask-circle !bg-secondary"
                 :src="users[reader]?.image"
                 :title="users[reader]?.name + ' ' + users[reader]?.surname"
               />
+            </div>
+            <div v-if="note.readers.length > 3" class="avatar h-10 placeholder">
+              <div class="bg-neutral text-neutral-content">
+                <span>+{{ note.readers.length - 3 }}</span>
+              </div>
             </div>
           </div>
         </div>

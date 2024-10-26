@@ -221,6 +221,7 @@ app.get('/tags', async (req, res) => {
 
 /**
  * Get readers from Note by id
+ * @returns readers Array [] with ids
  */
 app.get('/notes/:id/readers', async (req, res) => {
   const { id } = req.params
