@@ -72,6 +72,20 @@ app.get('/users', async (req, res) => {
 })
 
 /*
+ * Return the user id information
+ */
+app.get('/users/:id', async (req, res) => {
+  try {
+    const id = req.params.id
+    const user = await Users.findById(id)
+    res.status(200).json(user)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+/*
  * Edits the properties of the user specified
  */
 app.patch('/users/:id', async (req, res) => {

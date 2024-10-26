@@ -1,6 +1,6 @@
 import express from 'express'
 import mongoose from 'mongoose'
-import { connected, connect } from '../app.js'
+// import { connected, connect } from '../app.js'
 
 const app = express()
 app.use(express.json())

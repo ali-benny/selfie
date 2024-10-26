@@ -5,7 +5,9 @@
     </button>
     <template #content>
       <div class="shadow-md bg-base-200 rounded-box p-2 z-3 flex flex-col w-svw md:w-max">
-        <div class="overflow-y-auto max-w-68 md:max-h-48 flex flex-col grow">
+        <ul
+          class="flex flex-col z-3 left-0 m-0 p-3 bg-base-200 rounded-box shadow-xl overflow-y-auto w-fit max-h-72"
+        >
           <button
             v-for="user in users"
             :key="user._id"
@@ -18,12 +20,20 @@
             ]"
             @click="select(user)"
           >
-            {{ user.name }}
-            <span v-if="sharewith.includes(user)" class="!text-primary">
+            <div class="flex items-center gap-3">
+              <div :class="['avatar', user.logged ? 'online' : '']">
+                <div class="mask mask-squircle !bg-primary w-10">
+                  <img :src="user.image" alt="User Image" class="m-0" />
+                </div>
+              </div>
+              {{ user.name }} {{ user.surname ? user.surname : '' }}
+            </div>
+
+            <span v-if="sharewith.includes(user)" class="!text-primary right-0">
               <Icon icon="fluent:checkmark-12-filled" />
             </span>
           </button>
-        </div>
+        </ul>
         <button
           class="btn btn-outline btn-primary mt-2 flex items-center justify-center rounded-lg gap-2"
           @click="sendshare()"
@@ -39,20 +49,17 @@
 import { ref, onMounted } from 'vue'
 import { API_URL } from '../../const'
 import { useToast } from 'vue-toastification'
+import { saveNoteMongo, getReadersIds } from '@/router/note/editor/note'
+
 const toast = useToast()
 
 const users = ref([])
 const sharewith = ref([])
+const sendto = ref([])
 
 const props = defineProps({
-  content: {
-    type: [String, Object],
-    required: true
-  },
-  type: {
-    type: String,
-    required: true
-  }
+  content: String,
+  type: String
 })
 
 onMounted(async () => {
@@ -70,21 +77,30 @@ function select(user) {
     sharewith.value = sharewith.value.filter((u) => u !== user)
   } else {
     sharewith.value.push(user)
+    sendto.value.push(user._id)
   }
 }
 
-function sendshare() {
+async function sendshare() {
   if (props.content === null) {
-    toast.warning('Please, save your note before sharing')
+    toast.warning(`Please, save your ${props.type} before sharing`)
   }
 
   switch (props.type) {
-    case 'Nota':
+    case 'Note': {
+      const readers = await getReadersIds(props.content)
+      sendto.value.push(...readers)
+      await saveNoteMongo({ id: props.content, readers: sendto.value })
       break
-    case 'Pomodoro':
+    }
+    case 'Pomodoro': {
+      //TODO: add user to pomo share
       break
-    case 'Evento':
+    }
+    case 'Event': {
+      //TODO: add user to event share
       break
+    }
   }
   sharewith.value = []
   toast.success(`${props.type} shared successfully!`)

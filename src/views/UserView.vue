@@ -119,13 +119,16 @@ onMounted(fetchUsers)
 <template>
   <div class="flex flex-col md:flex-row vh-100 p-3">
     <div class="flex flex-col md:w-80 items-center prose">
-      <h1 class="flex flex-row gap-3">Your<div class="italic">Selfie</div></h1>
+      <h1 class="flex flex-row gap-3">
+        Your
+        <div class="italic">Selfie</div>
+      </h1>
       <div class="bg-base-300 relative rounded-box p-3 w-full flex flex-col gap-2">
         <div class="absolute right-0 top-0">
           <button
             :class="[
               'btn rounded-box btn-sm',
-              editUser ? 'btn-success text-lg' : 'hover:text-success btn-ghost'
+              editUser ? 'btn-secondary text-lg' : 'hover:text-secondary btn-ghost'
             ]"
             @click="editLoggedUser"
           >
@@ -170,10 +173,10 @@ onMounted(fetchUsers)
       <h2 class="mt-0">Change Profile Avatar</h2>
       <div class="flex flex-row justify-around items-center">
         <div class="flex flex-col gap-2">
-          <button @click="generateNewImage" class="btn btn-accent">
+          <button @click="generateNewImage" class="btn btn-secondary">
             <Icon class="text-xl" icon="fluent:emoji-sparkle-16-filled" />Generate New Avatar
           </button>
-          <button v-if="newImage" @click="saveNewImage" class="btn btn-success">
+          <button v-if="newImage" @click="saveNewImage" class="btn btn-primary btn-outline">
             <Icon icon="fluent:save-edit-20-filled" class="text-xl" />Save Image
           </button>
         </div>

@@ -7,3 +7,7 @@
   color: inherit; /* Rimuove il colore specifico */
   max-width: none; /* Rimuove la larghezza massima */
 }
+
+.btn-outline {
+  border-style: solid !important;
+}

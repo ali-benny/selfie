@@ -1,4 +1,4 @@
-import { API_URL } from '../../../const'
+import { API_URL } from '~/const'
 
 export async function getUsers() {
   const response = await fetch(API_URL + '/users', {
@@ -54,6 +54,26 @@ export const getUserById = async (userId) => {
     console.error('Error fetching user by ID:', error)
     throw error
   }
+}
+
+export async function getUsersByIds(userIds) {
+  const users = {}
+  for (const userId of userIds) {
+    const response = await fetch(`${API_URL}/users/${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+
+    if (response.ok) {
+      const user = await response.json()
+      users[userId] = user
+    } else {
+      console.error(`Failed to fetch user with ID: ${userId}`)
+    }
+  }
+  return users
 }
 
 export const updateUser = async (userId, userData) => {

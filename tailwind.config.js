@@ -1,14 +1,16 @@
 /** @type {import('tailwindcss').Config} */
-const { addDynamicIconSelectors } = require('@iconify/tailwind')
-import catppuccin from '@catppuccin/daisyui'
+import { addDynamicIconSelectors } from '@iconify/tailwind';
+import catppuccin from '@catppuccin/daisyui';
+import typography from '@tailwindcss/typography';
+import daisyui from 'daisyui';
 
 export default {
   content: ['./index.html', './src/**/*.{vue,js,ts}'],
   theme: {
     extend: {}
   },
-  plugins: [require('@tailwindcss/typography'), require('daisyui'), addDynamicIconSelectors()],
+  plugins: [typography, daisyui, addDynamicIconSelectors()],
   daisyui: {
-    themes: [catppuccin('macchiato', { primary: 'blue' })]
+    themes: [catppuccin('macchiato', { primary: 'blue', secondary: 'sky', accent: 'pink'})]
   }
-}
+};

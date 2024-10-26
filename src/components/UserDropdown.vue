@@ -42,7 +42,7 @@ watch(
       </div>
       <Icon icon="fluent:chevron-down-16-filled" />
     </button>
-    <template #content="{close}">
+    <template #content="{ close }">
       <ul
         class="flex flex-col z-3 left-0 m-0 p-3 bg-base-200 rounded-box shadow-xl overflow-y-auto w-fit max-h-72"
       >
