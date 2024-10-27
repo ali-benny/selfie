@@ -191,6 +191,7 @@ export default {
       }
       try {
         const outputData = await this.editor.save()
+        if (this.id == null) this.author = this.userStore.loggedUser._id
         this.id = await saveNoteMongo({
           id: this.id,
           filename: this.title,
