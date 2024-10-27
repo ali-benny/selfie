@@ -42,7 +42,7 @@
             </h5>
             <div class="flex gap-1">
               <p class="m-0 font-semibold">Name:</p>
-              <p class="m-0">{{ this.pomodoro.config.name }}'</p>
+              <p class="m-0">{{ this.pomodoro.config.name }}</p>
             </div>
 
             <div class="flex flex-wrap gap-x-4 gap-y-1">
@@ -71,35 +71,44 @@
 
 <script>
 import PomodoroAnimation from './PomodoroAnimation.vue'
+import { Pomodoro } from '@/router/pomodoro/pomodoro.js'
+
 import {
   defaultConfig,
   loadPomodoro,
   deletePomodoro,
   createPomodoro,
   loadLatestConfig
-} from '../../router/pomodoro/pomodoro.js'
+} from '@/router/pomodoro/pomodoro.js'
+
 
 export default {
   emits: ['play', 'pause', 'finish'],
   expose: ['replacePomodoro', 'config'],
   data() {
     return {
-      pomodoro: null
+      pomodoro: null,
     }
   },
   async created() {
-    this.pomodoro = await loadPomodoro()
-    if (this.pomodoro == null) {
-      let config = (await loadLatestConfig()) || defaultConfig
-      this.pomodoro = await createPomodoro(config)
+    if (localStorage.getItem('pomodoro')) {
+      this.pomodoro = new Pomodoro(JSON.parse(localStorage.getItem('pomodoro')))
+      if (this.pomodoro.running) {
+        this.play()
+      }
+    } else {
+      this.pomodoro = await loadPomodoro()
+      if (this.pomodoro == null) {
+        let config = (await loadLatestConfig()) || defaultConfig
+        this.pomodoro = await createPomodoro(config)
+      }
+      this.pomodoro.running = false
     }
-
-    this.pomodoro.running = false
   },
   methods: {
     play() {
       this.pomodoro.play()
-      this.animation.play()
+      this.animation?.play()
       this.$emit('play')
     },
     pause() {
@@ -118,8 +127,10 @@ export default {
     async replacePomodoro(config) {
       if (this.pomodoro) {
         await deletePomodoro(this.pomodoro)
+        localStorage.removeItem('pomodoro')
       }
       this.pomodoro = await createPomodoro(config)
+      this.pomodoro.saveToLocalStorage()
       this.animation.reload()
     },
     formatClockTime(time) {

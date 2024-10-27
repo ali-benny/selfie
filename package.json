@@ -30,6 +30,7 @@
     "@mdi/font": "^7.4.47",
     "@popperjs/core": "^2.11.8",
     "cheerio": "^1.0.0",
+    "colorjs.io": "^0.5.2",
     "cors": "^2.8.5",
     "editorjs-md-parser": "^0.0.3",
     "express": "^4.21.1",

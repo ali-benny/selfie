@@ -223,7 +223,9 @@ export async function loadLatestConfig() {
 export class Pomodoro {
   static createTimerStep(pomodoro) {
     return () => {
-      if (--pomodoro.timer <= 0) {
+      pomodoro.timer--
+      pomodoro.saveToLocalStorage()
+      if (pomodoro.timer <= 0) {
         pomodoro.skip()
       }
     }
@@ -237,7 +239,8 @@ export class Pomodoro {
     phase = null,
     cycle = 1,
     started = false,
-    running = false
+    running = false,
+    intervalId = null
   }) {
     this.id = id
     this.config = config
@@ -246,10 +249,10 @@ export class Pomodoro {
     this.phase = phase
     this.cycle = cycle
     this.started = started
+    this.intervalId = intervalId
+
     this.running = running
     this.finished = false
-    this.intervalId = null
-    this.color = '#7dc4e4'
   }
 
   /*
@@ -257,9 +260,7 @@ export class Pomodoro {
    * il timer. Infine viene salvato lo stato del Pomodoro sul db
    */
   play() {
-    if (this.finished) {
-      return
-    }
+    if (this.finished) return
 
     if (!this.started) {
       this.started = true
@@ -269,12 +270,10 @@ export class Pomodoro {
 
     this.running = true
 
-    if (this.intervalId) {
-      clearInterval(this.intervalId)
-    }
+    if (this.intervalId) clearInterval(this.intervalId)
     this.intervalId = setInterval(Pomodoro.createTimerStep(this), 1000)
 
-    updatePomodoro(this)
+    this.update()
   }
 
   /*
@@ -288,7 +287,7 @@ export class Pomodoro {
     this.running = false
     this.intervalId = null
 
-    updatePomodoro(this)
+    this.update()
   }
 
   /*
@@ -303,7 +302,7 @@ export class Pomodoro {
     this.timer = 0
     this.phase = null
 
-    deletePomodoro(this)
+    this.update()
   }
 
   /*
@@ -349,6 +348,30 @@ export class Pomodoro {
     }
 
     this.timer = this.initialTimer
+    this.update()
+  }
+
+  saveToLocalStorage() {
+    localStorage.setItem(
+      'pomodoro',
+      JSON.stringify({
+        id: this.id,
+        config: this.config,
+        initialTimer: this.initialTimer,
+        timer: this.timer,
+        phase: this.phase,
+        cycle: this.cycle,
+        started: this.started,
+        running: this.running,
+        intervalId: this.intervalId
+      })
+    )
+  }
+
+  update() {
+    this.saveToLocalStorage()
+
+    /* DB */
     updatePomodoro(this)
   }
 

@@ -10,7 +10,6 @@
             <span v-else>Create your new focus</span>
           </h4>
           <button v-if="this.config" class="btn btn-outline btn-error btn-sm " @click="deleteConfig(close)">
-            <!-- <PomodoroConfigCard @delete="this.loadConfigs" v-model:config="configs[idx]" /> -->
             <Icon icon="fluent:delete-32-regular" />
           </button>
         </div>
@@ -78,7 +77,7 @@
               <button type="button" class="btn btn-ghost" @click="close()">
                 Cancel
               </button>
-              <input type="submit" value="Save" class="btn btn-outline btn-primary " />
+              <input type="submit" value="Save" class="btn btn-outline btn-secondary" />
             </div>
           </div>
         </form>
@@ -106,19 +105,19 @@ export default {
     return {
       form_config: null,
       colors: [
-        flavors.latte.colors.rosewater,
-        flavors.latte.colors.flamingo,
-        flavors.latte.colors.pink,
-        flavors.latte.colors.mauve,
-        flavors.latte.colors.red,
-        flavors.latte.colors.maroon,
-        flavors.latte.colors.peach,
-        flavors.latte.colors.yellow,
-        flavors.latte.colors.teal,
-        flavors.latte.colors.sky,
-        flavors.latte.colors.sapphire,
-        flavors.latte.colors.blue,
-        flavors.latte.colors.lavender
+        flavors.mocha.colors.rosewater,
+        flavors.mocha.colors.flamingo,
+        flavors.mocha.colors.pink,
+        flavors.mocha.colors.mauve,
+        flavors.mocha.colors.red,
+        flavors.mocha.colors.maroon,
+        flavors.mocha.colors.peach,
+        flavors.mocha.colors.yellow,
+        flavors.mocha.colors.teal,
+        flavors.mocha.colors.sky,
+        flavors.mocha.colors.sapphire,
+        flavors.mocha.colors.blue,
+        flavors.mocha.colors.lavender
       ]
     }
   },

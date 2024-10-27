@@ -19,6 +19,7 @@ const options = {
   // You can set your default options here
   toastClassName: 'themed',
   closeButtonClassName: 'themed'
+  // timeout: false
 }
 
 app.use(Toast, options)

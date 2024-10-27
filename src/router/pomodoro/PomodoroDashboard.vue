@@ -1,6 +1,9 @@
 <template>
   <div class="container mx-auto flex flex-col items-stretch gap-12">
 
+    {{
+      this.store
+    }}
     <!--- Pomodoro Timer -->
     <div class="mt-5 basis-80">
       <PomodoroTimer @play="showConfigs = false" @pause="showConfigs = true" class="h-max" ref="timer" />
@@ -16,7 +19,7 @@
         <PomodoroConfigForm @submit="(res) => { if (res === 'success') this.$refs.configList.loadConfigs() }"
           :disabled="!showConfigs">
           <template #trigger>
-            <button class="btn btn-sm btn-secondary" :disabled="!showConfigs">
+            <button class="btn btn-sm btn-accent" :disabled="!showConfigs">
               New focus
               <Icon icon="fluent:new-24-regular" class="text-xl" />
             </button>
@@ -32,7 +35,6 @@
         </div>
       </div>
     </div>
-
   </div>
 
 </template>
@@ -41,6 +43,7 @@
 import PomodoroConfigForm from '@/components/pomodoro/PomodoroConfigForm.vue';
 import PomodoroConfigList from '@/components/pomodoro/PomodoroConfigList.vue';
 import PomodoroTimer from '@/components/pomodoro/PomodoroTimer.vue';
+import { useCounterStore } from '@/stores/counter.js'
 
 
 export default {
@@ -73,6 +76,10 @@ export default {
     configList() {
       if (!this.isMounted) return
       return this.$refs.configList
+    },
+    store() {
+      useCounterStore.increment
+      return useCounterStore.count
     }
   },
   components: {

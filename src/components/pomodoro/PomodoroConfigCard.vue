@@ -5,7 +5,7 @@
       <div @click.stop class="absolute top-4 right-4 flex justify-center align-center">
         <PomodoroConfigForm :config="config" @update:config="$emit('update:config', $event)" @delete="$emit('delete')">
           <template #trigger>
-            <button class="z-10 hover:text-secondary focus:text-primary">
+            <button class="z-10 hover:text-secondary">
               <Icon icon="fluent:edit-48-filled" />
             </button>
           </template>
@@ -65,12 +65,12 @@ export default {
 </script>
 <style lang="postcss" scoped>
 .card {
-  @apply transition-all bg-base-200 shadow-lg shadow-base-200 border-2 border-base-300;
+  @apply transition-all bg-base-200 shadow-lg shadow-base-300 border-2 border-base-300;
 }
 
 .card:hover,
 .selected {
-  @apply text-accent bg-accent-content border-2 cursor-pointer;
+  @apply border-2 bg-base-300 cursor-pointer;
   border-color: v-bind('config?.color.hex + 80') !important;
   box-shadow: 0 10px 15px -3px v-bind('config?.color.hex + 40'), 0 4px 6px -4px v-bind('config?.color.hex + 30');
 }
