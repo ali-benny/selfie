@@ -258,6 +258,26 @@ app.get('/notes/:id/readers', async (req, res) => {
 })
 
 /**
+ * Get author from Note by id
+ * @returns readers Array [] with ids
+ */
+app.get('/notes/:id/author', async (req, res) => {
+  const { id } = req.params
+  try {
+    if (!connected['note']) await connect('note')
+    const note = await Note.findById(id)
+    if (note) {
+      res.status(200).json(note.author)
+    } else {
+      res.status(404).json({ error: 'Note not found' })
+    }
+  } catch (err) {
+    console.error('NOTES/:id | ' + err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+/**
  * Including Block external link url
  */
 

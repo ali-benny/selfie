@@ -64,6 +64,8 @@ export async function deleteNote(id) {
 /**
  * Using mongodb API to get all the notes
  *
+ * @param id author id
+ *
  * @export
  */
 export async function getNotes(id) {
@@ -79,6 +81,25 @@ export async function getNotes(id) {
   } else {
     console.error('ERROR: getNotes')
   }
+}
+
+/**
+ * Get struct for a specific note id
+ *
+ * @param {*} id note id
+ * @return note struct {name: String, data: Object, date: Date, author: String, readers: [String], tags: Object}
+ */
+export async function getNoteObject(id) {
+  const response = await fetch(API_URL + `/notes/${id}/author`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+  if (!response.ok) {
+    throw new Error('Error - getting readers note')
+  }
+  return await response.json()
 }
 
 export async function getNoteTags(noteId) {

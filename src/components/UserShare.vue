@@ -62,7 +62,6 @@ const props = defineProps({
   type: String
 })
 
-
 onMounted(async () => {
   try {
     const response = await fetch(`${API_URL}/users`)
