@@ -3,7 +3,7 @@
     <div class="flex flex-row items-center">
       <input
         type="text"
-        class="input input-bordered input-primary text-2xl font-bold w-dvw md:w-auto"
+        class="input border !input-bordered input-primary text-2xl font-bold w-dvw md:w-auto"
         v-model="title"
       />
       <!-- <button
@@ -19,7 +19,7 @@
     <div class="flex justify-end items-center">
       <UserShare :content="id" type="Nota"></UserShare>
       <button class="btn text-xl btn-warning my-2 rounded-box" @click="saveNote">
-        <Icon icon="fluent:save-32-filled" /> Salva
+        <Icon icon="fluent:save-32-filled" /> Save
       </button>
     </div>
   </div>
@@ -31,7 +31,7 @@
       :items="tags"
       item-text="name"
       item-value="name"
-      label="Categorie"
+      label="Tags"
       chips
       clearable
       deletable-chips

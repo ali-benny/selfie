@@ -48,7 +48,7 @@ export default {
     extend: {
       colors: {
         surface: {
-          0: 'oklch(var(--srface-0) / <alpha-value>)',
+          0: 'oklch(var(--surface-0) / <alpha-value>)',
           1: 'oklch(var(--surface-1) / <alpha-value>)',
           2: 'oklch(var(--surface-2) / <alpha-value>)'
         },
