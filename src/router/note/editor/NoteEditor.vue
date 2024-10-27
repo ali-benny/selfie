@@ -30,18 +30,24 @@
           <div
             v-for="reader in readers_verbose"
             :key="reader._id"
-            class="relative avatar h-10 hover:cursor-pointer transition ease-in-out hover:scale-125 duration-300"
+            class="relative h-10 hover:cursor-pointer transition ease-in-out hover:scale-125 duration-300 rounded-full"
             draggable="true"
             @dragstart="onDragStart(reader)"
             @dragend="onDragEnd"
             @mouseover="showTrashBin"
             @mouseleave="hideTrashBin"
           >
-            <img
-              class="mask mask-circle !bg-secondary hover:!bg-error"
-              :src="reader.image"
-              :title="reader.name + ' ' + reader.surname"
-            />
+            <div class="avatar h-10">
+              <img
+                class="mask mask-circle !bg-secondary hover:!bg-error"
+                :src="reader.image"
+                :title="reader.name + ' ' + reader.surname"
+              />
+            </div>
+            <span
+              v-if="reader.logged"
+              class="absolute top-0 right-1 w-3 h-3 !bg-success rounded-full border-2 border-base-100 transform translate-x-1 translate-y-1"
+            ></span>
           </div>
         </div>
         <div class="flex items-center">
@@ -172,7 +178,7 @@ export default {
           data: outputData,
           tags: this.selectedTags,
           readers: this.readers,
-          ...(this.id == null && { author: this.userStore.loggedUser._id }) // save author only if is a new 
+          ...(this.id == null && { author: this.userStore.loggedUser._id }) // save author only if is a new
         })
       }
       if (newTag && !this.tags.includes(newTag)) {
