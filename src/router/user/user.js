@@ -1,5 +1,13 @@
 import { API_URL } from '~/const'
 
+/**
+ * Fetches the list of users from the API.
+ *
+ * @async
+ * @function getUsers
+ * @returns {Promise<Object[]>} array of user objects.
+ * @throws Will log an error message if the fetch request fails.
+ */
 export async function getUsers() {
   const response = await fetch(API_URL + '/users', {
     method: 'GET',
@@ -15,6 +23,16 @@ export async function getUsers() {
   }
 }
 
+/**
+ * Creates a new user by sending a POST request to the API.
+ *
+ * @param {Object} userData - The data of the user to be created.
+ * @param {string} userData.name - The name of the user.
+ * @param {string} userData.email - The email of the user.
+ * @param {string} userData.password - The password of the user.
+ * @returns {Promise<Object>} The created user data.
+ * @throws Will throw an error if the user creation fails.
+ */
 export const createUser = async (userData) => {
   try {
     const response = await fetch(`${API_URL}/users`, {
@@ -36,6 +54,13 @@ export const createUser = async (userData) => {
   }
 }
 
+/**
+ * Fetches a user by their ID.
+ *
+ * @param {string} userId - The ID of the user to fetch.
+ * @returns {Promise<Object>} A promise that resolves to the user data.
+ * @throws Will throw an error if the fetch operation fails.
+ */
 export const getUserById = async (userId) => {
   try {
     const response = await fetch(`${API_URL}/users/${userId}`, {
@@ -56,6 +81,13 @@ export const getUserById = async (userId) => {
   }
 }
 
+/**
+ * Fetches user details for the given array of user IDs.
+ *
+ * @param {Array<string>} userIds - An array of user IDs to fetch details for.
+ * @returns {Promise<Object>} A promise that resolves to an object containing user details keyed by user ID.
+ * @throws Will log an error message if fetching a user fails.
+ */
 export async function getUsersByIds(userIds) {
   const users = {}
   for (const userId of userIds) {

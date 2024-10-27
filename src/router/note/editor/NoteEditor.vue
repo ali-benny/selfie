@@ -40,8 +40,25 @@
         </div>
         <div class="flex justify-between flex-wrap lg:justify-end items-center">
           <div
-            class="avatar-group -space-x-4 hover:-space-x-0 transition hover:-translate-x-1 ease-in-out duration-300 rtl:space-x-reverse"
+            class="avatar-group flex items-center -space-x-4 hover:-space-x-0 transition hover:-translate-x-1 ease-in-out duration-300 rtl:space-x-reverse"
           >
+            <!-- avatar author -->
+            <div
+              class="relative space-x-2 hover:cursor-pointer transition ease-in-out duration-300 rounded-full"
+            >
+              <div class="avatar h-12 border !border-primary border-lg">
+                <img
+                  class="mask mask-circle !bg-surface-2"
+                  :src="author.image"
+                  :alt="author.name + ' ' + author.surname"
+                />
+              </div>
+              <span
+                v-if="author.logged"
+                class="absolute top-0 right-1 w-3 h-3 !bg-success rounded-full border-2 border-base-100 transform translate-x-1 translate-y-1"
+              ></span>
+            </div>
+            <!-- avatar readers -->
             <div
               v-for="reader in readers_verbose"
               :key="reader._id"
@@ -102,7 +119,7 @@ import { nextTick } from 'vue'
 import { useToast } from 'vue-toastification'
 import { getEditNoteTitle, getEditNoteId } from './editor.js'
 import {
-  getNoteObject,
+  getNoteAuthor,
   getNoteTags,
   getReaders,
   getReadersIds,
@@ -119,8 +136,8 @@ export default {
     hasPermission() {
       // Se non c'è ID è una nuova nota, quindi ha sempre i permessi
       return (
-        !this.id ||
-        this.userStore.loggedUser._id === this.author ||
+        this.id ||
+        this.userStore.loggedUser._id === this.author._id ||
         this.readers.includes(this.userStore.loggedUser._id)
       )
     }
@@ -130,7 +147,7 @@ export default {
       this.id = getEditNoteId()
       this.tags = await getTags(this.id)
       if (this.id) {
-        this.author = await getNoteObject(this.id)
+        this.author = await getNoteAuthor(this.id)
         this.readers = await getReadersIds(this.id)
       }
       // Mostra l'editor se è una nuova nota o se l'utente ha i permessi
@@ -160,7 +177,7 @@ export default {
   data() {
     return {
       isLoading: true,
-      author: '',
+      author: [],
       editor: null,
       showEditor: false,
       isChecked: false,
@@ -191,14 +208,14 @@ export default {
       }
       try {
         const outputData = await this.editor.save()
-        if (this.id == null) this.author = this.userStore.loggedUser._id
+        if (this.id == null) this.author._id = this.userStore.loggedUser._id
         this.id = await saveNoteMongo({
           id: this.id,
           filename: this.title,
           data: outputData,
           tags: this.selectedTags,
           readers: this.readers,
-          ...(this.id == null && { author: this.userStore.loggedUser._id }) // save author only if is a new note
+          ...(this.id == null && { author: this.userStore.loggedUser._id }) // save author._id only if is a new note
         })
 
         // Check for checklist type and save to todo collection
@@ -232,7 +249,7 @@ export default {
           data: outputData,
           tags: this.selectedTags,
           readers: this.readers,
-          ...(this.id == null && { author: this.userStore.loggedUser._id }) // save author only if is a new
+          ...(this.id == null && { author: this.userStore.loggedUser._id }) // save author._id only if is a new
         })
       }
       if (newTag && !this.tags.includes(newTag)) {
@@ -305,8 +322,3 @@ export default {
   }
 }
 </script>
-<style scoped>
-#editorContainer {
-  min-height: 200px; /* opzionale: per evitare salti nel layout */
-}
-</style>

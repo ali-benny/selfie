@@ -11,3 +11,7 @@
 .btn-outline {
   border-style: solid !important;
 }
+
+img[title]{
+  border-color: var(--surface-0);
+}

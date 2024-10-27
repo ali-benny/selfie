@@ -14,7 +14,6 @@ import { MDParser, MDImporter } from 'editorjs-md-parser'
 /**
  * note's title to be displayed into the editor
  */
-
 export async function getEditNoteTitle() {
   const noteId = getEditNoteId()
   let noteData = {}

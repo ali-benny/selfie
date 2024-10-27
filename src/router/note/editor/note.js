@@ -89,7 +89,7 @@ export async function getNotes(id) {
  * @param {*} id note id
  * @return note struct {name: String, data: Object, date: Date, author: String, readers: [String], tags: Object}
  */
-export async function getNoteObject(id) {
+export async function getNoteAuthor(id) {
   const response = await fetch(API_URL + `/notes/${id}/author`, {
     method: 'GET',
     headers: {
@@ -99,9 +99,27 @@ export async function getNoteObject(id) {
   if (!response.ok) {
     throw new Error('Error - getting readers note')
   }
-  return await response.json()
+  const author = await response.json()
+  const verbose = await fetch(`${API_URL}/users/${author}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+  if (verbose.ok) {
+    return await verbose.json()
+  } else {
+    console.error(`Failed to fetch user with ID: ${author}`)
+  }
 }
 
+/**
+ * Fetches the tags associated with a specific note.
+ *
+ * @param {string} noteId - The ID of the note for which to fetch tags.
+ * @returns {Promise<Array>} A promise that resolves to an array of tags.
+ * @throws Will log an error message and return an empty array if the fetch operation fails.
+ */
 export async function getNoteTags(noteId) {
   const response = await fetch(`${API_URL}/${noteId}/tags`)
   if (response.ok) {
@@ -153,6 +171,18 @@ export async function getReadersIds(id) {
   return await response.json()
 }
 
+/**
+ * Saves a todo item to MongoDB.
+ *
+ * @param {Object} todo - The todo item to save.
+ * @param {string} todo.text - The text of the todo item.
+ * @param {boolean} todo.checked - The checked status of the todo item.
+ * @param {string} todo.author - The author of the todo item.
+ * @param {string} todo.reader - The reader of the todo item.
+ * @param {string} todo.from - The source of the todo item.
+ * @returns {Promise<void>} A promise that resolves when the todo item is saved.
+ * @throws Will throw an error if the request fails.
+ */
 export async function saveTodoMongo(todo) {
   const response = await fetch(API_URL + '/todo', {
     method: 'POST',

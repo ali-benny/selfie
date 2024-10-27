@@ -277,12 +277,11 @@ app.get('/notes/:id/author', async (req, res) => {
   }
 })
 
+import * as cheerio from 'cheerio'
+
 /**
  * Including Block external link url
  */
-
-import * as cheerio from 'cheerio'
-
 app.get('/fetchUrl', async (req, res) => {
   const url = req.query.url
 
