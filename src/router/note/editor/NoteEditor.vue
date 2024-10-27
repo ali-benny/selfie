@@ -137,8 +137,8 @@ export default {
           filename: this.title,
           data: outputData,
           tags: this.selectedTags,
-          author: this.userStore.loggedUser._id,
-          readers: this.readers
+          readers: this.readers,
+          ...(this.id == null && { author: this.userStore.loggedUser._id }) // save author only if is a new note
         })
 
         // Check for checklist type and save to todo collection
@@ -171,8 +171,8 @@ export default {
           filename: this.title,
           data: outputData,
           tags: this.selectedTags,
-          author: this.userStore.loggedUser._id,
-          readers: this.readers
+          readers: this.readers,
+          ...(this.id == null && { author: this.userStore.loggedUser._id }) // save author only if is a new 
         })
       }
       if (newTag && !this.tags.includes(newTag)) {

@@ -23,7 +23,7 @@ const NoteSchema = new mongoose.Schema({
     required: true
   },
   readers: {
-    type: Array,
+    type: [String],
     default: []
   },
   tags: {
@@ -53,8 +53,19 @@ app.use('/uploads', express.static('uploads'))
 app.get('/:author/notes', async (req, res) => {
   try {
     if (!connected['note']) await connect('note')
-    const author = req.params.author;
-    const notes = await Note.find({ author: author.toString() })
+    const author = req.params.author
+    // visualizzo anche le note condivise con me
+    // TODO: se vogliamo accettare le note che ci condividono bisogna capire come gestire i permessi, attualmente ti inserisce subito nella lista readers
+    const notes = await Note.find({
+      $or: [{ author: author.toString() }, { readers: author.toString() }],
+      function(err, user) {
+        if (err) {
+          res.send(err)
+        }
+        console.log(user)
+        res.json(user)
+      }
+    })
     res.status(200).json(notes)
   } catch (err) {
     console.error(err)
@@ -133,7 +144,14 @@ app.put('/notes/:id', async (req, res) => {
       // i've already this note in mongodb
       await Note.updateOne(
         { _id: id },
-        { name: filename, data: data, date: new Date(), tags: tags, author: author, readers: readers }
+        {
+          name: filename,
+          data: data,
+          date: new Date(),
+          tags: tags,
+          author: author,
+          readers: readers
+        }
       )
       console.log('Updated!')
     } else {
@@ -143,8 +161,8 @@ app.put('/notes/:id', async (req, res) => {
         author: author,
         tags: tags,
         readers: readers
-      }) // TODO: get user from session
-      const resp = await note.save()
+      })
+      await note.save()
       console.log('Saved!')
     }
     res.status(200).json('Note saved successfully')

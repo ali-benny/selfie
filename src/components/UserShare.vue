@@ -6,7 +6,7 @@
     <template #content>
       <div class="shadow-md bg-base-200 rounded-box p-2 z-3 flex flex-col w-svw md:w-max">
         <ul
-          class="flex flex-col z-3 left-0 m-0 p-3 bg-base-200 rounded-box shadow-xl overflow-y-auto w-fit max-h-72"
+          class="flex flex-col z-3 left-0 m-0 p-3 bg-base-200 rounded-box shadow-xl overflow-y-auto w-auto max-h-72"
         >
           <button
             v-for="user in users"
@@ -53,7 +53,7 @@ import { saveNoteMongo, getReadersIds } from '@/router/note/editor/note'
 
 const toast = useToast()
 
-const users = ref([])
+const users = ref()
 const sharewith = ref([])
 const sendto = ref([])
 
@@ -61,6 +61,7 @@ const props = defineProps({
   content: String,
   type: String
 })
+
 
 onMounted(async () => {
   try {
