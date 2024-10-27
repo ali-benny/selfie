@@ -5,7 +5,7 @@
       <h4>Last Notes</h4>
       <NoteView viewMode="list" :lastModified="2" :edit="false" :extended="false"></NoteView>
     </div>
-    <div class="h-100 p-3 bg-light rounded-xl shadow-sm bg-base-200/50">Pomodoro Timer</div>
+    <div class="h-100 p-3 bg-light rounded-xl shadow-sm bg-secondary">Pomodoro Timer</div>
     <div class="col-span-2">
       <div class="h-100 p-3 bg-light rounded-xl shadow-sm bg-base-200/50">
         Projects' Gantt View

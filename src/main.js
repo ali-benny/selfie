@@ -11,12 +11,14 @@ import App from './App.vue'
 import router from './router'
 import Toast from 'vue-toastification'
 import 'vue-toastification/dist/index.css'
-import './main.css'
+import './assets/main.css'
 
 const app = createApp(App)
 
 const options = {
-  // You can set your default options here for Toast Notification
+  // You can set your default options here
+  toastClassName: 'themed',
+  closeButtonClassName: 'themed'
 }
 
 app.use(Toast, options)
