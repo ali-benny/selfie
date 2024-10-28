@@ -84,6 +84,7 @@ function select(user) {
 async function sendshare() {
   if (props.content === null) {
     toast.warning(`Please, save your ${props.type} before sharing`)
+    return
   }
 
   switch (props.type) {

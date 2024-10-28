@@ -206,7 +206,6 @@ app.get('/:id/tags', async (req, res) => {
   }
 })
 
-// Aggiungi un tag a una nota esistente
 /**
  * Add tag to a note
  */

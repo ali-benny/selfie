@@ -44,6 +44,7 @@
           >
             <!-- avatar author -->
             <div
+              v-if="id != null"
               class="relative space-x-2 hover:cursor-pointer transition ease-in-out duration-300 rounded-full"
             >
               <div class="avatar h-12 border !border-primary border-lg">
@@ -136,7 +137,7 @@ export default {
     hasPermission() {
       // Se non c'è ID è una nuova nota, quindi ha sempre i permessi
       return (
-        this.id ||
+        !this.id ||
         this.userStore.loggedUser._id === this.author._id ||
         this.readers.includes(this.userStore.loggedUser._id)
       )
@@ -154,7 +155,6 @@ export default {
       this.showEditor = !this.id || this.hasPermission
       await nextTick()
       if (this.id) {
-        // Nota esistente
         this.title = await getEditNoteTitle()
         this.selectedTags = await getNoteTags(this.id)
         this.readers_verbose = await getReaders(this.id)
@@ -208,7 +208,8 @@ export default {
       }
       try {
         const outputData = await this.editor.save()
-        if (this.id == null) this.author._id = this.userStore.loggedUser._id
+        let newnote = false
+        if (this.id == null) newnote = true
         this.id = await saveNoteMongo({
           id: this.id,
           filename: this.title,
@@ -217,6 +218,7 @@ export default {
           readers: this.readers,
           ...(this.id == null && { author: this.userStore.loggedUser._id }) // save author._id only if is a new note
         })
+        this.author = newnote ? await getNoteAuthor(this.id) : this.author
 
         // Check for checklist type and save to todo collection
         const checklistBlocks = outputData.blocks.filter((block) => block.type === 'checklist')
