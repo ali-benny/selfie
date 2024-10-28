@@ -225,12 +225,30 @@ app.post('/:id/tags', async (req, res) => {
   }
 })
 
-// Endpoint per ottenere tutti i tag distinti
-app.get('/tags', async (req, res) => {
+/**
+ * Retrieves a list of distinct tags from the Note collection where the user has permissions (author or reader).
+ *
+ * @constant {Array<string>} tags - An array of unique tags.
+ * @async
+ * @function
+ * @returns {Promise<Array<string>>} A promise that resolves to an array of distinct tags.
+ */
+app.get('/user/:id/tags', async (req, res) => {
   try {
-    const tags = await Note.distinct('tags', { tags: { $ne: null } })
-    const notEmptyTags = tags.filter((tag) => tag.trim() !== '')
-    res.json(notEmptyTags)
+    const userId = req.params.id
+    const notes = await Note.find({
+      $or: [{ author: userId }, { readers: { $in: [userId] } }]
+    })
+
+    const tags = notes.reduce((acc, note) => {
+      if (note.tags) {
+        acc.push(...note.tags)
+      }
+      return acc
+    }, [])
+
+    const distinctTags = [...new Set(tags.filter((tag) => tag.trim() !== ''))]
+    res.json(distinctTags)
   } catch (err) {
     res.status(500).json({ message: err.message })
   }
