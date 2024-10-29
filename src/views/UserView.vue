@@ -188,16 +188,16 @@ onMounted(fetchUsers)
         />
       </div>
       <div class="divider"></div>
-      <div class="flex flex-col gap-3">
+      <form class="flex flex-col gap-3">
         <h2>Register a new user</h2>
         <div class="flex flex-row gap-2 w-full">
-          <input
+          <input required
             type="text"
             v-model="newUser.name"
             placeholder="Name"
             class="input input-primary input-md border !input-bordered mx-3 grow"
           />
-          <input
+          <input required
             type="text"
             v-model="newUser.surname"
             placeholder="Surname"
@@ -211,7 +211,7 @@ onMounted(fetchUsers)
           class="input input-primary input-md border !input-bordered mx-3"
         />
         <button @click="addUser" class="btn btn-primary btn-sm">Add User</button>
-      </div>
+      </form>
     </div>
   </div>
 </template>

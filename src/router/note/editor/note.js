@@ -155,7 +155,7 @@ export async function getReaders(id) {
  * Fetches the readers of a note by its ID.
  *
  * @param {string} id - The ID of the note.
- * @returns {Promise<Array>} A promise that resolves to an array of user objects who have read the note.
+ * @returns {Promise<Array>} A promise that resolves to a readers Array [] with ids
  * @throws {Error} Throws an error if the fetch request fails.
  */
 export async function getReadersIds(id) {

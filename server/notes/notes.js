@@ -269,7 +269,7 @@ app.get('/notes/:id/readers', async (req, res) => {
       res.status(404).json({ error: 'Note not found' })
     }
   } catch (err) {
-    console.error('NOTES/:id | ' + err)
+    console.error('/notes/:id/readers | ' + err)
     res.status(500).json({ error: err.message })
   }
 })
@@ -289,7 +289,7 @@ app.get('/notes/:id/author', async (req, res) => {
       res.status(404).json({ error: 'Note not found' })
     }
   } catch (err) {
-    console.error('NOTES/:id | ' + err)
+    console.error('/notes/:id/author | ' + err)
     res.status(500).json({ error: err.message })
   }
 })

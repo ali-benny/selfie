@@ -55,10 +55,15 @@ const toast = useToast()
 
 const users = ref()
 const sharewith = ref([])
-const sendto = ref([])
+const emit = defineEmits(['update:modelValue'])
 
 const props = defineProps({
-  content: String,
+  modelValue: {
+    type: Array,
+    default: () => [],
+    validator: (value) => value.every((item) => typeof item === 'string')
+  },
+  id: String,
   type: String
 })
 
@@ -75,23 +80,25 @@ onMounted(async () => {
 function select(user) {
   if (sharewith.value.includes(user)) {
     sharewith.value = sharewith.value.filter((u) => u !== user)
+    emit('update:modelValue', props.modelValue.filter((id) => id !== user._id && id !== undefined))
+  
   } else {
     sharewith.value.push(user)
-    sendto.value.push(user._id)
+    emit('update:modelValue', [...props.modelValue.filter(id =>  id !== undefined), user._id])
   }
 }
 
 async function sendshare() {
-  if (props.content === null) {
+  if (!props.id) {
     toast.warning(`Please, save your ${props.type} before sharing`)
     return
   }
 
   switch (props.type) {
     case 'Note': {
-      const readers = await getReadersIds(props.content)
-      sendto.value.push(...readers)
-      await saveNoteMongo({ id: props.content, readers: sendto.value })
+      const readers = await getReadersIds(props.id)
+      emit('update:modelValue', [...props.modelValue.filter(id => id !== undefined), ...readers.map(reader => reader._id)])
+      await saveNoteMongo({ id: props.id, readers: props.modelValue })
       break
     }
     case 'Pomodoro': {
@@ -117,8 +124,7 @@ async function sendshare() {
 .fade-enter,
 .fade-leave-to
 
-/* .fade-leave-active in <2.1.8 */
-  {
+/* .fade-leave-active in <2.1.8 */ {
   opacity: 0;
 }
 </style>

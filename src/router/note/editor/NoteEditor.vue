@@ -84,7 +84,7 @@
             </div>
           </div>
           <div class="flex items-center">
-            <UserShare :content="id" type="Note"></UserShare>
+            <UserShare :id="id" v-model="readers" type="Note"></UserShare>
             <button class="btn text-xl btn-primary my-2 rounded-box" @click="saveNote">
               <Icon icon="fluent:save-32-filled" /> Save
             </button>
@@ -245,6 +245,8 @@ export default {
       if (this.id == null) {
         // needed a note id => savethe note before
         const outputData = await this.editor.save()
+        let newnote = false
+        if (this.id == null) newnote = true
         this.id = await saveNoteMongo({
           id: this.id,
           filename: this.title,
@@ -253,6 +255,7 @@ export default {
           readers: this.readers,
           ...(this.id == null && { author: this.userStore.loggedUser._id }) // save author._id only if is a new
         })
+        this.author = newnote ? await getNoteAuthor(this.id) : this.author
       }
       if (newTag && !this.tags.includes(newTag)) {
         createTag(this.id, newTag)
