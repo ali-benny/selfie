@@ -144,7 +144,7 @@ function toggleShowOptions(note) {
       :to="`/editor?edit=${note._id}`"
       v-for="note in filteredNotes"
       :key="note._id"
-      class="bg-base-200 rounded-box flex flex-wrap md:flex-nowrap p-3 gap-2 justify-between hover:bg-base-content/20 hover:cursor-pointer"
+      class="bg-base-200 rounded-box flex flex-wrap md:flex-nowrap p-3 gap-2 justify-between hover:bg-overlay-0 hover:cursor-pointer"
       :class="props.extended ? 'md:grid md:grid-cols-6' : 'flex-row'"
     >
       <div
@@ -247,10 +247,13 @@ function toggleShowOptions(note) {
       :to="`/editor?edit=${note._id}`"
       v-for="note in filteredNotes"
       :key="note._id"
-      class="card flex flex-col gap-1 p-3 relative bg-base-200 h-full hover:bg-base-content/20 hover:cursor-pointer"
+      class="card flex flex-col gap-1 p-3 relative bg-base-200 h-full hover:bg-overlay-0 hover:cursor-pointer"
     >
-      <div class="absolute right-0 top-0">
-        {{ showOptions }}
+      <div
+        class="absolute right-0 top-0"
+        v-if="props.edit"
+        @open.stop.prevent="toggleShowOptions(note)"
+      >
         <button
           :class="[
             'btn rounded-tr-box rounded-circle btn-xs m-1 p-1',
@@ -258,9 +261,33 @@ function toggleShowOptions(note) {
           ]"
           @click.stop.prevent="toggleShowOptions(note)"
         >
-          <div v-if="!note.showOptions" class="text-xl"><Icon icon="fluent:more-vertical-24-filled"/></div>
+          <div v-if="!note.showOptions" class="text-xl">
+            <Icon icon="fluent:more-vertical-24-filled" />
+          </div>
           <div v-else><Icon icon="mingcute:close-fill" /></div>
         </button>
+
+        <div
+          v-if="note.showOptions"
+          class="flex flex-col justify-center absolute bg-surface-0 rounded-[10px] gap-2 w-32 mx-auto z-10 p-2" style="right: inherit"
+        >
+          <button
+            @click.stop.prevent="duplicateNote(note._id)"
+            role="button"
+            class="btn btn-sm btn-outline btn-primary flex justify-center items-center"
+            title="Duplicate note"
+          >
+            <Icon icon="fluent:copy-24-regular" />Duplicate
+          </button>
+          <button
+            @click.stop.prevent="removeNote(note._id)"
+            role="button"
+            class="btn btn-sm btn-outline btn-error flex justify-center items-center"
+            title="Delete note"
+          >
+            <Icon icon="fluent:delete-24-regular" />Delete
+          </button>
+        </div>
       </div>
       <h2 class="text-xl font-bold">{{ note.name }}</h2>
       <div class="flex flex-row items-center w-full">
@@ -305,35 +332,6 @@ function toggleShowOptions(note) {
         class="flex flex-col grow text-balance bg-base-300 card p-2 truncate"
         v-html="truncate(note.data, 200)"
       ></div>
-      <div
-        v-if="props.edit && note.showOptions"
-        class="flex flex-row flex-wrap gap-2 mx-auto justify-center mt-2"
-      >
-        <!-- <RouterLink
-          :to="`/editor?edit=${note._id}`"
-          role="button"
-          class="btn btn-primary text-2xl flex justify-center items-center"
-          title="Edit note"
-        >
-          <Icon icon="fluent:note-edit-24-regular" />
-        </RouterLink> -->
-        <button
-          @click.stop.prevent="duplicateNote(note._id)"
-          role="button"
-          class="btn btn-outline btn-primary text-2xl flex justify-center items-center"
-          title="Duplicate note"
-        >
-          <Icon icon="fluent:copy-24-regular" />
-        </button>
-        <button
-          @click.stop.prevent="removeNote(note._id)"
-          role="button"
-          class="btn btn-outline btn-error text-2xl flex justify-center items-center"
-          title="Delete note"
-        >
-          <Icon icon="fluent:delete-24-regular" />
-        </button>
-      </div>
     </RouterLink>
   </div>
 </template>
