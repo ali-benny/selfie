@@ -80,12 +80,17 @@ onMounted(async () => {
 function select(user) {
   if (sharewith.value.includes(user)) {
     sharewith.value = sharewith.value.filter((u) => u !== user)
-    emit('update:modelValue', props.modelValue.filter((id) => id !== user._id && id !== undefined))
-  
-  } else {
+    emit(
+      'update:modelValue',
+      props.modelValue.filter((id) => id !== user._id && id !== undefined && id !== null)
+    )
+  } else if (user._id !== undefined && user._id !== null) {
     sharewith.value.push(user)
-    emit('update:modelValue', [...props.modelValue.filter(id =>  id !== undefined), user._id])
-  }
+    emit('update:modelValue', [
+      ...props.modelValue.filter((id) => id !== undefined && id !== null),
+      user._id
+    ])
+  } else console.error('Error selecting users')
 }
 
 async function sendshare() {
@@ -97,8 +102,11 @@ async function sendshare() {
   switch (props.type) {
     case 'Note': {
       const readers = await getReadersIds(props.id)
-      emit('update:modelValue', [...props.modelValue.filter(id => id !== undefined), ...readers.map(reader => reader._id)])
-      await saveNoteMongo({ id: props.id, readers: props.modelValue })
+      emit('update:modelValue', [
+        ...props.modelValue.filter((id) => id !== undefined && id !== null),
+        ...readers.map((reader) => reader._id).filter((id) => id !== undefined && id !== null)
+      ])
+      await saveNoteMongo({ id: props.id, readers: props.modelValue.filter((id) => id !== undefined && id !== null) })
       break
     }
     case 'Pomodoro': {

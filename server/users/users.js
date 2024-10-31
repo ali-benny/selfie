@@ -157,9 +157,6 @@ app.delete('/users/:id', async (req, res) => {
 app.patch('/users/logged/:id', async (req, res) => {
   const id = req.params.id
   try {
-    // Deselect all users
-    await Users.updateMany({}, { $set: { logged: false } })
-    // Select the specified user
     await Users.findByIdAndUpdate(id, { $set: { logged: true } })
 
     res.status(200).send('User logged successfully!')

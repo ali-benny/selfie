@@ -218,7 +218,13 @@ export default {
           readers: this.readers,
           ...(this.id == null && { author: this.userStore.loggedUser._id }) // save author._id only if is a new note
         })
-        this.author = newnote ? await getNoteAuthor(this.id) : this.author
+        if (newnote) {
+          this.author = await getNoteAuthor(this.id)
+          // update url with id
+          const url = new URL(window.location)
+          url.searchParams.set('edit', this.id)
+          window.history.pushState({}, '', url)
+        }
 
         // Check for checklist type and save to todo collection
         const checklistBlocks = outputData.blocks.filter((block) => block.type === 'checklist')

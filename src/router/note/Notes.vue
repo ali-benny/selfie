@@ -91,7 +91,7 @@ const orderBy = (criteria) => {
   </div>
 </template>
 
-<style>
+<style scoped>
 .floating-btn {
   position: fixed;
   bottom: 20px;
