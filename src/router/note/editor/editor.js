@@ -72,6 +72,7 @@ export async function initializeEditor() {
   const editor = new EditorJS({
     holder: 'editorjs',
     autofocus: true,
+    theme: 'dark',
     // inlineToolbar: ['link', 'marker', 'bold', 'italic'],
     data: edit_note,
     tools: {

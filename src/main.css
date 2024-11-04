@@ -4,14 +4,16 @@
 
 .prose {
   margin: 0;
-  color: inherit; /* Rimuove il colore specifico */
-  max-width: none; /* Rimuove la larghezza massima */
+  color: inherit;
+  /* Rimuove il colore specifico */
+  max-width: none;
+  /* Rimuove la larghezza massima */
 }
 
 .btn-outline {
   border-style: solid !important;
 }
 
-img[title]{
+img[title] {
   border-color: var(--surface-0);
 }
