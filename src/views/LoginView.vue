@@ -212,7 +212,6 @@ async function login() {
       return
     }
 
-    console.log('🔥 - login - userId:', user._id)
     const response = await fetch(`${API_URL}/users/logged/${user._id}`, {
       method: 'PATCH',
       headers: {
