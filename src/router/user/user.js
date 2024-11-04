@@ -27,9 +27,6 @@ export async function getUsers() {
  * Creates a new user by sending a POST request to the API.
  *
  * @param {Object} userData - The data of the user to be created.
- * @param {string} userData.name - The name of the user.
- * @param {string} userData.email - The email of the user.
- * @param {string} userData.password - The password of the user.
  * @returns {Promise<Object>} The created user data.
  * @throws Will throw an error if the user creation fails.
  */

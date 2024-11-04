@@ -3,6 +3,7 @@ import mongoose from 'mongoose'
 import { connect } from '../app.js'
 import { createAvatar } from '@dicebear/core'
 import { adventurer } from '@dicebear/collection'
+import bcrypt from 'bcryptjs'
 
 const app = express()
 
@@ -30,10 +31,14 @@ const UsersSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
-  password: {
-    // TODO: password obbligatoria [criptata?]
+  username: {
     type: String,
-    default: ''
+    required: true
+  },
+  password: {
+    type: String,
+    default: '',
+    required: true
   },
   groups: {
     type: Object,
@@ -121,11 +126,12 @@ app.patch('/users/:id/image', async (req, res) => {
  */
 app.post('/users', async (req, res) => {
   try {
-    // TODO: fare dei check sul nome? niente cifre, o caratteri speciali?
     const user = new Users({
       name: req.body.name,
       surname: req.body.surname,
-      birthday: req.body.birthday
+      birthday: req.body.birthday,
+      username: req.body.username,
+      password: req.body.password
     })
     await user.save()
 
@@ -157,7 +163,12 @@ app.delete('/users/:id', async (req, res) => {
 app.patch('/users/logged/:id', async (req, res) => {
   const id = req.params.id
   try {
-    await Users.findByIdAndUpdate(id, { $set: { logged: true } })
+    const user = await Users.findById(id)
+    const passwordMatch = bcrypt.compareSync(req.body.password, user.password)
+    if (!passwordMatch) {
+      return res.status(401).send('Password incorrect!')
+    }
+    await Users.updateOne({ _id: id}, { $set: { logged: true } })
 
     res.status(200).send('User logged successfully!')
   } catch (err) {

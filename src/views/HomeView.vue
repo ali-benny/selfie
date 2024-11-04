@@ -10,6 +10,7 @@
       <div class="h-100 p-3 rounded-xl shadow-sm bg-base-200">Projects' Gantt View</div>
     </div>
   </div>
+  <!-- <RouterLink to="/login">Login</RouterLink> -->
 </template>
 
 <script setup>
