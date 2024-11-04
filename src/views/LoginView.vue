@@ -3,8 +3,11 @@
     <form class="card flex min-w-96 bg-surface-0 shadow-xl" @submit.prevent="handleSubmit">
       <div class="card-body pt-0">
         <h2 class="card-title font-italic">Selfie</h2>
-        <div class="mt-2" :class="create === true ? 'md:flex flex-row' : 'items-center'">
-          <div v-if="create" class="flex flex-col">
+        <div
+          class="mt-2"
+          :class="(status == 'create') === true ? 'md:flex flex-row' : 'items-center'"
+        >
+          <div v-if="status == 'create'" class="flex flex-col">
             <label class="input input-bordered flex items-center gap-2 mb-2">
               <input
                 type="text"
@@ -36,7 +39,7 @@
               />
             </label>
           </div>
-          <div v-show="create" class="divider md:divider-horizontal"></div>
+          <div v-show="status == 'create'" class="divider md:divider-horizontal"></div>
           <div class="flex flex-col">
             <label class="input input-bordered flex items-center gap-2 mb-2">
               <Icon icon="mingcute:user-2-fill" class="text-overlay-0" />
@@ -48,17 +51,17 @@
                 type="password"
                 class="grow"
                 v-model="password1"
-                :placeholder="reset ? 'New Password' : 'Password'"
+                :placeholder="status == 'reset' ? 'New Password' : 'Password'"
                 @focus="setActiveInput('password1')"
                 required
               />
             </label>
             <password-meter
-              v-if="(create || reset) && focus == 'password1'"
+              v-if="status == 'create' || (status == 'reset' && focus == 'password1')"
               :password="password1"
             />
             <label
-              v-if="create || reset"
+              v-if="status == 'create' || status == 'reset'"
               class="input input-bordered flex items-center gap-2"
               :class="focus == 'password1' ? 'my-2' : 'mb-2'"
             >
@@ -74,21 +77,27 @@
             </label>
           </div>
           <button
-            v-if="!create"
+            v-if="status != 'create'"
             type="button"
             class="btn btn-ghost btn-secondary btn-sm !text-secondary"
             @click="handleReset"
           >
-            {{ !reset ? 'Reset Password' : 'Back to Login' }}
+            {{ status != 'reset' ? 'Reset Password' : 'Back to Login' }}
           </button>
         </div>
 
         <div class="card-actions justify-end mt-2">
           <button type="submit" class="btn btn-primary w-full">
-            {{ create ? 'Create Account' : reset ? 'Set New Password' : 'Login' }}
+            {{
+              status == 'create'
+                ? 'Create Account'
+                : status == 'reset'
+                  ? 'Set New Password'
+                  : 'Login'
+            }}
           </button>
           <button type="button" @click="toggleCreate" class="btn btn-primary btn-outline w-full">
-            {{ create ? 'Back to Login' : 'Create Account' }}
+            {{ status == 'create' ? 'Back to Login' : 'Create Account' }}
           </button>
         </div>
       </div>
@@ -106,9 +115,8 @@ import { useToast } from 'vue-toastification'
 import { useUserStore } from '@/stores/account'
 const toast = useToast()
 
-const create = ref(false)
 const focus = ref('')
-const reset = ref(false)
+const status = ref('')
 const users = ref([])
 const userStore = useUserStore()
 
@@ -129,34 +137,50 @@ function setActiveInput(inputName) {
 }
 
 function toggleCreate() {
-  create.value = !create.value
+  if (status.value === 'create') {
+    status.value = ''
+  } else {
+    status.value = 'create'
+  }
 }
 
 function handleReset() {
-  reset.value = !reset.value
+  if (status.value === 'reset') {
+    status.value = ''
+  } else {
+    status.value = 'reset'
+  }
 }
 
 async function handleSubmit() {
-  if (!create.value) {
-    await login()
-  } else if (reset) {
-    if (!checkPassword()) {
-      toast.warning('Passwords do not match')
-      return
-    }
-    const user = users.value.find((user) => user.username === username.value)
-    try {
-      await updateUser(user._id, { password: password1.value })
-    } catch (error) {
-      toast.error(error.message)
-      console.error('Failed to reset password:', error)
-    }
-  } else if (!isExtistingUser()) {
-    if (!checkPassword()) {
-      toast.warning('Passwords do not match')
-      return
-    }
-    await createAccount()
+  switch (status.value) {
+    case 'create':
+      if (!isExtistingUser()) {
+        if (!checkPassword()) {
+          toast.warning('Passwords do not match')
+          break
+        }
+        await createAccount()
+      }
+      break
+    case 'reset':
+      if (!checkPassword()) {
+        toast.warning('Passwords do not match')
+        break
+      }
+      const user = users.value.find((user) => user.username === username.value)
+      try {
+        await updateUser(user._id, { password: password1.value })
+        toast.success('Password reset successfully!')
+        status.value = ''
+      } catch (error) {
+        toast.error(error.message)
+        console.error('Failed to reset password:', error)
+      }
+      break
+    default:
+      await login()
+      break
   }
 }
 
@@ -178,7 +202,7 @@ async function login() {
   try {
     const user = users.value.find((user) => user.username === username.value)
     if (!user) {
-      toast.warning('Username not found, try to create a new one')
+      toast.warning('Username not found, try to create an account')
       return
     }
 
@@ -235,7 +259,7 @@ async function createAccount() {
     username.value = ''
     password1.value = ''
     password2.value = ''
-    create.value = false
+    status.value = ''
     users.value = await getUsers()
   } catch (error) {
     toast.error(error.message)
