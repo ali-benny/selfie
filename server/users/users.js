@@ -95,11 +95,16 @@ app.get('/users/:id', async (req, res) => {
  */
 app.patch('/users/:id', async (req, res) => {
   const id = req.params.id
-  const { birthday } = req.body
-  try {
-    await Users.findByIdAndUpdate(id, { $set: { birthday: new Date(birthday) } })
+  const updates = req.body
 
-    res.status(200).send('User updated successfully!')
+  try {
+    if (updates.password) {
+      const salt = bcrypt.genSaltSync(10)
+      updates.password = bcrypt.hashSync(updates.password, salt)
+    }
+
+    const updatedUser = await Users.findByIdAndUpdate(id, { $set: updates })
+    res.status(200).json(updatedUser)
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: err.message })
@@ -164,12 +169,11 @@ app.patch('/users/logged/:id', async (req, res) => {
   const id = req.params.id
   try {
     const user = await Users.findById(id)
-    console.log("🔥 - app.patch - user:", user)
     const passwordMatch = bcrypt.compareSync(req.body.password, user.password)
     if (!passwordMatch) {
       return res.status(401).send('Password incorrect!')
     }
-    await Users.updateOne({ _id: id}, { $set: { logged: true } })
+    await Users.updateOne({ _id: id }, { $set: { logged: true } })
 
     res.status(200).send('User logged successfully!')
   } catch (err) {

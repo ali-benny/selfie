@@ -48,16 +48,19 @@
                 type="password"
                 class="grow"
                 v-model="password1"
-                placeholder="Password"
+                :placeholder="reset ? 'New Password' : 'Password'"
                 @focus="setActiveInput('password1')"
                 required
               />
             </label>
-            <password-meter v-if="focus == 'password1'" :password="password1" />
+            <password-meter
+              v-if="(create || reset) && focus == 'password1'"
+              :password="password1"
+            />
             <label
-              v-if="create"
+              v-if="create || reset"
               class="input input-bordered flex items-center gap-2"
-              :class="focus == 'password1' ? 'my-2' : ''"
+              :class="focus == 'password1' ? 'my-2' : 'mb-2'"
             >
               <Icon icon="fluent:key-16-filled" class="text-overlay-0" />
               <input
@@ -70,11 +73,19 @@
               />
             </label>
           </div>
+          <button
+            v-if="!create"
+            type="button"
+            class="btn btn-ghost btn-secondary btn-sm !text-secondary"
+            @click="handleReset"
+          >
+            {{ !reset ? 'Reset Password' : 'Back to Login' }}
+          </button>
         </div>
 
         <div class="card-actions justify-end mt-2">
           <button type="submit" class="btn btn-primary w-full">
-            {{ create ? 'Create Account' : 'Login' }}
+            {{ create ? 'Create Account' : reset ? 'Set New Password' : 'Login' }}
           </button>
           <button type="button" @click="toggleCreate" class="btn btn-primary btn-outline w-full">
             {{ create ? 'Back to Login' : 'Create Account' }}
@@ -87,7 +98,7 @@
 
 <script setup>
 import { onMounted, ref } from 'vue'
-import { createUser, getUsers } from '@/router/user/user'
+import { createUser, getUsers, updateUser } from '@/router/user/user'
 import { API_URL } from '~/const'
 import passwordMeter from 'vue-simple-password-meter'
 import bcrypt from 'bcryptjs'
@@ -97,6 +108,7 @@ const toast = useToast()
 
 const create = ref(false)
 const focus = ref('')
+const reset = ref(false)
 const users = ref([])
 const userStore = useUserStore()
 
@@ -120,17 +132,31 @@ function toggleCreate() {
   create.value = !create.value
 }
 
+function handleReset() {
+  reset.value = !reset.value
+}
+
 async function handleSubmit() {
-  if (create.value) {
-    if (!isExtistingUser()) {
-      if (!checkPassword()) {
-        toast.warning('Passwords do not match')
-        return
-      }
-      await createAccount()
-    }
-  } else if (!create.value) {
+  if (!create.value) {
     await login()
+  } else if (reset) {
+    if (!checkPassword()) {
+      toast.warning('Passwords do not match')
+      return
+    }
+    const user = users.value.find((user) => user.username === username.value)
+    try {
+      await updateUser(user._id, { password: password1.value })
+    } catch (error) {
+      toast.error(error.message)
+      console.error('Failed to reset password:', error)
+    }
+  } else if (!isExtistingUser()) {
+    if (!checkPassword()) {
+      toast.warning('Passwords do not match')
+      return
+    }
+    await createAccount()
   }
 }
 
