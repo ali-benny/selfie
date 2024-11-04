@@ -6,14 +6,34 @@
         <div class="mt-2" :class="create === true ? 'md:flex flex-row' : 'items-center'">
           <div v-if="create" class="flex flex-col">
             <label class="input input-bordered flex items-center gap-2 mb-2">
-              <input type="text" class="grow" v-model="name" placeholder="Name" required />
+              <input
+                type="text"
+                class="grow"
+                v-model="name"
+                placeholder="Name"
+                required
+                @focus="setActiveInput('name')"
+              />
             </label>
             <label class="input input-bordered flex items-center gap-2 mb-2">
-              <input type="text" class="grow" v-model="surname" placeholder="Surname" required />
+              <input
+                type="text"
+                class="grow"
+                v-model="surname"
+                @focus="setActiveInput('surename')"
+                placeholder="Surname"
+                required
+              />
             </label>
             <label class="input input-bordered flex items-center gap-2 mb-2">
               <Icon icon="mingcute:birthday-2-fill" class="text-overlay-0" />
-              <input type="date" class="grow" v-model="birthday" placeholder="Birthday" />
+              <input
+                type="date"
+                class="grow"
+                v-model="birthday"
+                @focus="setActiveInput('birthday')"
+                placeholder="Birthday"
+              />
             </label>
           </div>
           <div v-show="create" class="divider md:divider-horizontal"></div>
@@ -27,12 +47,28 @@
               <input
                 type="password"
                 class="grow"
-                v-model="password"
+                v-model="password1"
                 placeholder="Password"
+                @focus="setActiveInput('password1')"
                 required
               />
             </label>
-            <password-meter :password="password" />
+            <password-meter v-if="focus == 'password1'" :password="password1" />
+            <label
+              v-if="create"
+              class="input input-bordered flex items-center gap-2"
+              :class="focus == 'password1' ? 'my-2' : ''"
+            >
+              <Icon icon="fluent:key-16-filled" class="text-overlay-0" />
+              <input
+                type="password"
+                class="grow"
+                v-model="password2"
+                placeholder="Confirm Password"
+                @focus="setActiveInput('password2')"
+                required
+              />
+            </label>
           </div>
         </div>
 
@@ -60,27 +96,40 @@ import { useUserStore } from '@/stores/account'
 const toast = useToast()
 
 const create = ref(false)
+const focus = ref('')
+const users = ref([])
+const userStore = useUserStore()
+
 const name = ref('')
 const surname = ref('')
 const username = ref('')
 const birthday = ref('')
-const password = ref('')
-const users = ref([])
-const userStore = useUserStore()
+const password1 = ref('')
+const password2 = ref('')
 
 onMounted(async () => {
   const response = await getUsers()
   users.value = response.sort((a, b) => a.name.localeCompare(b.name))
 })
 
+function setActiveInput(inputName) {
+  focus.value = inputName
+}
+
 function toggleCreate() {
   create.value = !create.value
 }
 
 async function handleSubmit() {
-  if (create.value && !isExtistingUser()) {
-    await createAccount()
-  } else {
+  if (create.value) {
+    if (!isExtistingUser()) {
+      if (!checkPassword()) {
+        toast.warning('Passwords do not match')
+        return
+      }
+      await createAccount()
+    }
+  } else if (!create.value) {
     await login()
   }
 }
@@ -89,11 +138,14 @@ function isExtistingUser() {
   const existingUser = users.value.find((user) => user.username === username.value)
 
   if (existingUser) {
-    toast.error('Username already exists')
+    toast.error('Username already exists, try to login again')
     return true
   }
-
   return false
+}
+
+function checkPassword() {
+  return password1.value === password2.value
 }
 
 async function login() {
@@ -104,7 +156,7 @@ async function login() {
       return
     }
 
-    const passwordMatch = await bcrypt.compare(password.value, user.password)
+    const passwordMatch = await bcrypt.compare(password1.value, user.password)
     if (!passwordMatch) {
       toast.error('Incorrect password')
       return
@@ -116,7 +168,7 @@ async function login() {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ username: username.value, password: password.value })
+      body: JSON.stringify({ username: username.value, password: password1.value })
     })
 
     if (response) {
@@ -140,7 +192,7 @@ async function login() {
 
 async function createAccount() {
   var salt = bcrypt.genSaltSync(10)
-  var hash = bcrypt.hashSync(password.value, salt)
+  var hash = bcrypt.hashSync(password1.value, salt)
   const newUser = {
     name: name.value,
     surname: surname.value,
@@ -155,7 +207,9 @@ async function createAccount() {
     surname.value = ''
     birthday.value = ''
     username.value = ''
-    password.value = ''
+    password1.value = ''
+    password2.value = ''
+    create.value = false
     users.value = await getUsers()
   } catch (error) {
     toast.error(error.message)

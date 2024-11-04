@@ -164,6 +164,7 @@ app.patch('/users/logged/:id', async (req, res) => {
   const id = req.params.id
   try {
     const user = await Users.findById(id)
+    console.log("🔥 - app.patch - user:", user)
     const passwordMatch = bcrypt.compareSync(req.body.password, user.password)
     if (!passwordMatch) {
       return res.status(401).send('Password incorrect!')
