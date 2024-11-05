@@ -1,5 +1,4 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
 import { useUserStore } from './stores/account'
 
 const userStore = useUserStore()
