@@ -2,11 +2,8 @@ import express from 'express';
 import path from 'path';
 import { promises as fs } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
-import { fileURLToPath } from 'url';
 
 const router = express.Router();
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 const UPLOAD_DIR = path.join('./uploads');
 
 // Middleware per logging
