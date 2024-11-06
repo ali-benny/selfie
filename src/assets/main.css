@@ -3,8 +3,10 @@
 @tailwind utilities;
 
 .prose {
-  color: inherit; /* Rimuove il colore specifico */
-  max-width: none; /* Rimuove la larghezza massima */
+  color: inherit;
+  /* Rimuove il colore specifico */
+  max-width: none;
+  /* Rimuove la larghezza massima */
 }
 
 /* NOTE: preso da https://blog.logrocket.com/best-practices-for-loading-fonts-in-vue/ */
@@ -20,27 +22,34 @@
 }
 
 :root {
-  --popper-theme-background-color: oklch(var(--b3)); /* bg-base-200 */
-  --popper-theme-background-color-hover: oklch(var(--b3)); /* bg-base-200 */
+  --popper-theme-background-color: oklch(var(--b3));
+  /* bg-base-200 */
+  --popper-theme-background-color-hover: oklch(var(--b3));
+  /* bg-base-200 */
   --popper-theme-text-color: oklch(var(--bc));
   --popper-theme-border-width: 1px;
   --popper-theme-border-style: solid;
   --popper-theme-border-color: rgba(0, 0, 0, 0.2);
-  --popper-theme-border-radius: 1rem; /* rounded-box */
+  --popper-theme-border-radius: 1rem;
+  /* rounded-box */
   --popper-theme-padding: 0;
-  --popper-theme-box-shadow: 0 1px 3px 0 rgb(var(--b3) / 0.1), 0 1px 2px -1px rgb(var(--b3) / 0.1); /* shadow shadow-base-300 */
+  --popper-theme-box-shadow: 0 1px 3px 0 rgb(var(--b3) / 0.1), 0 1px 2px -1px rgb(var(--b3) / 0.1);
+  /* shadow shadow-base-300 */
 }
 
 @layer base {
   .Vue-Toastification__toast--info.themed {
     @apply bg-primary text-primary-content;
   }
+
   .Vue-Toastification__toast--success.themed {
     @apply bg-success text-success-content;
   }
+
   .Vue-Toastification__toast--warning.themed {
     @apply bg-warning text-warning-content;
   }
+
   .Vue-Toastification__toast--error.themed {
     @apply bg-error text-error-content;
   }
@@ -48,4 +57,185 @@
   .Vue-Toastification__close-button.themed {
     @apply text-primary-content;
   }
+}
+
+
+/* 
+  =================
+  Editor.js Styles
+  =================
+*/
+
+/* Editor Container */
+.codex-editor {
+  --color-base: hsl(var(--b2)) !important;
+  --color-base-strong: hsl(var(--b3)) !important;
+  --color-text-primary: hsl(var(--p)) !important;
+  --color-text-secondary: hsl(var(--s)) !important;
+
+  color: hsl(var(--bc)) !important;
+  background: hsl(var(--b2)) !important;
+
+  input {
+    @apply text-base-300;
+  }
+
+  [class$="--error"] > * {
+    @apply !text-error !bg-error/25 border !border-error/70;
+  }
+}
+
+
+
+.cdx-block {
+  @apply !bg-base-300;
+}
+
+/* Editor Toolbar */
+.ce-toolbar__plus,
+.ce-toolbar__settings-btn {
+  @apply bg-base-100 text-base-content transition-colors duration-200;
+}
+
+.ce-toolbar__plus:hover,
+.ce-toolbar__settings-btn:hover {
+  @apply bg-primary text-primary-content;
+}
+
+/* Block Styles */
+.ce-block {
+  @apply my-2;
+}
+
+[class$="--selected"] .cdx-block,
+.ce-header {
+  @apply !bg-surface-0;
+}
+
+/* Headers */
+.ce-header {
+  @apply text-base-content mb-4;
+}
+
+h1.ce-header {
+  @apply text-primary border-b-2 border-primary/20 pb-2;
+}
+
+h2.ce-header {
+  @apply text-secondary;
+}
+
+h3.ce-header {
+  @apply text-accent;
+}
+
+/* Lists */
+.ce-list {
+  @apply list-disc list-inside;
+}
+
+.ce-list-item {
+  @apply my-1;
+}
+
+/* Links */
+.ce-link {
+  @apply text-primary underline;
+}
+
+.ce-link:hover {
+  @apply text-primary;
+}
+
+/* Quotes */
+.ce-quote {
+  @apply border-l-4 border-primary pl-4 italic;
+}
+
+/* Code */
+.ce-code {
+  @apply bg-base-200 text-base-content p-2 rounded;
+}
+
+/* Tables */
+.ce-table {
+  @apply w-full border-collapse;
+}
+
+.ce-table th,
+.ce-table td {
+  @apply border border-base-300 p-2;
+}
+
+.ce-table th {
+  @apply bg-base-200;
+}
+
+/* Images */
+.ce-image {
+  @apply max-w-full h-auto;
+}
+
+/* Videos */
+.ce-video {
+  @apply max-w-full h-auto;
+}
+
+/* Embeds */
+.ce-embed {
+  @apply max-w-full h-auto;
+}
+
+/* Toolbars */
+.ce-toolbar {
+  @apply !bg-base-100 shadow-lg;
+}
+
+.ce-toolbar__settings-btn--active,
+.ce-conversion-tool--active,
+.ce-inline-tool--active {
+  @apply bg-primary text-primary-content;
+}
+
+/* Error States */
+.codex-editor--error {
+  @apply border-error;
+}
+
+.codex-editor--error::after {
+  @apply bg-error/10 text-error;
+}
+
+/* Placeholders */
+.ce-block:empty::before {
+  @apply text-base-content;
+}
+
+/* Popover: on search */
+.ce-popover__container {
+  @apply !bg-surface-0 border !border-surface-0 text-neutral;
+}
+
+.ce-popover-item {
+  @apply !text-base-content transition-colors duration-200;
+}
+
+.ce-popover-item:hover {
+  @apply !text-base-content !bg-surface-1 transition-colors duration-200;
+}
+
+/* Selection */
+::selection {
+  @apply bg-primary/40;
+}
+
+/* Notify */
+.cdx-notify {
+  @apply !text-overlay-0;
+  background: hsl(var(--s));
+}
+
+/* Link Block */
+.link-tool > * {
+  @apply !bg-surface-1;
 }

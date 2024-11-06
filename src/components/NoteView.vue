@@ -2,9 +2,13 @@
 import { ref, onMounted, computed } from 'vue'
 import { Icon } from '@iconify/vue'
 import edjsHTML from 'editorjs-html'
-import { API_URL } from '../../const.js'
+import { API_URL } from '~/const.js'
 import { getNotes, saveNoteMongo, deleteNote } from '@/router/note/editor/note.js'
 import { useToast } from 'vue-toastification'
+import { useUserStore } from '@/stores/account'
+import { getUsersByIds } from '@/router/user/user.js'
+
+const userStore = useUserStore()
 
 const props = defineProps({
   viewMode: String,
@@ -15,6 +19,7 @@ const props = defineProps({
 })
 const notes = ref([])
 const toast = useToast()
+const users = ref({})
 
 const checklistParser = (block) => {
   const items = block.data.items
@@ -28,7 +33,11 @@ const edjsParser = edjsHTML({ checklist: checklistParser })
 
 onMounted(async () => {
   try {
-    notes.value = await getNotes()
+    notes.value = await getNotes(userStore.loggedUser._id)
+    const authorIds = notes.value.map((note) => note.author)
+    const readerIds = notes.value.flatMap((note) => note.readers)
+    const uniqueUserIds = [...new Set([...authorIds, ...readerIds])]
+    users.value = await getUsersByIds(uniqueUserIds)
   } catch (error) {
     console.error('Failed to fetch notes:', error)
   }
@@ -53,9 +62,15 @@ async function duplicateNote(id) {
     const newData = { ...note.data }
 
     // create new note
-    await saveNoteMongo(null, newFilename, newData, note.tags)
+    await saveNoteMongo({
+      id: null,
+      filename: newFilename,
+      data: newData,
+      tags: note.tags,
+      author: userStore.loggedUser._id
+    })
 
-    notes.value = await getNotes()
+    notes.value = await getNotes(userStore.loggedUser._id)
     toast.success('Note duplicated successfully')
   } catch (error) {
     toast.error('Error - duplicating note:', error)
@@ -101,7 +116,8 @@ const filteredNotes = computed(() => {
   if (props.order) orderBy(props.order)
   if (props.lastModified) {
     orderBy('date')
-    return notes.value.slice(props.lastModified, notes.value.length - 1)
+    const start = notes.value.length >= props.lastModified ? 0 : notes.value.length
+    return notes.value.slice(start, props.lastModified)
   }
   return notes.value
 })
@@ -109,12 +125,16 @@ const filteredNotes = computed(() => {
 async function removeNote(id) {
   try {
     await deleteNote(id)
-    notes.value = await getNotes()
+    notes.value = await getNotes(userStore.loggedUser._id)
     toast.success('Note deleted successfully')
   } catch (error) {
     console.error('Failed to delete note:', error)
     toast.error('Failed to delete note')
   }
+}
+
+function toggleShowOptions(note) {
+  note.showOptions = !note.showOptions
 }
 </script>
 
@@ -124,19 +144,54 @@ async function removeNote(id) {
       :to="`/editor?edit=${note._id}`"
       v-for="note in filteredNotes"
       :key="note._id"
-      class="bg-base-200 rounded-box md:grid md:grid-cols-6 flex flex-wrap md:flex-nowrap p-3 gap-2 justify-between hover:bg-base-content/20 hover:cursor-pointer"
+      class="bg-base-200 rounded-box flex flex-wrap md:flex-nowrap p-3 gap-2 justify-between hover:bg-overlay-0 hover:cursor-pointer"
+      :class="props.extended ? 'md:grid md:grid-cols-6' : 'flex-row'"
     >
-      <div class="flex flex-col flex-none">
+      <div
+        class="flex flex-none"
+        :class="props.extended ? 'flex-col' : 'flex-row gap-4 w-64 items-center justify-between'"
+      >
         <!-- DEBUG: note _id -->
         <!-- <p>{{ note._id }}</p>  -->
         <h1 class="font-bold text-lg">{{ note.name }}</h1>
-        <p class="">Author: {{ note.author }}</p>
+        <div class="flex flex-row items-center w-full">
+          <div class="avatar w-10 m-2">
+            <div class="ring-primary ring-offset-base-100 rounded-full ring ring-offset-2">
+              <img
+                :src="users[note.author]?.image"
+                :title="users[note.author]?.name + ' ' + users[note.author]?.surname"
+              />
+            </div>
+          </div>
+          <div class="avatar-group w-full -space-x-6 hover:-space-x-0 rtl:space-x-reverse">
+            <div
+              v-for="(reader, index) in note.readers.slice(0, 3)"
+              class="avatar h-10"
+              :key="index"
+            >
+              <img
+                class="mask mask-circle !bg-secondary"
+                :src="users[reader]?.image"
+                :title="users[reader]?.name + ' ' + users[reader]?.surname"
+              />
+            </div>
+            <div v-if="note.readers.length > 3" class="avatar h-10 placeholder">
+              <div class="bg-neutral font-bold text-neutral-content">
+                <span>+{{ note.readers.length - 3 }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
         <p v-if="props.extended" class="flex items-center gap-2">
           <Icon icon="ic:round-update" /> {{ formatDate(note.date) }}
         </p>
         <!-- Tags -->
         <div v-if="props.extended" class="flex flex-row gap-2 flex-wrap">
-          <p v-for="tag in note.tags" class="flex px-2 rounded-xl font-semibold bg-primary/50">
+          <p
+            v-for="tag in note.tags"
+            :key="tag._id"
+            class="flex px-2 rounded-xl font-semibold bg-primary/50"
+          >
             {{ tag }}
           </p>
         </div>
@@ -144,8 +199,8 @@ async function removeNote(id) {
       <div
         v-if="props.extended"
         id="preview"
-        class="col-span-4 p-3 rounded-lg bg-base-300"
-        v-html="truncate(note.data, 200)"
+        class="col-span-4 p-3 flex rounded-lg bg-base-300 text-balance truncate"
+        v-html="truncate(note.data, 400)"
       ></div>
       <!-- <img
             v-if="note.attachment"
@@ -186,56 +241,97 @@ async function removeNote(id) {
   </ul>
   <div
     v-if="props.viewMode == 'grid'"
-    class="m-2 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3"
+    class="m-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"
   >
     <RouterLink
       :to="`/editor?edit=${note._id}`"
       v-for="note in filteredNotes"
       :key="note._id"
-      class="card flex flex-col gap-1 p-3 bg-base-200 h-full hover:bg-base-content/20 hover:cursor-pointer"
+      class="card flex flex-col gap-1 p-3 relative bg-base-200 h-full hover:bg-overlay-0 hover:cursor-pointer"
     >
+      <div
+        class="absolute right-0 top-0"
+        v-if="props.edit"
+        @open.stop.prevent="toggleShowOptions(note)"
+      >
+        <button
+          :class="[
+            'btn rounded-tr-box rounded-circle btn-xs m-1 p-1',
+            note.showOptions ? 'btn-secondary text-lg' : 'hover:text-secondary btn-ghost'
+          ]"
+          @click.stop.prevent="toggleShowOptions(note)"
+        >
+          <div v-if="!note.showOptions" class="text-xl">
+            <Icon icon="fluent:more-vertical-24-filled" />
+          </div>
+          <div v-else><Icon icon="mingcute:close-fill" /></div>
+        </button>
+
+        <div
+          v-if="note.showOptions"
+          class="flex flex-col justify-center absolute bg-surface-0 rounded-[10px] gap-2 w-32 mx-auto z-10 p-2" style="right: inherit"
+        >
+          <button
+            @click.stop.prevent="duplicateNote(note._id)"
+            role="button"
+            class="btn btn-sm btn-outline btn-primary flex justify-center items-center"
+            title="Duplicate note"
+          >
+            <Icon icon="fluent:copy-24-regular" />Duplicate
+          </button>
+          <button
+            @click.stop.prevent="removeNote(note._id)"
+            role="button"
+            class="btn btn-sm btn-outline btn-error flex justify-center items-center"
+            title="Delete note"
+          >
+            <Icon icon="fluent:delete-24-regular" />Delete
+          </button>
+        </div>
+      </div>
       <h2 class="text-xl font-bold">{{ note.name }}</h2>
-      <p>Author: {{ note.author }}</p>
+      <div class="flex flex-row items-center w-full">
+        <div class="avatar w-10 m-2">
+          <div class="ring-primary ring-offset-base-100 rounded-full ring ring-offset-2">
+            <img
+              :src="users[note.author]?.image"
+              :title="users[note.author]?.name + ' ' + users[note.author]?.surname"
+            />
+          </div>
+        </div>
+        <div class="avatar-group w-full -space-x-6 hover:-space-x-0 rtl:space-x-reverse">
+          <div v-for="(reader, index) in note.readers.slice(0, 3)" class="avatar h-10" :key="index">
+            <img
+              class="mask mask-circle !bg-secondary"
+              :src="users[reader]?.image"
+              :title="users[reader]?.name + ' ' + users[reader]?.surname"
+            />
+          </div>
+          <div v-if="note.readers.length > 3" class="avatar h-10 placeholder">
+            <div class="bg-neutral font-bold text-neutral-content">
+              <span>+{{ note.readers.length - 3 }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
       <p class="flex align-items-center gap-2">
         <Icon icon="ic:round-update" /> {{ formatDate(note.date) }}
       </p>
       <!-- Tags -->
       <div class="flex flex-row flex-wrap gap-2">
-        <p v-for="tag in note.tags" class="flex px-2 rounded-xl !bg-primary/50 font-semibold">
+        <p
+          v-for="tag in note.tags"
+          :key="tag._id"
+          class="flex px-2 rounded-xl !bg-primary/50 font-semibold"
+        >
           {{ tag }}
         </p>
       </div>
       <div
         id="preview"
-        class="flex flex-col grow text-balance bg-base-300 card p-2"
+        class="flex flex-col grow text-balance bg-base-300 card p-2 truncate"
         v-html="truncate(note.data, 200)"
       ></div>
-      <div v-if="props.edit" class="flex flex-row flex-wrap gap-2 mx-auto justify-center mt-2">
-        <!-- <RouterLink
-          :to="`/editor?edit=${note._id}`"
-          role="button"
-          class="btn btn-primary text-2xl flex justify-center items-center"
-          title="Edit note"
-        >
-          <Icon icon="fluent:note-edit-24-regular" />
-        </RouterLink> -->
-        <button
-          @click.stop.prevent="duplicateNote(note._id)"
-          role="button"
-          class="btn btn-outline btn-primary text-2xl flex justify-center items-center"
-          title="Duplicate note"
-        >
-          <Icon icon="fluent:copy-24-regular" />
-        </button>
-        <button
-          @click.stop.prevent="removeNote(note._id)"
-          role="button"
-          class="btn btn-outline btn-error text-2xl flex justify-center items-center"
-          title="Delete note"
-        >
-          <Icon icon="fluent:delete-24-regular" />
-        </button>
-      </div>
     </RouterLink>
   </div>
 </template>

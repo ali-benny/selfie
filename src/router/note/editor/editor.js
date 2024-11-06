@@ -14,10 +14,22 @@ import { MDParser, MDImporter } from 'editorjs-md-parser'
 /**
  * note's title to be displayed into the editor
  */
-let title = ''
-
-export function getEditNoteTitle() {
-  return title
+export async function getEditNoteTitle() {
+  const noteId = getEditNoteId()
+  let noteData = {}
+  if (noteId) {
+    const response = await fetch(`${API_URL}/notes/${noteId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    if (response.ok) {
+      noteData = await response.json()
+      return noteData.name
+    }
+  }
+  return ''
 }
 
 export function getEditNoteId() {
@@ -42,7 +54,6 @@ export async function getEditNoteData() {
     })
     if (response.ok) {
       noteData = await response.json()
-      title = noteData.name
       return noteData.data
     }
   }
@@ -61,6 +72,7 @@ export async function initializeEditor() {
   const editor = new EditorJS({
     holder: 'editorjs',
     autofocus: true,
+    theme: 'dark',
     // inlineToolbar: ['link', 'marker', 'bold', 'italic'],
     data: edit_note,
     tools: {

@@ -117,18 +117,18 @@ onMounted(fetchUsers)
 </script>
 
 <template>
-  <div class="flex flex-col md:flex-row vh-100 p-3">
+  <div class="flex flex-col md:flex-row vh-100">
     <div class="flex flex-col md:w-80 items-center prose">
-      <h1 class="flex flex-row gap-3">Your<div class="italic">Selfie</div></h1>
+      <h1 class="flex flex-row gap-3">
+        Your
+        <div class="italic">Selfie</div>
+      </h1>
       <div class="bg-base-300 relative rounded-box p-3 w-full flex flex-col gap-2">
         <div class="absolute right-0 top-0">
-          <button
-            :class="[
-              'btn rounded-box btn-sm',
-              editUser ? 'btn-success text-lg' : 'hover:text-success btn-ghost'
-            ]"
-            @click="editLoggedUser"
-          >
+          <button :class="[
+            'btn rounded-box btn-sm',
+            editUser ? 'btn-secondary text-lg' : 'hover:text-secondary btn-ghost'
+          ]" @click="editLoggedUser">
             <div v-if="!editUser">
               <Icon icon="fluent:edit-16-filled" />
             </div>
@@ -161,54 +161,33 @@ onMounted(fetchUsers)
     <div class="divider divider-primary md:divider-horizontal"></div>
     <div class="flex flex-col grow m-5 prose">
       <h1>Login with</h1>
-      <UserDropdown
-        :users="users"
-        :selectedUserId="userStore.loggedUser._id"
-        @update:selectedUserId="selectUser"
-      />
+      <UserDropdown :users="users" :selectedUserId="userStore.loggedUser._id" @update:selectedUserId="selectUser" />
       <div class="divider"></div>
       <h2 class="mt-0">Change Profile Avatar</h2>
       <div class="flex flex-row justify-around items-center">
         <div class="flex flex-col gap-2">
-          <button @click="generateNewImage" class="btn btn-accent">
+          <button @click="generateNewImage" class="btn btn-secondary">
             <Icon class="text-xl" icon="fluent:emoji-sparkle-16-filled" />Generate New Avatar
           </button>
-          <button v-if="newImage" @click="saveNewImage" class="btn btn-success">
+          <button v-if="newImage" @click="saveNewImage" class="btn btn-primary btn-outline">
             <Icon icon="fluent:save-edit-20-filled" class="text-xl" />Save Image
           </button>
         </div>
-        <img
-          v-if="newImage"
-          :src="newImage"
-          alt="New Profile Image"
-          class="mask mask-squircle w-32 m-0"
-        />
+        <img v-if="newImage" :src="newImage" alt="New Profile Image" class="mask mask-squircle w-32 m-0" />
       </div>
       <div class="divider"></div>
-      <div class="flex flex-col gap-3">
+      <form class="flex flex-col gap-3">
         <h2>Register a new user</h2>
         <div class="flex flex-row gap-2 w-full">
-          <input
-            type="text"
-            v-model="newUser.name"
-            placeholder="Name"
-            class="input input-primary input-md border !input-bordered mx-3 grow"
-          />
-          <input
-            type="text"
-            v-model="newUser.surname"
-            placeholder="Surname"
-            class="input input-primary input-md border !input-bordered mx-3 grow"
-          />
+          <input required type="text" v-model="newUser.name" placeholder="Name"
+            class="input input-primary input-md border !input-bordered mx-3 grow" />
+          <input required type="text" v-model="newUser.surname" placeholder="Surname"
+            class="input input-primary input-md border !input-bordered mx-3 grow" />
         </div>
-        <input
-          type="date"
-          v-model="newUser.birthday"
-          placeholder="Birthday"
-          class="input input-primary input-md border !input-bordered mx-3"
-        />
+        <input type="date" v-model="newUser.birthday" placeholder="Birthday"
+          class="input input-primary input-md border !input-bordered mx-3" />
         <button @click="addUser" class="btn btn-primary btn-sm">Add User</button>
-      </div>
+      </form>
     </div>
   </div>
 </template>

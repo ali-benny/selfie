@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
+import LoginView from '../views/LoginView.vue'
 import NoteList from './note/Notes.vue'
 import NoteEditor from './note/editor/NoteEditor.vue'
 import UserView from '../views/UserView.vue'
@@ -33,6 +34,11 @@ const router = createRouter({
       name: 'pomodoro',
       component: PomodoroDashboard,
       props: true
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: LoginView
     }
   ]
 })

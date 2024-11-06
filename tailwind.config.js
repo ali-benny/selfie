@@ -1,8 +1,8 @@
 /** @type {import('tailwindcss').Config} */
-import daisyui from 'daisyui'
-import typography from '@tailwindcss/typography'
-import catppuccin from '@catppuccin/daisyui'
 import { addDynamicIconSelectors } from '@iconify/tailwind'
+import catppuccin from '@catppuccin/daisyui'
+import typography from '@tailwindcss/typography'
+import daisyui from 'daisyui'
 import { flavors } from '@catppuccin/palette'
 import Color from 'colorjs.io'
 

@@ -1,4 +1,5 @@
-import { API_URL } from '../../../../const'
+import { getUsersByIds } from '@/router/user/user'
+import { API_URL } from '~/const'
 // TODO: non so dove, ma le note sono identificate in base al titolo e non all'id -> questo crea problemi quando cambio titolo ad una nota [ne genera una nuova]
 /**
  * Using mongodb API to save note actual status
@@ -8,21 +9,25 @@ import { API_URL } from '../../../../const'
  * @param {*} filename === note title
  * @param {*} data note body contents
  * @param {*} tags note category tags
+ * @param {*} author note author
+ * @param {*} reader id users who can read/edit the note
  */
-export async function saveNoteMongo(id, filename, data, tags) {
+export async function saveNoteMongo({ id = null, filename, data, tags, author, readers } = {}) {
   const method = id == null ? 'POST' : 'PUT'
   const endpoint = id == null ? `/notes` : `/notes/${id}`
+
+  // Creazione del body della richiesta con solo i campi definiti
+  const body = { filename, data, tags, author, readers }
+
+  // Rimuovi i campi undefined
+  Object.keys(body).forEach((key) => body[key] === undefined && delete body[key])
 
   const response = await fetch(API_URL + endpoint, {
     method: method,
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({
-      filename: filename,
-      data: data,
-      tags: tags
-    })
+    body: JSON.stringify(body)
   })
 
   if (response.ok) {
@@ -59,10 +64,12 @@ export async function deleteNote(id) {
 /**
  * Using mongodb API to get all the notes
  *
+ * @param id author id
+ *
  * @export
  */
-export async function getNotes() {
-  const response = await fetch(API_URL + '/notes', {
+export async function getNotes(id) {
+  const response = await fetch(API_URL + `/${id}/notes`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json'
@@ -76,6 +83,43 @@ export async function getNotes() {
   }
 }
 
+/**
+ * Get struct for a specific note id
+ *
+ * @param {*} id note id
+ * @return note struct {name: String, data: Object, date: Date, author: String, readers: [String], tags: Object}
+ */
+export async function getNoteAuthor(id) {
+  const response = await fetch(API_URL + `/notes/${id}/author`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+  if (!response.ok) {
+    throw new Error('Error - getting readers note')
+  }
+  const author = await response.json()
+  const verbose = await fetch(`${API_URL}/users/${author}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+  if (verbose.ok) {
+    return await verbose.json()
+  } else {
+    console.error(`Failed to fetch user with ID: ${author}`)
+  }
+}
+
+/**
+ * Fetches the tags associated with a specific note.
+ *
+ * @param {string} noteId - The ID of the note for which to fetch tags.
+ * @returns {Promise<Array>} A promise that resolves to an array of tags.
+ * @throws Will log an error message and return an empty array if the fetch operation fails.
+ */
 export async function getNoteTags(noteId) {
   const response = await fetch(`${API_URL}/${noteId}/tags`)
   if (response.ok) {
@@ -86,6 +130,59 @@ export async function getNoteTags(noteId) {
   }
 }
 
+/**
+ * Fetches the readers of a note by its ID.
+ *
+ * @param {string} id - The ID of the note.
+ * @returns {Promise<Array>} A promise that resolves to an array of user objects who have read the note.
+ * @throws {Error} Throws an error if the fetch request fails.
+ */
+export async function getReaders(id) {
+  const response = await fetch(API_URL + `/notes/${id}/readers`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+  if (!response.ok) {
+    throw new Error('Error - getting readers note')
+  }
+  const note_readers = await response.json()
+  return await getUsersByIds(note_readers)
+}
+
+/**
+ * Fetches the readers of a note by its ID.
+ *
+ * @param {string} id - The ID of the note.
+ * @returns {Promise<Array>} A promise that resolves to a readers Array [] with ids
+ * @throws {Error} Throws an error if the fetch request fails.
+ */
+export async function getReadersIds(id) {
+  const response = await fetch(API_URL + `/notes/${id}/readers`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+  if (!response.ok) {
+    throw new Error('Error - getting readers note')
+  }
+  return await response.json()
+}
+
+/**
+ * Saves a todo item to MongoDB.
+ *
+ * @param {Object} todo - The todo item to save.
+ * @param {string} todo.text - The text of the todo item.
+ * @param {boolean} todo.checked - The checked status of the todo item.
+ * @param {string} todo.author - The author of the todo item.
+ * @param {string} todo.reader - The reader of the todo item.
+ * @param {string} todo.from - The source of the todo item.
+ * @returns {Promise<void>} A promise that resolves when the todo item is saved.
+ * @throws Will throw an error if the request fails.
+ */
 export async function saveTodoMongo(todo) {
   const response = await fetch(API_URL + '/todo', {
     method: 'POST',
