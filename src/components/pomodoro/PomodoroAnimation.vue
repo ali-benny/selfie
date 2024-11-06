@@ -2,7 +2,7 @@
   <svg class="w-full h-full overflow-visible" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
     <g class="fill-none stroke-none">
 
-      <circle cx="50" cy="50" r="50" class="stroke-neutral" />
+      <!-- <circle cx="50" cy="50" r="50" class="stroke-neutral" /> -->
       <line id="dot" x1="50" y1="0" x2="50" y2="0" :stroke="breakColor" class="linecap-round" pathLength="1" />
       <circle id="progress" cx="50" cy="50" r="50" ref="progress" class="linecap-round" pathLength=" 1" />
 
@@ -36,7 +36,7 @@ export default {
     },
     breakColor: {
       type: String,
-      default: flavors.macchiato.colors.blue.hex
+      default: flavors.macchiato.colors.lavender.hex
     }
   },
   expose: ['play', 'pause', 'restart', 'reload'],
@@ -128,6 +128,6 @@ export default {
 }
 
 g>* {
-  stroke-width: 0.4rem;
+  stroke-width: 0.3rem;
 }
 </style>

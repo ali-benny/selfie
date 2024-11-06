@@ -1,6 +1,8 @@
 /** @type {import('tailwindcss').Config} */
-const { addDynamicIconSelectors } = require('@iconify/tailwind')
+import daisyui from 'daisyui'
+import typography from '@tailwindcss/typography'
 import catppuccin from '@catppuccin/daisyui'
+import { addDynamicIconSelectors } from '@iconify/tailwind'
 import { flavors } from '@catppuccin/palette'
 import Color from 'colorjs.io'
 
@@ -64,7 +66,7 @@ export default {
       }
     }
   },
-  plugins: [require('@tailwindcss/typography'), require('daisyui'), addDynamicIconSelectors()],
+  plugins: [typography, daisyui, addDynamicIconSelectors()],
   daisyui: {
     themes: [
       fixCustomTheme({

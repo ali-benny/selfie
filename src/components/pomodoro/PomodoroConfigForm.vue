@@ -9,7 +9,8 @@
             <span v-if="this.config">Edit your focus</span>
             <span v-else>Create your new focus</span>
           </h4>
-          <button v-if="this.config" class="btn btn-outline btn-error btn-sm " @click="deleteConfig(close)">
+          <button v-if="this.config" class="btn btn-outline btn-error btn-sm " @click="deleteConfig(close)"
+            :disabled="this.disableDelete">
             <Icon icon="fluent:delete-32-regular" />
           </button>
         </div>
@@ -98,26 +99,30 @@ export default {
     config: Object,
     placement: String,
     locked: Boolean,
-    arrow: Boolean
+    arrow: Boolean,
+    disableDelete: {
+      type: Boolean,
+      default: false
+    }
   },
   emits: ['submit', 'update:config', 'delete'],
   data() {
     return {
       form_config: null,
       colors: [
-        flavors.mocha.colors.rosewater,
-        flavors.mocha.colors.flamingo,
-        flavors.mocha.colors.pink,
-        flavors.mocha.colors.mauve,
-        flavors.mocha.colors.red,
-        flavors.mocha.colors.maroon,
-        flavors.mocha.colors.peach,
-        flavors.mocha.colors.yellow,
-        flavors.mocha.colors.teal,
-        flavors.mocha.colors.sky,
-        flavors.mocha.colors.sapphire,
-        flavors.mocha.colors.blue,
-        flavors.mocha.colors.lavender
+        flavors.macchiato.colors.rosewater,
+        flavors.macchiato.colors.flamingo,
+        flavors.macchiato.colors.pink,
+        flavors.macchiato.colors.mauve,
+        flavors.macchiato.colors.red,
+        flavors.macchiato.colors.maroon,
+        flavors.macchiato.colors.peach,
+        flavors.macchiato.colors.yellow,
+        flavors.macchiato.colors.teal,
+        flavors.macchiato.colors.sky,
+        flavors.macchiato.colors.sapphire,
+        flavors.macchiato.colors.blue,
+        flavors.macchiato.colors.lavender
       ]
     }
   },

@@ -42,8 +42,8 @@ const PomodoroConfigSchema = new mongoose.Schema({
   color: {
     type: Object,
     default: {
-      name: flavors.mocha.colors.mauve.name,
-      hex: flavors.mocha.colors.mauve.hex
+      name: flavors.macchiato.colors.mauve.name,
+      hex: flavors.macchiato.colors.mauve.hex
     }
   }
 })

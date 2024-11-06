@@ -1,4 +1,5 @@
 import { API_URL } from '../../../const.js'
+import { flavors } from '@catppuccin/palette'
 
 /*
  * TODO: spostare pomodoroMessage e breakMessage
@@ -9,7 +10,7 @@ export const defaultConfig = {
   shortBreakTime: 5,
   longBreakTime: 15,
   longBreakInterval: 4,
-  color: '#7dc4e4'
+  color: flavors.macchiato.colors.maroon
 }
 
 /*

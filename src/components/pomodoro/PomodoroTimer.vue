@@ -1,39 +1,38 @@
 <template>
-  <div class="w-100 h-100 relative flex flex-col justify-center" v-if="this.pomodoro">
+  <div class="h-full flex justify-center items-center" v-if="this.pomodoro">
+    <div
+      class="timer-container min-w-96 sm:w-2/3 lg:w-1/2 h-max relative flex flex-col items-center bg-transparent transition-colors duration-1000 rounded-box border-4 border-transparent shadow-xl shadow-transparent gap-6  py-8 z-20"
+      :class="{ 'running': this.pomodoro.running }">
 
-    <div class="w-100 h-min">
-      <div class="w-full flex flex-col items-center gap-4">
-        <div class="h-60 w-60 sm:w-80 sm:h-80 relative flex justify-center items-center">
-          <div class="absolute">
-            <PomodoroAnimation :duration="pomodoro.initialTimer" :timer="pomodoro.timer" :phase="pomodoro.phase"
-              ref="animation" />
-          </div>
-
-          <div class="digital select-none text-7xl m-0 ">
-            {{ timer }}
-          </div>
+      <div class="h-60 w-60 sm:w-80 sm:h-80 relative flex justify-center items-center">
+        <div class="absolute">
+          <PomodoroAnimation :duration="pomodoro.initialTimer" :timer="pomodoro.timer" :phase="pomodoro.phase"
+            ref="animation" />
         </div>
-        <div :class="['grid', pomodoro.started ? 'grid-cols-3' : '']">
-          <button v-if="pomodoro.started" @click="this.restart()" class="text-sm btn btn-xs btn-outline btn-error">
-            Reset
-          </button>
-          <div class="flex flex-col items-center">
-            <button v-if="pomodoro.running" @click="this.pause()" class="text-2xl hover:text-success">
-              <Icon icon="mingcute:pause-fill" />
-            </button>
-            <button v-else @click="this.play()" class="text-2xl hover:text-success">
-              <Icon icon="mingcute:play-fill" />
-            </button>
-          </div>
-          <button v-if="pomodoro.started" @click="this.skip()" class="text-xl hover:text-success mx-3">
-            <Icon icon="mingcute:fast-forward-fill" />
-          </button>
+        <div class="digital select-none text-7xl m-0 ">
+          {{ timer }}
         </div>
       </div>
+      <div class="grid items-center" :class="pomodoro.started ? 'grid-cols-3' : ''">
+        <button v-if="pomodoro.started" @click="this.restart()" class="text-sm btn btn-xs btn-outline btn-error">
+          Reset
+        </button>
+        <div class="flex flex-col items-center">
+          <button v-if="pomodoro.running" @click="this.pause()" class="text-4xl hover:text-success">
+            <Icon icon="mingcute:pause-fill" />
+          </button>
+          <button v-else @click="this.play()" class="text-4xl hover:text-success">
+            <Icon icon="mingcute:play-fill" />
+          </button>
+        </div>
+        <button v-if="pomodoro.started" @click="this.skip()" class="text-xl hover:text-success mx-3">
+          <Icon icon="mingcute:fast-forward-fill" />
+        </button>
+      </div>
 
-      <Popper class="absolute top-2 right-2" placement="bottom" arrow locked>
+      <Popper class="absolute top-3 right-3" placement="bottom" arrow locked>
         <button>
-          <Icon icon="fluent:info-24-regular" />
+          <Icon icon="fluent:info-24-regular" class="text-lg" />
         </button>
         <template #content>
           <div class="w-52 p-3 flex flex-col gap-1 text-sm">
@@ -186,6 +185,17 @@ export default {
 }
 </script>
 <style scoped>
+.timer-container.running {
+  transition-delay: 250ms;
+  transition-property: background-color, border-color, box-shadow;
+  transition-duration: 1s;
+  transition-timing-function: ease-in-out;
+
+  @apply !bg-base-200;
+  border-color: v-bind('config?.color.hex') !important;
+  --tw-shadow-color: v-bind('config?.color.hex') !important;
+}
+
 .digital {
   font-family: Digital-7;
 }

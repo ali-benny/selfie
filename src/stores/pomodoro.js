@@ -18,7 +18,6 @@ export const usePomodoroStore = defineStore('pomodoro', {
       if (!this.pomodoro) {
         this.pomodoro = {}
       }
-      console.log('update')
       this.pomodoro.id = pomodoro.id
       this.pomodoro.config = pomodoro.config
       this.pomodoro.timer = pomodoro.timer

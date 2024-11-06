@@ -1,11 +1,13 @@
 <template>
-  <div class="max-w-56 sm:max-w-64 h-full card card-compact sm:card-normal" @click="$emit('select')">
+  <div class="max-w-56 sm:max-w-64 h-full card card-compact sm:card-normal" @click="$emit('select')"
+    :class="{ selected: this.selected }">
     <div class="card-body relative">
       <!-- Form edit -->
       <div @click.stop class="absolute top-4 right-4 flex justify-center align-center">
-        <PomodoroConfigForm :config="config" @update:config="$emit('update:config', $event)" @delete="$emit('delete')">
+        <PomodoroConfigForm :config="config" @update:config="$emit('update:config', $event)" @delete="$emit('delete')"
+          :disable-delete="selected">
           <template #trigger>
-            <button class="z-10 hover:text-secondary">
+            <button class="z-10 text-secondary">
               <Icon icon="fluent:edit-48-filled" />
             </button>
           </template>
@@ -50,7 +52,8 @@ export default {
   props: {
     config: {
       required: true
-    }
+    },
+    selected: Boolean
   },
   emits: [
     'select',
@@ -69,9 +72,9 @@ export default {
 }
 
 .card:hover,
-.selected {
+.card.selected {
   @apply border-2 bg-base-300 cursor-pointer;
-  border-color: v-bind('config?.color.hex + 80') !important;
-  box-shadow: 0 10px 15px -3px v-bind('config?.color.hex + 40'), 0 4px 6px -4px v-bind('config?.color.hex + 30');
+  border-color: v-bind('config?.color.hex') !important;
+  --tw-shadow-color: v-bind('config?.color.hex + 80');
 }
 </style>

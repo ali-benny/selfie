@@ -1,40 +1,37 @@
 <template>
-  <div class="container mx-auto flex flex-col items-stretch gap-12">
+  <div class="w-full h-full flex flex-col items-stretch gap-10">
 
-    {{
-      this.store
-    }}
     <!--- Pomodoro Timer -->
-    <div class="mt-5 basis-80">
-      <PomodoroTimer @play="showConfigs = false" @pause="showConfigs = true" class="h-max" ref="timer" />
+    <div id="timer-container" class="grow pt-10" :class="{ 'flex-animation': !showConfigs }">
+      <PomodoroTimer @play="showConfigs = false" @pause="showConfigs = true" ref="timer" />
     </div>
 
     <!-- Pomodoro configs -->
-    <div class="px-3 pb-4 flex flex-col items-stretch gap-2">
-      <div class="flex justify-between items-center">
-        <h2 class="font-bold text-lg">
-          Your saved focuses
-        </h2>
 
-        <PomodoroConfigForm @submit="(res) => { if (res === 'success') this.$refs.configList.loadConfigs() }"
-          :disabled="!showConfigs">
-          <template #trigger>
-            <button class="btn btn-sm btn-accent" :disabled="!showConfigs">
-              New focus
-              <Icon icon="fluent:new-24-regular" class="text-xl" />
-            </button>
-          </template>
-        </PomodoroConfigForm>
-      </div>
+    <Transition :duration="2000" name="config-fade">
+      <div class="flex flex-col items-stretch gap-2 pb-4" v-if="showConfigs">
+        <div class="flex justify-between items-center">
+          <h2 class="font-bold text-lg">
+            Your saved focuses
+          </h2>
+
+          <PomodoroConfigForm @submit="(res) => { if (res === 'success') this.$refs.configList.loadConfigs() }"
+            :disabled="!showConfigs">
+            <template #trigger>
+              <button class="btn btn-sm btn-accent" :disabled="!showConfigs">
+                New focus
+                <Icon icon="fluent:new-24-regular" class="text-xl" />
+              </button>
+            </template>
+          </PomodoroConfigForm>
+        </div>
 
 
-      <div class="relative">
-        <PomodoroConfigList @select="reloadPomodoro" ref="configList" />
-        <div class="transition-all z-10 absolute top-0 left-0 w-full h-full bg-base-100 opacity-0"
-          :class="{ 'invisible': showConfigs, 'opacity-50': !showConfigs }">
+        <div>
+          <PomodoroConfigList @select="reloadPomodoro" :selected="this.timer?.config" ref="configList" />
         </div>
       </div>
-    </div>
+    </Transition>
   </div>
 
 </template>
@@ -61,13 +58,6 @@ export default {
       this.timer.replacePomodoro(config)
     },
   },
-  watch: {
-    'timer.config'(newValue, oldValue) {
-      if (!oldValue) {
-        this.configList.selected = newValue
-      }
-    }
-  },
   computed: {
     timer() {
       if (!this.isMounted) return
@@ -88,5 +78,34 @@ export default {
     PomodoroConfigForm
   }
 }
-
 </script>
+
+<style scoped>
+.config-fade-enter-from,
+.config-fade-leave-to {
+  opacity: 0 !important;
+}
+
+.config-fade-enter-to,
+.config-fade-leave-from {
+  flex-grow: 0.001;
+}
+
+.config-fade-enter-active,
+.config-fade-leave-active {
+  transition: opacity 1s ease;
+}
+
+.flex-animation {
+  animation-name: flex-grow;
+  animation-delay: 250ms;
+  animation-duration: 1s;
+  animation-fill-mode: forwards;
+}
+
+@keyframes flex-grow {
+  100% {
+    flex-grow: 1;
+  }
+}
+</style>
