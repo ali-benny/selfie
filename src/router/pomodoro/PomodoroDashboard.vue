@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto flex flex-col items-stretch gap-12">
+  <div class="mx-auto flex flex-col items-stretch gap-12">
 
     {{
       this.store

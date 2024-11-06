@@ -24,61 +24,32 @@ const orderBy = (criteria) => {
 
 <template>
   <div class="flex flex-col">
-    <a
-      href="/editor"
-      class="btn btn-accent floating-btn btn-circle !text-base-100 shadow-xl text-2xl"
-      title="Add new note"
-    >
+    <a href="/editor" class="btn btn-accent floating-btn btn-circle !text-base-100 shadow-xl text-2xl"
+      title="Add new note">
       <Icon icon="fluent:note-add-24-filled" />
     </a>
     <div class="container mx-auto flex justify-between items-center px-2 md:px-5">
       <h1 class="text-2xl font-semibold">Notes</h1>
       <div class="flex justify-end items-center my-2">
         <div class="mx-2">
-          <button
-            class="btn btn-default rounded-box"
-            v-if="order === 'title'"
-            @click="orderBy('date')"
-          >
+          <button class="btn btn-default rounded-box" v-if="order === 'title'" @click="orderBy('date')">
             Order by Title
           </button>
-          <button
-            class="btn btn-default rounded-box"
-            v-else-if="order === 'date'"
-            @click="orderBy('author')"
-          >
+          <button class="btn btn-default rounded-box" v-else-if="order === 'date'" @click="orderBy('author')">
             Order by Date
           </button>
-          <button
-            class="btn btn-default rounded-box"
-            v-else-if="order === 'author'"
-            @click="orderBy('title')"
-          >
+          <button class="btn btn-default rounded-box" v-else-if="order === 'author'" @click="orderBy('title')">
             Order by Author
           </button>
         </div>
         <div class="join rounded-box" aria-label="Note View Mode">
-          <input
-            type="radio"
-            class="btn btn-sm join-item"
-            id="list"
-            name="options"
-            value="list"
-            v-model="viewMode"
-            aria-label="List"
-          />
+          <input type="radio" class="btn btn-sm join-item" id="list" name="options" value="list" v-model="viewMode"
+            aria-label="List" />
           <!-- <label class="btn btn-outline btn-primary join-item" for="list">
           <Icon icon="fluent:apps-list-24-filled" />
         </label> -->
-          <input
-            type="radio"
-            class="btn btn-sm join-item"
-            id="grid"
-            name="options"
-            value="grid"
-            v-model="viewMode"
-            aria-label="Grid"
-          />
+          <input type="radio" class="btn btn-sm join-item" id="grid" name="options" value="grid" v-model="viewMode"
+            aria-label="Grid" />
           <!-- <label class="btn btn-outline btn-primary join-item" for="grid">
           <Icon icon="fluent:grid-16-filled" />
         </label> -->

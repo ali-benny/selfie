@@ -23,7 +23,7 @@ const userStore = useUserStore()
       </RouterLink>
     </div>
     <div id="app" class="w-full grow">
-      <RouterView />
+      <RouterView class="px-2" />
     </div>
   </div>
 </template>
