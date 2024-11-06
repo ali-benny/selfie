@@ -22,8 +22,8 @@
               <div class="label">
                 <span class="label-text">Name</span>
               </div>
-              <input type="text" v-model="form_config.name" class="input input-bordered" placeholder="Pomodoro"
-                ref="configName" required />
+              <input type="text" v-model="form_config.name" class="input input-bordered input-md" placeholder="Pomodoro"
+                ref="input_configName" required />
             </label>
 
             <!-- Pomodoro time -->
@@ -36,24 +36,27 @@
                   <div class="label">
                     <span class="label-text">Focus</span>
                   </div>
-                  <input type="text" v-model="form_config.pomodoroTime" class="w-fit input input-bordered text-center"
-                    maxlength="2" size="2" inputmode="numeric" pattern="[0-9]*" placeholder="25" required />
+                  <input type="text" v-model="form_config.pomodoroTime"
+                    class="w-fit input input-bordered input-md text-center" maxlength="2" size="2" inputmode="numeric"
+                    pattern="[0-9]*" placeholder="25" required />
                 </label>
 
                 <label class="form-control">
                   <div class="label">
                     <span class="label-text">Short break</span>
                   </div>
-                  <input type="text" v-model="form_config.shortBreakTime" class="w-fit input input-bordered text-center"
-                    maxlength="2" size="2" inputmode="numeric" pattern="[0-9]*" placeholder="5" required />
+                  <input type="text" v-model="form_config.shortBreakTime"
+                    class="w-fit input input-bordered input-md text-center" maxlength="2" size="2" inputmode="numeric"
+                    pattern="[0-9]*" placeholder="5" required />
                 </label>
 
                 <label class="form-control">
                   <div class="label">
                     <span class="label-text">Long break</span>
                   </div>
-                  <input type="text" v-model="form_config.longBreakTime" class="w-fit input input-bordered text-center"
-                    maxlength="2" size="2" inputmode="numeric" pattern="[0-9]*" placeholder="20" required />
+                  <input type="text" v-model="form_config.longBreakTime"
+                    class="w-fit input input-bordered input-md text-center" maxlength="2" size="2" inputmode="numeric"
+                    pattern="[0-9]*" placeholder="20" required />
                 </label>
               </div>
             </div>
@@ -163,8 +166,8 @@ export default {
     },
     openHandler() {
       this.form_config = { ...this.config }
-      // FIXME: no funzia
-      this.$refs.configName.focus()
+      // From https://stackoverflow.com/questions/1096436/document-getelementbyidid-focus-is-not-working-for-firefox-or-chrome
+      window.setTimeout(() => this.$refs.input_configName.focus(), 0)
     }
   },
   computed: {
