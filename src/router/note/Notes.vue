@@ -3,15 +3,19 @@ import { ref, onMounted } from 'vue'
 import { getNotes } from './editor/note.js'
 import NoteView from '@/components/NoteView.vue'
 import { useUserStore } from '@/stores/account'
+import { getTags } from './editor/tags.js'
 
 const userStore = useUserStore()
 const notes = ref([])
 const viewMode = ref('list')
 const order = ref('title')
+const tags = ref([])
+console.log("🔥 - tags:", tags)
 
 onMounted(async () => {
   try {
     notes.value = await getNotes(userStore.loggedUser._id)
+    tags.value = await getTags()
   } catch (error) {
     console.error('Failed to fetch notes:', error)
   }
@@ -34,6 +38,18 @@ const orderBy = (criteria) => {
     <div class="container mx-auto flex justify-between items-center px-2 md:px-5">
       <h1 class="text-2xl font-semibold">Notes</h1>
       <div class="flex justify-end items-center my-2">
+        <details class="dropdown">
+          <summary class="btn btn-ghost">filter with tags</summary>
+          <ul class="menu dropdown-content bg-base-100 rounded-box z-[1] w-52 p-2 shadow gap-2">
+            <button
+              v-for="tag in tags"
+              :key="tag"
+              class="flex px-2 rounded-xl font-semibold bg-primary/50 hover:bg-surface-0"
+            >
+              {{ tag }}
+            </button>
+          </ul>
+        </details>
         <div class="mx-2">
           <button
             class="btn btn-default rounded-box"

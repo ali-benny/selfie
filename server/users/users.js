@@ -98,13 +98,11 @@ app.patch('/users/:id', async (req, res) => {
   const updates = req.body
 
   try {
-    // Se la password è presente nel payload, esegui l'hashing
     if (updates.password) {
       const salt = bcrypt.genSaltSync(10)
       updates.password = bcrypt.hashSync(updates.password, salt)
     }
 
-    // Filtra i campi che sono presenti nel payload della richiesta
     const updateFields = {}
     for (const key in updates) {
       if (updates[key] !== undefined) {
