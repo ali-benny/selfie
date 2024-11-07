@@ -85,6 +85,7 @@ dist
 
 # Editor directories and files
 .vscode/*
+.VSCodeCounter/*
 !.vscode/extensions.json
 .idea
 *.suo
