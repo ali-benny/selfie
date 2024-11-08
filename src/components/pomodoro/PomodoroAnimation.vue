@@ -1,12 +1,38 @@
 <template>
-  <svg class="w-full h-full overflow-visible" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <svg
+    class="w-full h-full overflow-visible"
+    viewBox="0 0 100 100"
+    xmlns="http://www.w3.org/2000/svg"
+  >
     <g class="fill-none stroke-none">
-
       <circle cx="50" cy="50" r="50" class="stroke-neutral" />
-      <line id="dot" x1="50" y1="0" x2="50" y2="0" :stroke="breakColor" class="linecap-round" pathLength="1" />
-      <circle id="progress" cx="50" cy="50" r="50" ref="progress" class="linecap-round" pathLength=" 1" />
+      <line
+        id="dot"
+        x1="50"
+        y1="0"
+        x2="50"
+        y2="0"
+        :stroke="breakColor"
+        class="linecap-round"
+        pathLength="1"
+      />
+      <circle
+        id="progress"
+        cx="50"
+        cy="50"
+        r="50"
+        ref="progress"
+        class="linecap-round"
+        pathLength=" 1"
+      />
 
-      <circle cx="50" cy="50" r="50" :stroke="pomodoroColor" :class="['fill-none', { 'hidden': this.phase }]" />
+      <circle
+        cx="50"
+        cy="50"
+        r="50"
+        :stroke="pomodoroColor"
+        :class="['fill-none', { hidden: this.phase }]"
+      />
     </g>
   </svg>
 </template>
@@ -51,7 +77,7 @@ export default {
     pause() {
       animation.pause()
     },
-    /* Termina l'animazione in corso (se esiste), e ne fa partire una nuova con la stessa 
+    /* Termina l'animazione in corso (se esiste), e ne fa partire una nuova con la stessa
      * durata e fase
      */
     restart() {
@@ -82,7 +108,7 @@ export default {
     },
     /* true iff phase is unset or phase is pomodoro */
     isPomodoroPhase() {
-      return !(this.phase) || this.phase === 'pomodoro'
+      return !this.phase || this.phase === 'pomodoro'
     }
   },
   computed: {
@@ -105,10 +131,10 @@ export default {
     }
   },
   watch: {
-    'duration'() {
+    duration() {
       this.restart()
     },
-    'timer'(timer) {
+    timer(timer) {
       animation.currentTime = (this.duration - timer) * 1000
     }
   }
@@ -127,7 +153,7 @@ export default {
   transform-origin: center;
 }
 
-g>* {
+g > * {
   stroke-width: 0.4rem;
 }
 </style>

@@ -15,7 +15,8 @@ const props = defineProps({
   lastModified: Number,
   edit: Boolean,
   extended: Boolean,
-  order: String
+  order: String,
+  filter: Array
 })
 const notes = ref([])
 const toast = useToast()
@@ -113,13 +114,17 @@ function truncate(data, length) {
 }
 
 const filteredNotes = computed(() => {
+  let filtered = notes.value
+  if (props.filter && props.filter.length != 0) {
+    filtered = filtered.filter((note) => note.tags.some((tag) => props.filter.includes(tag)))
+  }
   if (props.order) orderBy(props.order)
   if (props.lastModified) {
     orderBy('date')
-    const start = notes.value.length >= props.lastModified ? 0 : notes.value.length
-    return notes.value.slice(start, props.lastModified)
+    const start = filtered.length >= props.lastModified ? 0 : filtered.length
+    return filtered.slice(start, props.lastModified)
   }
-  return notes.value
+  return filtered
 })
 
 async function removeNote(id) {
@@ -269,7 +274,8 @@ function toggleShowOptions(note) {
 
         <div
           v-if="note.showOptions"
-          class="flex flex-col justify-center absolute bg-surface-0 rounded-[10px] gap-2 w-32 mx-auto z-10 p-2" style="right: inherit"
+          class="flex flex-col justify-center absolute bg-surface-0 rounded-[10px] gap-2 w-32 mx-auto z-10 p-2"
+          style="right: inherit"
         >
           <button
             @click.stop.prevent="duplicateNote(note._id)"

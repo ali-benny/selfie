@@ -191,13 +191,15 @@ onMounted(fetchUsers)
       <form class="flex flex-col gap-3">
         <h2>Register a new user</h2>
         <div class="flex flex-row gap-2 w-full">
-          <input required
+          <input
+            required
             type="text"
             v-model="newUser.name"
             placeholder="Name"
             class="input input-primary input-md border !input-bordered mx-3 grow"
           />
-          <input required
+          <input
+            required
             type="text"
             v-model="newUser.surname"
             placeholder="Surname"
