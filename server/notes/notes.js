@@ -5,6 +5,31 @@ import bodyParser from 'body-parser'
 
 const app = express()
 
+const DirectorySchema = new mongoose.Schema({
+  _id: {
+    type: String,
+    required: true
+  },
+  name: {
+    type: String,
+    required: true
+  },
+  parentDirectory: {
+    type: String,
+    default: null
+  },
+  author: {
+    type: String,
+    required: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+})
+
+const Directory = mongoose.model('Directory', DirectorySchema)
+
 const NoteSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -29,6 +54,11 @@ const NoteSchema = new mongoose.Schema({
   tags: {
     type: Object,
     default: []
+  },
+  directory: {
+    type: String,
+    ref: 'Directory',
+    default: 'root'
   }
 })
 
@@ -135,7 +165,7 @@ app.get('/notes/:id', async (req, res) => {
  */
 app.put('/notes/:id', async (req, res) => {
   const { id } = req.params
-  const { filename, data, tags, author, readers } = req.body
+  const { filename, data, tags, author, readers, directory } = req.body
   console.log('Saving: ' + filename)
   if (!connected['note']) await connect('note')
   try {
@@ -150,7 +180,8 @@ app.put('/notes/:id', async (req, res) => {
           date: new Date(),
           tags: tags,
           author: author,
-          readers: readers
+          readers: readers,
+          directory: directory
         }
       )
       console.log('Updated!')
@@ -160,7 +191,8 @@ app.put('/notes/:id', async (req, res) => {
         data: data,
         author: author,
         tags: tags,
-        readers: readers
+        readers: readers,
+        directory: directory
       })
       await note.save()
       console.log('Saved!')
@@ -251,6 +283,49 @@ app.get('/user/:id/tags', async (req, res) => {
     res.json(distinctTags)
   } catch (err) {
     res.status(500).json({ message: err.message })
+  }
+})
+
+/**
+ * Retrieves directories created by a specific user.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} req.params - The parameters from the request.
+ * @param {string} req.params.userId - The ID of the user whose directories are to be retrieved.
+ * @returns {Promise<Array>} A promise that resolves to an array of directories.
+ */
+app.get('/users/:userId/directories', async (req, res) => {
+  try {
+    const directories = await Directory.find({ author: req.params.userId })
+    res.status(200).json(directories)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+/**
+ * Creates a new Directory object.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} req.body - The body of the request.
+ * @param {string} req.body.id - The unique identifier for the directory.
+ * @param {string} req.body.name - The name of the directory.
+ * @param {string} req.body.parentDirectory - The ID of the parent directory.
+ * @param {string} req.body.author - The author of the directory.
+ * @returns {Directory} The newly created Directory object.
+ */
+app.post('/directories', async (req, res) => {
+  try {
+    const directory = new Directory({
+      _id: req.body.id,
+      name: req.body.name,
+      parentDirectory: req.body.parentDirectory,
+      author: req.body.author
+    })
+    await directory.save()
+    res.status(201).json(directory)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
   }
 })
 

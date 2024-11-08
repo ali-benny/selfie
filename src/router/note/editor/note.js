@@ -12,12 +12,12 @@ import { API_URL } from '~/const'
  * @param {*} author note author
  * @param {*} reader id users who can read/edit the note
  */
-export async function saveNoteMongo({ id = null, filename, data, tags, author, readers } = {}) {
+export async function saveNoteMongo({ id = null, filename, data, tags, author, readers, directory } = {}) {
   const method = id == null ? 'POST' : 'PUT'
   const endpoint = id == null ? `/notes` : `/notes/${id}`
 
   // Creazione del body della richiesta con solo i campi definiti
-  const body = { filename, data, tags, author, readers }
+  const body = { filename, data, tags, author, readers, directory }
 
   // Rimuovi i campi undefined
   Object.keys(body).forEach((key) => body[key] === undefined && delete body[key])

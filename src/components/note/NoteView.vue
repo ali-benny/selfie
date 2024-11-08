@@ -159,8 +159,8 @@ function toggleShowOptions(note) {
         <!-- DEBUG: note _id -->
         <!-- <p>{{ note._id }}</p>  -->
         <h1 class="font-bold text-lg">{{ note.name }}</h1>
-        <div class="flex flex-row items-center w-full">
-          <div class="avatar w-10 m-2">
+        <div class="flex flex-row items-center w-full z-2">
+          <div class="avatar w-10 m-2 z-2">
             <div class="ring-primary ring-offset-base-100 rounded-full ring ring-offset-2">
               <img
                 :src="users[note.author]?.image"

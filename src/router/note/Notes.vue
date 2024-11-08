@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import NoteView from '@/components/NoteView.vue'
+import NoteView from '@/components/note/NoteView.vue'
+import NoteTree from '@/components/note/NoteTree.vue'
 import { useUserStore } from '@/stores/account'
 import { getTags } from './editor/tags.js'
 
@@ -9,6 +10,7 @@ const viewMode = ref('list')
 const order = ref('title')
 const tags = ref([])
 const selected = ref([])
+const noteTree = ref(null)
 
 onMounted(async () => {
   try {
@@ -29,6 +31,12 @@ function filterByTag(tag) {
     selected.value.push(tag)
   }
   console.log('🔥 - filterByTag - selected:', selected)
+}
+
+async function refreshNoteTree() {
+  if (noteTree.value) {
+    await noteTree.value.refreshFolders()
+  }
 }
 </script>
 
@@ -115,6 +123,9 @@ function filterByTag(tag) {
         </div>
       </div>
     </div>
+    <Suspense>
+      <NoteTree ref="noteTree" node="root" :initiallyOpen="['root']"></NoteTree>
+    </Suspense>
     <div class="flex justify-center">
       <NoteView
         :order="order"
