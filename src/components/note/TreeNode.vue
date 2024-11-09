@@ -11,14 +11,14 @@
             class="text-base-content transition-transform"
           />
           <Icon
-            :icon="isExpanded ? 'fluent:folder-20-filled' : 'fluent:folder-open-20-filled'"
-            class="!text-primary"
+            :icon="isExpanded ? 'fluent:folder-open-20-filled' : 'fluent:folder-20-filled'"
+            class="!text-primary text-lg"
           />
           <span class="font-medium">{{ node.name }}</span>
         </div>
         <button
           v-if="props.node._id === 'root'"
-          class="btn btn-ghost btn-xs text-lg hover:!text-secondary"
+          class="btn btn-ghost btn-xs text-xl hover:!text-secondary"
           @click="handleNewFolder"
         >
           <Icon icon="fluent:folder-add-20-regular" />
@@ -35,7 +35,7 @@
             draggable="true"
             @dragstart.stop="onDragStart($event, note._id)"
           >
-            <Icon icon="fluent:notebook-24-regular" />
+            <Icon icon="fluent:notebook-16-filled" />
             <RouterLink :to="`/editor?edit=${note._id}`" class="flex-1">
               {{ note.name }}
             </RouterLink>

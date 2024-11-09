@@ -110,16 +110,16 @@
           @keydown.enter.prevent="addTag"
         ></v-autocomplete>
 
-        <div class="flex items-center gap-4 mb-4">
+        <div class="flex items-center mx-4 mb-5 px-2 bg-surface-1 rounded-lg">
           <div class="flex items-center gap-2">
-            <Icon icon="fluent:folder-20-filled" class="text-primary" />
-            <select v-model="selectedFolder" class="select select-bordered w-full max-w-xs">
+            <Icon icon="fluent:folder-20-filled" class="-right-10 !text-primary text-xl" />
+            <select v-model="selectedFolder" class="select select-sm select-ghost w-fit max-w-sm">
               <option v-for="folder in folders" :key="folder._id" :value="folder._id">
                 {{ folder.name }}
               </option>
             </select>
           </div>
-          <button class="btn btn-ghost btn-sm" @click="showNewFolderDialog = true">
+          <button class="btn btn-ghost btn-sm hover:!text-secondary " @click="showNewFolderDialog = true">
             <Icon icon="fluent:folder-add-20-regular" />
             New Folder
           </button>

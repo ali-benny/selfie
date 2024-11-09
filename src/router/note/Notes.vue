@@ -41,7 +41,7 @@ async function refreshNoteTree() {
 </script>
 
 <template>
-  <div class="flex flex-col">
+  <div class="flex flex-col h-[calc(100vh-7vh)]">
     <a
       href="/editor"
       class="btn btn-accent floating-btn btn-circle !text-base-100 shadow-xl text-2xl"
@@ -123,17 +123,19 @@ async function refreshNoteTree() {
         </div>
       </div>
     </div>
-    <Suspense>
-      <NoteTree ref="noteTree" node="root" :initiallyOpen="['root']"></NoteTree>
-    </Suspense>
-    <div class="flex justify-center">
-      <NoteView
-        :order="order"
-        :filter="selected"
-        :viewMode="viewMode"
-        :edit="true"
-        :extended="true"
-      ></NoteView>
+    <div class="flex flex-1 overflow-hidden">
+      <Suspense>
+        <NoteTree ref="noteTree" node="root" :initiallyOpen="['root']" ></NoteTree>
+      </Suspense>
+      <div class="flex flex-1 overflow-y-auto justify-center transition-all duration-300">
+        <NoteView
+          :order="order"
+          :filter="selected"
+          :viewMode="viewMode"
+          :edit="true"
+          :extended="true"
+        ></NoteView>
+      </div>
     </div>
   </div>
 </template>

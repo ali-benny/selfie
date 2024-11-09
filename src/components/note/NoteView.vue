@@ -149,7 +149,7 @@ function toggleShowOptions(note) {
       :to="`/editor?edit=${note._id}`"
       v-for="note in filteredNotes"
       :key="note._id"
-      class="bg-base-200 rounded-box flex flex-wrap md:flex-nowrap p-3 gap-2 justify-between hover:bg-overlay-0 hover:cursor-pointer"
+      class="bg-base-200 rounded-box flex flex-wrap md:flex-nowrap p-3 gap-2 justify-between hover:bg-surface-0 hover:cursor-pointer"
       :class="props.extended ? 'md:grid md:grid-cols-6' : 'flex-row'"
     >
       <div
@@ -252,7 +252,8 @@ function toggleShowOptions(note) {
       :to="`/editor?edit=${note._id}`"
       v-for="note in filteredNotes"
       :key="note._id"
-      class="card flex flex-col gap-1 p-3 relative bg-base-200 h-full hover:bg-overlay-0 hover:cursor-pointer"
+      style="position: inherit"
+      class="card flex flex-col gap-1 p-3 bg-base-200 h-full hover:bg-surface-0 hover:cursor-pointer"
     >
       <div
         class="absolute right-0 top-0"

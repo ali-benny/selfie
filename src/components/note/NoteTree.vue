@@ -1,22 +1,33 @@
 <template>
-  <div class="drawer">
-    <input id="my-drawer" type="checkbox" class="drawer-toggle" />
-    <div class="drawer-content">
-      <label for="my-drawer" class="btn btn-primary drawer-button">
-        <Icon icon="fluent:notebook-24-regular" /> Notes
-      </label>
+  <div class="flex h-screen sticky top-0">
+    <div
+      class="transition-all duration-300 bg-base-200 border-r border-base-300 rounded-xl h-[calc(100vh-2rem)] overflow-y-auto"
+      :class="isOpen ? 'w-80' : 'w-0'"
+    >
+      <div class="overflow-x-hidden h-full">
+        <ul class="menu text-base-content p-4 w-80">
+          <TreeNode
+            :node="directoryTree"
+            :notes="notes"
+            @create-dir="handleCreateDir"
+            @move-note="handleMoveNote"
+          />
+        </ul>
+      </div>
     </div>
-    <div class="drawer-side z-50">
-      <label for="my-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
-      <ul class="menu bg-base-200 text-base-content min-h-full w-80 p-4">
-        <!-- Directory tree -->
-        <TreeNode
-          :node="directoryTree"
-          :notes="notes"
-          @create-dir="handleCreateDir"
-          @move-note="handleMoveNote"
+
+    <!-- Toggle Button -->
+    <div class="relative">
+      <button
+        class="btn btn-md z-[100] hover:btn-primary absolute -left-1 px-1 top-4 !rounded-l-none shadow-lg hover:shadow-primary/40 transition-all duration-300 border-l-0  hover:translate-x-1"
+        :class="isOpen ? ' bg-base-200': '!bg-primary !text-base-100'"
+        @click="toggleSidebar"
+      >
+        <Icon
+          :icon="isOpen ? 'fluent:chevron-left-24-filled' : 'fluent:folder-list-20-filled'"
+          class="text-2xl"
         />
-      </ul>
+      </button>
     </div>
   </div>
 </template>
@@ -33,6 +44,12 @@ const userStore = useUserStore()
 const toast = useToast()
 const directoryTree = ref([])
 const notes = ref([])
+const isOpen = ref(true) // Stato della sidebar
+
+// Toggle sidebar
+function toggleSidebar() {
+  isOpen.value = !isOpen.value
+}
 
 onMounted(async () => {
   await refreshDirectories()
@@ -54,14 +71,20 @@ async function handleCreateDir(name, parentId) {
 }
 
 async function handleMoveNote(noteId, directoryId) {
-  console.log('handleMoveNote received:', { noteId, directoryId })
-
   try {
     await moveNote(noteId, directoryId)
     await refreshDirectories()
-    toast.success('Note moved')
+    directoryId === 'root' ? toast.success('Note moved to All Notes') :
+    toast.success('Note moved to '+directoryId)
   } catch (err) {
     toast.error('Failed to move note')
   }
 }
 </script>
+
+<style scoped>
+.menu {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+</style>
