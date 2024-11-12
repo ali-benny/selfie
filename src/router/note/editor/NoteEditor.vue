@@ -91,7 +91,7 @@
           </div>
         </div>
       </div>
-      <div class="flex justify-around">
+      <div class="flex justify-around flex-wrap">
         <v-autocomplete
           bg-color="#494d64"
           item-color="#5b6078"

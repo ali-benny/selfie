@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-screen sticky top-0">
+  <div class="flex h-screen top-[20%] absolute sm:sticky z-10">
     <div
       class="transition-all duration-300 bg-base-200 border-r border-base-300 rounded-xl h-[calc(100vh-2rem)] overflow-y-auto"
       :class="isOpen ? 'w-80' : 'w-0'"
@@ -20,7 +20,7 @@
     <div class="relative">
       <button
         class="btn btn-md z-[100] hover:btn-primary absolute -left-1 px-1 top-4 !rounded-l-none shadow-lg hover:shadow-primary/40 transition-all duration-300 border-l-0  hover:translate-x-1"
-        :class="isOpen ? ' bg-base-200': '!bg-primary !text-base-100'"
+        :class="isOpen ? 'bg-base-200': '!bg-primary !text-base-100'"
         @click="toggleSidebar"
       >
         <Icon
@@ -44,7 +44,7 @@ const userStore = useUserStore()
 const toast = useToast()
 const directoryTree = ref([])
 const notes = ref([])
-const isOpen = ref(true) // Stato della sidebar
+const isOpen = ref(false) // Stato della sidebar
 
 // Toggle sidebar
 function toggleSidebar() {

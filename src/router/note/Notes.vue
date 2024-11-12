@@ -49,11 +49,11 @@ async function refreshNoteTree() {
     >
       <Icon icon="fluent:note-add-24-filled" />
     </a>
-    <div class="container mx-auto flex justify-between items-center px-2 md:px-5">
+    <div class="container mx-auto flex justify-between items-center flex-wrap px-2 md:px-5">
       <h1 class="text-2xl font-semibold">Notes</h1>
-      <div class="flex justify-end items-center my-2">
+      <div class="flex justify-between sm:justify-end items-center grow my-2">
         <Popper>
-          <button class="btn btn-default flex justify-between rounded-box">
+          <button class="btn btn-default flex justify-between btn-sm rounded-box">
             Filter by Tags<Icon icon="fluent:chevron-down-12-filled" />
           </button>
           <template #content>
@@ -74,21 +74,21 @@ async function refreshNoteTree() {
         </Popper>
         <div class="mx-2">
           <button
-            class="btn btn-default rounded-box"
+            class="btn btn-sm btn-default rounded-box"
             v-if="order === 'title'"
             @click="orderBy('date')"
           >
             Order by Title
           </button>
           <button
-            class="btn btn-default rounded-box"
+            class="btn btn-sm btn-default rounded-box"
             v-else-if="order === 'date'"
             @click="orderBy('author')"
           >
             Order by Date
           </button>
           <button
-            class="btn btn-default rounded-box"
+            class="btn btn-sm btn-default rounded-box"
             v-else-if="order === 'author'"
             @click="orderBy('title')"
           >
@@ -98,7 +98,7 @@ async function refreshNoteTree() {
         <div class="join rounded-box" aria-label="Note View Mode">
           <input
             type="radio"
-            class="btn btn-sm join-item"
+            class="btn btn-xs sm:btn-sm join-item"
             id="list"
             name="options"
             value="list"
@@ -110,7 +110,7 @@ async function refreshNoteTree() {
         </label> -->
           <input
             type="radio"
-            class="btn btn-sm join-item"
+            class="btn btn-xs sm:btn-sm join-item"
             id="grid"
             name="options"
             value="grid"
