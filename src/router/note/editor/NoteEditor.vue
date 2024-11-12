@@ -129,7 +129,7 @@ import {
 } from './note.js'
 import { getTags, createTag } from '@/router/note/editor/tags'
 import UserShare from '@/components/UserShare.vue'
-import EditorComponent from '@/components/EditorComponent.vue'
+import EditorComponent from '@/components/note/EditorComponent.vue'
 import { useUserStore } from '@/stores/account'
 
 export default {

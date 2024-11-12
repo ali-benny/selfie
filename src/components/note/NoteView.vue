@@ -121,7 +121,7 @@ const filteredNotes = computed(() => {
   if (props.order) orderBy(props.order)
   if (props.lastModified) {
     orderBy('date')
-    const start = filtered.length >= props.lastModified ? 0 : filtered.length
+    const start = filtered.length <= props.lastModified ? 0 : filtered.length - (props.lastModified+1)
     return filtered.slice(start, props.lastModified)
   }
   return filtered
@@ -275,7 +275,6 @@ function toggleShowOptions(note) {
 
         <div
           v-if="note.showOptions"
-          console.log("🔥 - showOptions:", showOptions)
           class="flex flex-col justify-center absolute bg-surface-0 rounded-[10px] gap-2 w-32 mx-auto z-10 p-2"
           style="right: inherit"
         >

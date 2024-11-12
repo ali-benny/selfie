@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { getNotes } from './editor/note.js'
-import NoteView from '@/components/NoteView.vue'
+import NoteView from '@/components/note/NoteView.vue'
 import { useUserStore } from '@/stores/account'
 
 const userStore = useUserStore()
