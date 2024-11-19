@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "backend:dev": "nodemon server/app.js -w server",
     "mongodb": "cross-env NODE_ENV='debug' node ./server/app.js",
     "build": "vite build",
     "preview": "vite preview",

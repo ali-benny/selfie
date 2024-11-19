@@ -16,6 +16,7 @@ const PomodoroConfigSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  userId: mongoose.ObjectId,
   pomodoroTime: {
     type: Number,
     required: true
@@ -55,6 +56,7 @@ const PomodoroConfigSchema = new mongoose.Schema({
  */
 const PomodoroSchema = new mongoose.Schema({
   config: PomodoroConfigSchema,
+  userId: mongoose.ObjectId,
   initialTimer: {
     type: Number
   },
@@ -87,12 +89,12 @@ app.on('mount', async () => {
 })
 
 /*
- * Returns the Pomodoro collection
+ * Returns all the Pomodoros of the user specified
  */
-app.get('/pomodoros', async (req, res) => {
+app.get('/:userId/pomodoros', async (req, res) => {
   try {
-    const pomodoros = await Pomodoro.find()
-    res.status(200).json(pomodoros)
+    const pomodoro = await Pomodoro.findOne({ userId: req.params.userId })
+    res.status(200).json(pomodoro)
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: err.message })
@@ -116,7 +118,7 @@ app.patch('/pomodoros/:id', async (req, res) => {
 /*
  * Creates a new Pomodoro
  */
-app.post('/pomodoros', async (req, res) => {
+app.post('/:userId/pomodoros', async (req, res) => {
   try {
     /* Recupero la config del nuovo pomodoro: se viene passato anche il campo _id, allora
      * la config è già presente nel db e la carico, altrimenti ne creo una nuova
@@ -130,7 +132,7 @@ app.post('/pomodoros', async (req, res) => {
     config.lastUsed = Date.now()
     await config.save()
 
-    const pomodoro = new Pomodoro({ config: config })
+    const pomodoro = new Pomodoro({ config: config, userId: req.params.userId })
     await pomodoro.save()
 
     res.json(pomodoro)
@@ -158,25 +160,27 @@ app.delete('/pomodoros/:id', async (req, res) => {
 /*
  * Returns the Configs of pomodoros
  */
-app.get('/pomodoros/configs', async (req, res) => {
+app.get('/:userId/pomodoros/configs', async (req, res) => {
   try {
-    if (req.query.sort) {
-      const split = req.query.sort.split(',')
-      const sort = split[0]
-      const order = split[1]
-      if (!(sort in PomodoroConfigSchema.paths)) {
-        throw Error('Invalid sort param: ' + sort + ' not in PomodoroConfigSchema')
-      }
-      if (!['-1', '1'].includes(order)) {
-        throw Error('Invalid sort param: ' + order + ' not a valid order')
-      }
+    // if (req.query.sort) {
+    //   const split = req.query.sort.split(',')
+    //   const sort = split[0]
+    //   const order = split[1]
+    //   if (!(sort in PomodoroConfigSchema.paths)) {
+    //     throw Error('Invalid sort param: ' + sort + ' not in PomodoroConfigSchema')
+    //   }
+    //   if (!['-1', '1'].includes(order)) {
+    //     throw Error('Invalid sort param: ' + order + ' not a valid order')
+    //   }
 
-      const configs = await PomodoroConfig.find().sort({ [sort]: order })
-      res.status(200).json(configs)
-    } else {
-      const configs = await PomodoroConfig.find()
-      res.status(200).json(configs)
-    }
+    //   const configs = await PomodoroConfig.find({ userId: req.params.userId }).sort({
+    //     [sort]: order
+    //   })
+    //   res.status(200).json(configs)
+    // } else {
+    const configs = await PomodoroConfig.find({ userId: req.params.userId })
+    res.status(200).json(configs)
+    // }
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: err.message })
@@ -186,9 +190,9 @@ app.get('/pomodoros/configs', async (req, res) => {
 /*
  * Creates a new config
  */
-app.post('/pomodoros/configs/', async (req, res) => {
+app.post('/:userId/pomodoros/configs/', async (req, res) => {
   try {
-    const config = new PomodoroConfig(req.body)
+    const config = new PomodoroConfig({ userId: req.params.userId, ...req.body })
     config.lastUsed = Date.now()
     await config.save()
 
@@ -231,10 +235,12 @@ app.delete('/pomodoros/configs/:id', async (req, res) => {
 /*
  * Returns the lastUsed PomodoroConfig
  */
-app.get('/pomodoros/configs/latest', async (req, res) => {
+app.get('/:userId/pomodoros/configs/latest', async (req, res) => {
   try {
-    const latest = await PomodoroConfig.findOne().sort({ lastUsed: -1 })
-    res.status(200).json(latest)
+    const config = await PomodoroConfig.findOne({ userId: req.params.userId }).sort({
+      lastUsed: -1
+    })
+    res.status(200).json(config)
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: err.message })

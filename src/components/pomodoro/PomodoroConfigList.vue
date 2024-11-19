@@ -15,6 +15,7 @@
 <script>
 import PomodoroConfigCard from './PomodoroConfigCard.vue'
 import { loadConfigs } from '../../router/pomodoro/pomodoro.js'
+import { useUserStore } from '@/stores/account';
 
 export default {
   props: {
@@ -32,15 +33,17 @@ export default {
   expose: ['loadConfigs', 'selected'],
   data() {
     return {
-      configs: null
+      configs: null,
+      userId: null
     }
   },
   async created() {
-    await this.loadConfigs()
+    this.userId = useUserStore().loggedUser._id
+    await this.loadConfigs(this.userId)
   },
   methods: {
     async loadConfigs() {
-      this.configs = await loadConfigs()
+      this.configs = await loadConfigs(this.userId)
     },
     onSelect(config) {
       this.$emit('select', config)

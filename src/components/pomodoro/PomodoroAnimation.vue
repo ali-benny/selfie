@@ -6,7 +6,7 @@
       <line id="dot" x1="50" y1="0" x2="50" y2="0" :stroke="breakColor" class="linecap-round" pathLength="1" />
       <circle id="progress" cx="50" cy="50" r="50" ref="progress" class="linecap-round" pathLength=" 1" />
 
-      <circle cx="50" cy="50" r="50" :stroke="pomodoroColor" :class="['fill-none', { 'hidden': this.phase }]" />
+      <!-- <circle cx="50" cy="50" r="50" :stroke="pomodoroColor" :class="['fill-none', { 'hidden': this.phase }]" /> -->
     </g>
   </svg>
 </template>
@@ -16,8 +16,15 @@ import { flavors } from '@catppuccin/palette'
 
 let animation
 
+const t = new AnimationTimeline()
+console.log(t)
+
 export default {
   props: {
+    running: {
+      type: Boolean,
+      required: true
+    },
     duration: {
       type: Number,
       required: true
@@ -105,11 +112,21 @@ export default {
     }
   },
   watch: {
-    'duration'() {
+    'running'(isRunning) {
+      if (isRunning)
+        this.play()
+      else
+        this.pause()
+    },
+    'phase'() {
       this.restart()
     },
     'timer'(timer) {
       animation.currentTime = (this.duration - timer) * 1000
+    },
+    'finished'(finished) {
+      if (finished)
+        animation.style.animationDuration = '1s'
     }
   }
 }

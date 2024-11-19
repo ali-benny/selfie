@@ -94,6 +94,7 @@
 import { useToast } from 'vue-toastification'
 import { flavors } from '@catppuccin/palette'
 import { createPomodoroConfig, deletePomodoroConfig, updatePomodoroConfig } from '@/router/pomodoro/pomodoro'
+import { useUserStore } from '@/stores/account'
 
 const toast = useToast()
 
@@ -112,6 +113,7 @@ export default {
   data() {
     return {
       form_config: null,
+      userId: null,
       colors: [
         flavors.macchiato.colors.rosewater,
         flavors.macchiato.colors.flamingo,
@@ -131,6 +133,7 @@ export default {
   },
   created() {
     this.form_config = { ...this.config }
+    this.userId = useUserStore().loggedUser._id
   },
   methods: {
     async saveConfig(close) {
@@ -139,7 +142,7 @@ export default {
           await updatePomodoroConfig(this.form_config)
           toast.success('Focus saved!')
         } else {
-          await createPomodoroConfig(this.form_config)
+          await createPomodoroConfig(this.userId, this.form_config)
           toast.success('Focus created successfully!')
         }
         this.$emit('update:config', this.form_config)

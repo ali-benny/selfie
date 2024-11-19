@@ -17,9 +17,9 @@ export const defaultConfig = {
  * Carica un pomodoro dal DB
  * TODO: caricare del pomodoro dell'utente
  */
-export async function loadPomodoro() {
+export async function loadPomodoro(userId) {
   try {
-    const response = await fetch(API_URL + '/pomodoros', {
+    const response = await fetch(API_URL + `/${userId}/pomodoros`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -29,13 +29,13 @@ export async function loadPomodoro() {
     if (!response.ok) {
       throw new Error(`ERROR - loadPomodoro, response status ${response.status}`)
     }
-    return response.json().then((obj) => {
-      if (obj.length == 0) return null
-      const pom = obj[0]
-      return new Pomodoro({
-        id: pom._id,
-        ...pom
-      })
+    return response.json().then((pomodoro) => {
+      if (pomodoro)
+        return new Pomodoro({
+          id: pomodoro._id,
+          ...pomodoro
+        })
+      return null
     })
   } catch (error) {
     console.error(error.message)
@@ -47,7 +47,7 @@ export async function loadPomodoro() {
  */
 export async function updatePomodoro(pomodoro) {
   try {
-    const response = await fetch(API_URL + '/pomodoros/' + pomodoro.id, {
+    const response = await fetch(API_URL + `/pomodoros/${pomodoro.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -71,9 +71,9 @@ export async function updatePomodoro(pomodoro) {
 /*
  * Crea un nuovo timer Pomodoro
  */
-export async function createPomodoro(config) {
+async function createPomodoro(userId, config) {
   try {
-    const response = await fetch(API_URL + '/pomodoros', {
+    const response = await fetch(API_URL + `/${userId}/pomodoros`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -92,6 +92,7 @@ export async function createPomodoro(config) {
     })
   } catch (error) {
     console.error(error.message)
+    return null
   }
 }
 
@@ -99,6 +100,7 @@ export async function createPomodoro(config) {
  * Elimina il Pomodoro
  */
 export async function deletePomodoro(pomodoro) {
+  if (!pomodoro.id) return // Nothing to do, pomodoro is not present in db
   try {
     const response = await fetch(API_URL + '/pomodoros/' + pomodoro.id, {
       method: 'DELETE'
@@ -111,9 +113,9 @@ export async function deletePomodoro(pomodoro) {
   }
 }
 
-export async function loadConfigs() {
+export async function loadConfigs(userId) {
   try {
-    const response = await fetch(API_URL + '/pomodoros/configs', {
+    const response = await fetch(API_URL + `/${userId}/pomodoros/configs`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -129,30 +131,30 @@ export async function loadConfigs() {
   }
 }
 
-export async function loadLatestConfigs() {
-  try {
-    const response = await fetch(API_URL + '/pomodoros/configs?sort=lastUsed,-1', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
+// export async function loadLatestConfigs() {
+//   try {
+//     const response = await fetch(API_URL + '/pomodoros/configs?sort=lastUsed,-1', {
+//       method: 'GET',
+//       headers: {
+//         'Content-Type': 'application/json'
+//       }
+//     })
 
-    if (!response.ok) {
-      throw new Error(`ERROR - loadPomodoro, response status ${response.status}`)
-    }
-    return response.json()
-  } catch (error) {
-    console.error(error.message)
-  }
-}
+//     if (!response.ok) {
+//       throw new Error(`ERROR - loadLatestConfigs, response status ${response.status}`)
+//     }
+//     return response.json()
+//   } catch (error) {
+//     console.error(error.message)
+//   }
+// }
 
 /*
  * Crea la Config
  */
-export async function createPomodoroConfig(config) {
+export async function createPomodoroConfig(userId, config) {
   try {
-    const response = await fetch(API_URL + '/pomodoros/configs/', {
+    const response = await fetch(API_URL + `/${userId}/pomodoros/configs/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -185,6 +187,27 @@ export async function updatePomodoroConfig(config) {
 }
 
 /*
+ * Carica la config usata più di recente
+ */
+export async function loadLatestConfig(userId) {
+  try {
+    const response = await fetch(API_URL + `/${userId}/pomodoros/configs/latest`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+
+    if (!response.ok) {
+      throw new Error(`ERROR - loadLatesConfig, response status ${response.status}`)
+    }
+    return response.json()
+  } catch (error) {
+    console.error(error.message)
+  }
+}
+
+/*
  * Elimina la Config
  */
 export async function deletePomodoroConfig(id) {
@@ -200,57 +223,42 @@ export async function deletePomodoroConfig(id) {
   }
 }
 
-/*
- * Carica la config usata più di recente
- */
-export async function loadLatestConfig() {
-  try {
-    const response = await fetch(API_URL + '/pomodoros/configs/latest', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-
-    if (!response.ok) {
-      throw new Error(`ERROR - loadPomodoro, response status ${response.status}`)
-    }
-    return response.json()
-  } catch (error) {
-    console.error(error.message)
-  }
-}
-
 export class Pomodoro {
   static createTimerStep(pomodoro) {
     return () => {
       pomodoro.timer--
-      pomodoro.saveToLocalStorage()
+
       if (pomodoro.timer <= 0) {
         pomodoro.skip()
+      } else if (pomodoro.running && !pomodoro.finished) {
+        pomodoro.timeoutId = setTimeout(this.createTimerStep(pomodoro), 1000)
       }
+
+      pomodoro.saveToLocalStorage()
     }
   }
 
   constructor({
-    id,
+    id = null,
     config,
+    userId,
     initialTimer = null,
     timer = null,
     phase = null,
     cycle = 1,
     started = false,
     running = false,
-    intervalId = null
+    timeoutId = null
   }) {
     this.id = id
     this.config = config
+    this.userId = userId
     this.initialTimer = initialTimer ? initialTimer : this.config.pomodoroTime * 60
     this.timer = timer ? timer : this.initialTimer
     this.phase = phase
     this.cycle = cycle
     this.started = started
-    this.intervalId = intervalId
+    this.timeoutId = timeoutId
 
     this.running = running
     this.finished = false
@@ -271,8 +279,8 @@ export class Pomodoro {
 
     this.running = true
 
-    if (this.intervalId) clearInterval(this.intervalId)
-    this.intervalId = setInterval(Pomodoro.createTimerStep(this), 1000)
+    if (this.timeoutId) clearTimeout(this.timeoutId)
+    this.timeoutId = setTimeout(Pomodoro.createTimerStep(this), 1000)
 
     this.update()
   }
@@ -284,9 +292,9 @@ export class Pomodoro {
   pause() {
     if (!this.running) return
 
-    clearInterval(this.intervalId)
+    clearTimeout(this.timeoutId)
     this.running = false
-    this.intervalId = null
+    this.timeoutId = null
 
     this.update()
   }
@@ -310,7 +318,7 @@ export class Pomodoro {
    * Metodo per passare alla fase successiva del Pomodoro. Viene aggiornato lo stato e terminato il
    * Pomodoro se necessario. Al termine viene salvato lo stato sul db.
    */
-  skip() {
+  async skip() {
     if (!this.started || this.finished) return
 
     switch (this.phase) {
@@ -344,7 +352,7 @@ export class Pomodoro {
     if (!this.started || this.finished) return
 
     if (this.running) {
-      clearInterval(this.intervalId)
+      clearTimeout(this.timeoutId)
       this.play()
     }
 
@@ -358,22 +366,27 @@ export class Pomodoro {
       JSON.stringify({
         id: this.id,
         config: this.config,
+        userid: this.userId,
         initialTimer: this.initialTimer,
         timer: this.timer,
         phase: this.phase,
         cycle: this.cycle,
         started: this.started,
         running: this.running,
-        intervalId: this.intervalId
+        timeoutId: this.timeoutId
       })
     )
   }
 
-  update() {
-    this.saveToLocalStorage()
+  async update() {
+    if (this.id) {
+      await updatePomodoro(this)
+    } else {
+      const pomodoro = await createPomodoro(this.userId, this.config)
+      this.id = pomodoro?.id
+    }
 
-    /* DB */
-    updatePomodoro(this)
+    this.saveToLocalStorage()
   }
 
   /*

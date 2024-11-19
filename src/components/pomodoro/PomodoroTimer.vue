@@ -6,8 +6,8 @@
 
       <div class="h-60 w-60 sm:w-80 sm:h-80 relative flex justify-center items-center">
         <div class="absolute">
-          <PomodoroAnimation :duration="pomodoro.initialTimer" :timer="pomodoro.timer" :phase="pomodoro.phase"
-            ref="animation" />
+          <PomodoroAnimation :running="pomodoro.running" :duration="pomodoro.initialTimer" :timer="pomodoro.timer"
+            :phase="pomodoro.phase" ref="animation" />
         </div>
         <div class="digital select-none text-7xl m-0 ">
           {{ timer }}
@@ -71,12 +71,13 @@
 <script>
 import PomodoroAnimation from './PomodoroAnimation.vue'
 import { Pomodoro } from '@/router/pomodoro/pomodoro.js'
+import { useUserStore } from '@/stores/account';
+
 
 import {
   defaultConfig,
   loadPomodoro,
   deletePomodoro,
-  createPomodoro,
   loadLatestConfig
 } from '@/router/pomodoro/pomodoro.js'
 
@@ -87,55 +88,59 @@ export default {
   data() {
     return {
       pomodoro: null,
+      userId: null
     }
   },
   async created() {
-    if (localStorage.getItem('pomodoro')) {
-      this.pomodoro = new Pomodoro(JSON.parse(localStorage.getItem('pomodoro')))
-      if (this.pomodoro.running) {
-        this.play()
-      }
-    } else {
-      this.pomodoro = await loadPomodoro()
+    this.userId = useUserStore().loggedUser._id
+    const localPomodoro = JSON.parse(localStorage.getItem('pomodoro'))
+    if (localPomodoro) {
+      if (localPomodoro.userId === this.userId)
+        this.pomodoro = new Pomodoro(localStorage)
+      else
+        localStorage.removeItem('pomodoro')
+    }
+
+    if (this.pomodoro == null) {
+      this.pomodoro = await loadPomodoro(this.userId)
       if (this.pomodoro == null) {
-        let config = (await loadLatestConfig()) || defaultConfig
-        this.pomodoro = await createPomodoro(config)
+        let config = (await loadLatestConfig(this.userId)) || defaultConfig
+        this.pomodoro = new Pomodoro({ userId: this.userId, config: config })
       }
       this.pomodoro.running = false
+    }
+
+    if (this.pomodoro.running) {
+      this.play()
     }
   },
   methods: {
     play() {
       this.pomodoro.play()
-      this.animation?.play()
       this.$emit('play')
     },
     pause() {
       this.pomodoro.pause()
-      this.animation.pause()
       this.$emit('pause')
     },
     restart() {
       this.pomodoro.restart()
-      this.animation.restart()
     },
     skip() {
       this.pomodoro.skip()
-      this.animation.restart()
     },
     async replacePomodoro(config) {
       if (this.pomodoro) {
         await deletePomodoro(this.pomodoro)
         localStorage.removeItem('pomodoro')
       }
-      this.pomodoro = await createPomodoro(config)
-      this.pomodoro.saveToLocalStorage()
+      this.pomodoro = new Pomodoro({ userId: this.userId, config: config })
       this.animation.reload()
     },
     formatClockTime(time) {
       if (!time) return '00:00'
       let minutes = Math.floor(time / 60)
-      let seconds = time % 60
+      let seconds = Math.floor(time % 60)
       return (minutes < 10 ? '0' : '') + minutes + ':' + (seconds < 10 ? '0' : '') + seconds
     },
     formatConfigTime(time) {
