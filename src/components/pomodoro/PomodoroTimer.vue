@@ -1,36 +1,37 @@
 <template>
-  <div class="h-full flex justify-center items-center" v-if="this.pomodoro">
+  <div class="h-full flex justify-center items-center">
     <div
       class="timer-container min-w-96 sm:w-2/3 lg:w-1/2 h-max relative flex flex-col items-center bg-transparent transition-colors duration-1000 rounded-box border-4 border-transparent shadow-xl shadow-transparent gap-6  py-8 z-20"
-      :class="{ 'running': this.pomodoro.running }">
-
+      :class="{ 'running': pomodoro?.running }">
       <div class="h-60 w-60 sm:w-80 sm:h-80 relative flex justify-center items-center">
-        <div class="absolute">
+        <div class="absolute" v-if="this.pomodoro">
           <PomodoroAnimation :running="pomodoro.running" :duration="pomodoro.initialTimer" :timer="pomodoro.timer"
             :phase="pomodoro.phase" ref="animation" />
         </div>
-        <div class="digital select-none text-7xl m-0 ">
+        <div class="digital select-none text-7xl m-0 " v-if="this.pomodoro">
           {{ timer }}
         </div>
       </div>
-      <div class="grid items-center" :class="pomodoro.started ? 'grid-cols-3' : ''">
-        <button v-if="pomodoro.started" @click="this.restart()" class="text-sm btn btn-xs btn-outline btn-error">
+      <div class="grid items-center" :class="pomodoro?.started ? 'grid-cols-3' : ''">
+        <button v-if="pomodoro?.started" :disabled="!pomodoro?.running" @click="this.restart()"
+          class="text-sm btn btn-xs btn-outline btn-error">
           Reset
         </button>
         <div class="flex flex-col items-center">
-          <button v-if="pomodoro.running" @click="this.pause()" class="text-4xl hover:text-success">
+          <button v-if="pomodoro?.running" @click="this.pause()" class="text-4xl hover:text-success">
             <Icon icon="mingcute:pause-fill" />
           </button>
           <button v-else @click="this.play()" class="text-4xl hover:text-success">
             <Icon icon="mingcute:play-fill" />
           </button>
         </div>
-        <button v-if="pomodoro.started" @click="this.skip()" class="text-xl hover:text-success mx-3">
+        <button v-if="pomodoro?.started" :disabled="!pomodoro?.running" @click="this.skip()"
+          class="transition text-xl hover:text-success mx-3 disabled:text-base-content/20">
           <Icon icon="mingcute:fast-forward-fill" />
         </button>
       </div>
 
-      <Popper class="absolute top-3 right-3" placement="bottom" arrow locked>
+      <Popper class="absolute top-3 right-3" placement="bottom" arrow locked v-if="this.pomodoro">
         <button>
           <Icon icon="fluent:info-24-regular" class="text-lg" />
         </button>
@@ -104,7 +105,11 @@ export default {
     if (this.pomodoro == null) {
       this.pomodoro = await loadPomodoro(this.userId)
       if (this.pomodoro == null) {
-        let config = (await loadLatestConfig(this.userId)) || defaultConfig
+        let config = await loadLatestConfig(this.userId)
+        if (config == null) {
+          config = defaultConfig
+          config.userId = this.userId
+        }
         this.pomodoro = new Pomodoro({ userId: this.userId, config: config })
       }
       this.pomodoro.running = false

@@ -1,12 +1,9 @@
 <template>
-  <svg class="w-full h-full overflow-visible" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <svg class="w-full h-full overflow-visible stroke-surface" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
     <g class="fill-none stroke-none">
-
-      <!-- <circle cx="50" cy="50" r="50" class="stroke-neutral" /> -->
       <line id="dot" x1="50" y1="0" x2="50" y2="0" :stroke="breakColor" class="linecap-round" pathLength="1" />
-      <circle id="progress" cx="50" cy="50" r="50" ref="progress" class="linecap-round" pathLength=" 1" />
-
-      <!-- <circle cx="50" cy="50" r="50" :stroke="pomodoroColor" :class="['fill-none', { 'hidden': this.phase }]" /> -->
+      <circle cx="50" cy="50" r="50" class="linecap-round stroke-surface-0/50" />
+      <circle id="progress" cx="50" cy="50" r="50" ref="progress" class="linecap-round" pathLength="1" />
     </g>
   </svg>
 </template>
@@ -15,9 +12,6 @@
 import { flavors } from '@catppuccin/palette'
 
 let animation
-
-const t = new AnimationTimeline()
-console.log(t)
 
 export default {
   props: {
@@ -70,16 +64,18 @@ export default {
         duration: this.duration * 1000,
         fill: 'forwards'
       })
-
-      return animation
+      if (this.running) {
+        this.play()
+      } else {
+        this.pause()
+      }
     },
     /* Crea una nuova animazione e aggiorna il tempo della stessa basandosi sul timer.
      * L'animazione non viene fatta partire
      */
     reload() {
-      animation = this.restart()
+      this.restart()
       animation.currentTime = (this.duration - this.timer) * 1000
-      animation.pause()
     },
     animationKeyframes() {
       if (this.isPomodoroPhase()) {
@@ -119,14 +115,11 @@ export default {
         this.pause()
     },
     'phase'() {
+      console.log("phase changed=>restart")
       this.restart()
     },
     'timer'(timer) {
       animation.currentTime = (this.duration - timer) * 1000
-    },
-    'finished'(finished) {
-      if (finished)
-        animation.style.animationDuration = '1s'
     }
   }
 }

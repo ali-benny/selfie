@@ -5,8 +5,8 @@
     </div>
     <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 auto-rows-fr items-stretch gap-4">
       <div v-for="(config, idx) in configs" :key="config._id">
-        <PomodoroConfigCard @select="onSelect(config)" @delete="this.loadConfigs" v-model:config="configs[idx]"
-          :selected="isSelected(config)" />
+        <PomodoroConfigCard @select="onSelect(config)" @delete="this.loadConfigs" @update:config="onUpdate($event)"
+          v-model:config="configs[idx]" :selected="this.isSelected(config)" />
       </div>
     </div>
   </div>
@@ -46,7 +46,13 @@ export default {
       this.configs = await loadConfigs(this.userId)
     },
     onSelect(config) {
+      if (this.isSelected(config))
+        return
       this.$emit('select', config)
+    },
+    onUpdate(config) {
+      if (this.isSelected(config))
+        this.$emit('select', config)
     },
     isSelected(config) {
       return this.selected && config._id == this.selected._id

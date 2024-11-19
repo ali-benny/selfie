@@ -73,8 +73,21 @@ export default {
 
 .card:hover,
 .card.selected {
-  @apply border-2 bg-base-300 cursor-pointer;
+  @apply border-2 bg-base-300;
+}
+
+.card:hover {
+  @apply cursor-pointer;
+  border-color: v-bind('config?.color.hex + 95') !important;
+  --tw-shadow-color: v-bind('config?.color.hex + 60');
+}
+
+.card.selected {
   border-color: v-bind('config?.color.hex') !important;
   --tw-shadow-color: v-bind('config?.color.hex + 80');
+}
+
+.card.selected:hover {
+  @apply cursor-default;
 }
 </style>
