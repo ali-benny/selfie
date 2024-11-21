@@ -119,7 +119,10 @@
               </option>
             </select>
           </div>
-          <button class="btn btn-ghost btn-sm hover:!text-secondary " @click="showNewFolderDialog = true">
+          <button
+            class="btn btn-ghost btn-sm hover:!text-secondary"
+            @click="showNewFolderDialog = true"
+          >
             <Icon icon="fluent:folder-add-20-regular" />
             New Folder
           </button>
@@ -157,6 +160,7 @@ import { getEditNoteTitle, getEditNoteId } from './editor.js'
 import {
   getNoteAuthor,
   getNoteTags,
+  getNoteById,
   getReaders,
   getReadersIds,
   saveNoteMongo,
@@ -186,6 +190,9 @@ export default {
       if (this.id) {
         this.author = await getNoteAuthor(this.id)
         this.readers = await getReadersIds(this.id)
+        const tmp = await getNoteById(this.id)
+        this.selectedFolder = tmp.directory
+        console.log('🔥 - mounted - tmp.directory:', tmp.directory)
       }
       // Mostra l'editor se è una nuova nota o se l'utente ha i permessi
       this.showEditor = !this.id || this.hasPermission
@@ -244,12 +251,7 @@ export default {
       if (!this.newFolderName) return
 
       try {
-        // Create directory on server
-        await createDirectory(
-          this.newFolderName,
-          this.selectedFolder, // Pass current folder as parent
-          this.userStore.loggedUser._id
-        )
+        await createDirectory(this.newFolderName, 'root', this.userStore.loggedUser._id)
 
         // Refresh directories
         await this.refreshFolders()
@@ -269,7 +271,6 @@ export default {
         console.error(err)
       }
     },
-
     async refreshFolders() {
       try {
         const directoryTree = await getDirectoryStructure(this.userStore.loggedUser._id)
@@ -279,7 +280,6 @@ export default {
         console.error('Failed to refresh folders:', err)
       }
     },
-
     // Helper to flatten directory tree for select dropdown
     flattenDirectoryTree(node, arr = []) {
       arr.push({

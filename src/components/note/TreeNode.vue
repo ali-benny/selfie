@@ -1,5 +1,13 @@
 <template>
-  <div class="tree-node mb-2" ref="nodeElement">
+  <div
+    class="tree-node mb-2"
+    :class="
+      props.edit && props.node._id != 'root'
+        ? 'motion-preset-pulse-sm motion-loop-twice hover:motion-paused'
+        : ''
+    "
+    ref="nodeElement"
+  >
     <div class="collapse" :class="{ 'collapse-open': isExpanded }">
       <div
         class="collapse-title flex items-center px-3 justify-between gap-2 cursor-pointer bg-surface-0/40 hover:bg-surface-0"
@@ -23,8 +31,14 @@
         >
           <Icon icon="fluent:folder-add-20-regular" />
         </button>
+        <button
+          v-else-if="props.edit"
+          class="btn btn-error btn-square btn-outline btn-xs text-xl"
+          @click.stop.prevent="handleDelete(props.node._id)"
+        >
+          <Icon icon="fluent:delete-16-filled" />
+        </button>
       </div>
-
       <div class="collapse-content bg-surface-0/50 pt-0">
         <!-- Note nella directory corrente -->
         <div class="pl-4 mt-2 flex flex-col gap-1">
@@ -48,8 +62,10 @@
           :key="child._id"
           :node="child"
           :notes="notes"
+          :edit="edit"
           @create-dir="(name) => $emit('create-dir', name, node._id)"
           @move-note="handleMoveNoteEvent"
+          @delete-dir="handleDelete"
         />
       </div>
     </div>
@@ -60,13 +76,13 @@
         <h3 class="font-bold text-lg">Create New Folder</h3>
         <div class="form-control">
           <label class="label">
-            <span class="label-text">Folder Name</span>
+            <!-- <span class="label-text">Folder Name</span> -->
           </label>
           <input
             v-model="newDirName"
             type="text"
             placeholder="New Folder Name"
-            class="input input-bordered w-full max-w-xs"
+            class="input input-bordered w-full"
             @keyup.enter="createDir"
           />
         </div>
@@ -93,10 +109,11 @@ const props = defineProps({
   notes: {
     type: Array,
     required: true
-  }
+  },
+  edit: Boolean
 })
 
-const emit = defineEmits(['create-dir', 'move-note'])
+const emit = defineEmits(['create-dir', 'move-note', 'delete-dir'])
 const nodeElement = ref(null)
 const isExpanded = ref(props.node._id === 'root')
 const showNewDirDialog = ref(false)
@@ -123,6 +140,10 @@ function handleNewFolder(e) {
   e.preventDefault()
   e.stopPropagation()
   showNewDirDialog.value = true
+}
+
+async function handleDelete(directoryId) {
+  emit('delete-dir', directoryId)
 }
 
 function closeDialog() {
@@ -163,7 +184,6 @@ onMounted(() => {
     e.stopPropagation()
     element.classList.remove('bg-primary/20')
     const noteId = e.dataTransfer.getData('noteId')
-    console.log('TreeNode Drop:', { noteId, targetDir: props.node._id })
     if (noteId) {
       emit('move-note', noteId, props.node._id)
     }

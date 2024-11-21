@@ -1,14 +1,14 @@
+import bodyParser from 'body-parser'
 import express from 'express'
 import mongoose from 'mongoose'
-import { connected, connect } from '../app.js'
-import bodyParser from 'body-parser'
+import { connect, connected } from '../app.js'
 
 const app = express()
 
 const DirectorySchema = new mongoose.Schema({
   _id: {
     type: String,
-    required: true
+    default: () => new mongoose.Types.ObjectId().toString()
   },
   name: {
     type: String,
@@ -312,12 +312,12 @@ app.get('/users/:userId/directories', async (req, res) => {
  * @param {string} req.body.name - The name of the directory.
  * @param {string} req.body.parentDirectory - The ID of the parent directory.
  * @param {string} req.body.author - The author of the directory.
+ *
  * @returns {Directory} The newly created Directory object.
  */
 app.post('/directories', async (req, res) => {
   try {
     const directory = new Directory({
-      _id: req.body.id,
       name: req.body.name,
       parentDirectory: req.body.parentDirectory,
       author: req.body.author
@@ -325,6 +325,33 @@ app.post('/directories', async (req, res) => {
     await directory.save()
     res.status(201).json(directory)
   } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+/**
+ * Delete a directory by id
+ * @param {string} req.params.id - The ID of the directory to delete.
+ * @returns {string} A success message or an error message.
+ */
+app.delete('/directories/:id', async (req, res) => {
+  const { id } = req.params
+  try {
+    const directory = await Directory.findById(id)
+    if (!directory) {
+      return res.status(404).json({ error: 'Directory not found' })
+    }
+
+    // Elimina tutte le note con il directory ID
+    const deleteResult = await Note.deleteMany({ directory: id })
+    console.log(`Deleted ${deleteResult.deletedCount} notes`)
+
+    // Elimina la directory
+    await Directory.findByIdAndDelete(id)
+
+    res.status(200).json({ message: 'Directory deleted successfully' })
+  } catch (err) {
+    console.error('/directories/:id | ' + err)
     res.status(500).json({ error: err.message })
   }
 })
@@ -373,6 +400,17 @@ import * as cheerio from 'cheerio'
 
 /**
  * Including Block external link url
+ *
+ * This endpoint fetches the metadata of a given URL.
+ * It uses the Cheerio library to parse the HTML content of the URL
+ * and extract the title, description, and image metadata.
+ *
+ * Cheerio provides a jQuery-like API for manipulating and extracting
+ * information from the HTML document.
+ *
+ * Example usage:
+ * GET /fetchUrl?url=https://example.com
+ *
  */
 app.get('/fetchUrl', async (req, res) => {
   const url = req.query.url

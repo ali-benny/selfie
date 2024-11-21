@@ -1,12 +1,12 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { deleteNote, getNotes, saveNoteMongo } from '@/router/note/editor/note.js'
+import { getUsersByIds } from '@/router/user/user.js'
+import { useUserStore } from '@/stores/account'
+import { API_URL } from '~/const.js'
 import { Icon } from '@iconify/vue'
 import edjsHTML from 'editorjs-html'
-import { API_URL } from '~/const.js'
-import { getNotes, saveNoteMongo, deleteNote } from '@/router/note/editor/note.js'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useToast } from 'vue-toastification'
-import { useUserStore } from '@/stores/account'
-import { getUsersByIds } from '@/router/user/user.js'
 
 const userStore = useUserStore()
 
@@ -16,6 +16,7 @@ const props = defineProps({
   edit: Boolean,
   extended: Boolean,
   order: String,
+  refreshNotes: Boolean,
   filter: Array
 })
 const notes = ref([])
@@ -32,7 +33,20 @@ const checklistParser = (block) => {
 }
 const edjsParser = edjsHTML({ checklist: checklistParser })
 
+const emit = defineEmits(['note-deleted', 'note-added'])
+
 onMounted(async () => {
+  await fetchNotes()
+})
+
+watch(
+  () => props.refreshNotes,
+  async () => {
+    await fetchNotes()
+  }
+)
+
+async function fetchNotes() {
   try {
     notes.value = await getNotes(userStore.loggedUser._id)
     const authorIds = notes.value.map((note) => note.author)
@@ -42,7 +56,7 @@ onMounted(async () => {
   } catch (error) {
     console.error('Failed to fetch notes:', error)
   }
-})
+}
 
 async function duplicateNote(id) {
   try {
@@ -71,23 +85,36 @@ async function duplicateNote(id) {
       author: userStore.loggedUser._id
     })
 
-    notes.value = await getNotes(userStore.loggedUser._id)
+    await fetchNotes()
+    emit('note-added')
     toast.success('Note duplicated successfully')
   } catch (error) {
     toast.error('Error - duplicating note:', error)
   }
 }
 
+async function removeNote(id) {
+  try {
+    await deleteNote(id)
+    await fetchNotes()
+    emit('note-deleted')
+    toast.success('Note deleted successfully')
+  } catch (error) {
+    console.error('Failed to delete note:', error)
+    toast.error('Failed to delete note')
+  }
+}
+
 function orderBy(ordertype) {
   let sortedNotes = []
-  if (ordertype === 'title') {
+  if (ordertype == 'title') {
     sortedNotes = [...notes.value].sort((a, b) => a.name.localeCompare(b.name))
-  } else if (ordertype === 'date') {
+  } else if (ordertype == 'date') {
     sortedNotes = [...notes.value].sort((a, b) => new Date(a.date) - new Date(b.date))
-  } else if (ordertype === 'author') {
+  } else if (ordertype == 'author') {
     sortedNotes = [...notes.value].sort((a, b) => a.author.localeCompare(b.author))
   }
-  notes.value = sortedNotes
+  return sortedNotes
 }
 
 function formatDate(isoString) {
@@ -118,25 +145,14 @@ const filteredNotes = computed(() => {
   if (props.filter && props.filter.length != 0) {
     filtered = filtered.filter((note) => note.tags.some((tag) => props.filter.includes(tag)))
   }
-  if (props.order) orderBy(props.order)
   if (props.lastModified) {
-    orderBy('date')
+    filtered = orderBy('date')
     const start = filtered.length >= props.lastModified ? 0 : filtered.length
     return filtered.slice(start, props.lastModified)
   }
+  if (props.order) filtered = orderBy(props.order)
   return filtered
 })
-
-async function removeNote(id) {
-  try {
-    await deleteNote(id)
-    notes.value = await getNotes(userStore.loggedUser._id)
-    toast.success('Note deleted successfully')
-  } catch (error) {
-    console.error('Failed to delete note:', error)
-    toast.error('Failed to delete note')
-  }
-}
 
 function toggleShowOptions(note) {
   note.showOptions = !note.showOptions

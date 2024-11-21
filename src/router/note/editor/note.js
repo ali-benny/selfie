@@ -12,7 +12,15 @@ import { API_URL } from '~/const'
  * @param {*} author note author
  * @param {*} reader id users who can read/edit the note
  */
-export async function saveNoteMongo({ id = null, filename, data, tags, author, readers, directory } = {}) {
+export async function saveNoteMongo({
+  id = null,
+  filename,
+  data,
+  tags,
+  author,
+  readers,
+  directory
+} = {}) {
   const method = id == null ? 'POST' : 'PUT'
   const endpoint = id == null ? `/notes` : `/notes/${id}`
 
@@ -77,10 +85,33 @@ export async function getNotes(id) {
   })
 
   if (response.ok) {
-    return response.json()
+    return await response.json()
   } else {
     console.error('ERROR: getNotes')
   }
+}
+
+/**
+ * Retrieves a note by its ID from the MongoDB API.
+ *
+ * @param {string} id - The ID of the note to retrieve.
+ * @returns {Promise<Object>} A promise that resolves to the note data
+ */
+export async function getNoteById(noteId) {
+  let noteData = {}
+  if (noteId) {
+    const response = await fetch(`${API_URL}/notes/${noteId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    if (response.ok) {
+      noteData = await response.json()
+      return noteData
+    }
+  }
+  return noteData
 }
 
 /**

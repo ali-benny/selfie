@@ -1,16 +1,16 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import NoteView from '@/components/note/NoteView.vue'
 import NoteTree from '@/components/note/NoteTree.vue'
-import { useUserStore } from '@/stores/account'
+import NoteView from '@/components/note/NoteView.vue'
+import { onMounted, ref } from 'vue'
 import { getTags } from './editor/tags.js'
 
-const userStore = useUserStore()
 const viewMode = ref('list')
 const order = ref('title')
 const tags = ref([])
 const selected = ref([])
 const noteTree = ref(null)
+const refreshNotes = ref(false)
+const notes = ref([])
 
 onMounted(async () => {
   try {
@@ -30,27 +30,33 @@ function filterByTag(tag) {
   } else {
     selected.value.push(tag)
   }
-  console.log('🔥 - filterByTag - selected:', selected)
 }
 
-async function refreshNoteTree() {
-  if (noteTree.value) {
-    await noteTree.value.refreshFolders()
-  }
+async function updateNotes() {
+  refreshNotes.value = !refreshNotes.value
 }
 </script>
 
 <template>
   <div class="flex flex-col h-[calc(100vh-7vh)]">
-    <a
+    <!-- floating add new note button -->
+    <!-- <a
       href="/editor"
       class="btn btn-accent floating-btn btn-circle !text-base-100 shadow-xl text-2xl"
       title="Add new note"
     >
       <Icon icon="fluent:note-add-24-filled" />
-    </a>
+    </a> -->
     <div class="container mx-auto flex justify-between items-center flex-wrap px-2 md:px-5">
       <h1 class="text-2xl font-semibold">Notes</h1>
+      <a
+        href="/editor"
+        class="btn btn-outline btn-secondary btn-sm rounded-box mx-3 shadow-xl text-2xl"
+        title="Add new note"
+      >
+        <Icon icon="fluent:note-add-24-filled" />
+        <p class="text-sm">New Note</p>
+      </a>
       <div class="flex justify-between sm:justify-end items-center grow my-2">
         <Popper>
           <button class="btn btn-default flex justify-between btn-sm rounded-box">
@@ -64,7 +70,11 @@ async function refreshNoteTree() {
                 v-for="tag in tags"
                 :key="tag"
                 class="flex px-2 rounded-xl font-semibold bg-primary/50 hover:bg-surface-0"
-                :class="selected.includes(tag) ? 'bg-secondary/50 hover:bg-secondary/70' : ''"
+                :class="
+                  selected.includes(tag)
+                    ? 'border-2 border-solid border-primary/50 !bg-base-100'
+                    : ''
+                "
                 @click="filterByTag(tag)"
               >
                 {{ tag }}
@@ -125,15 +135,25 @@ async function refreshNoteTree() {
     </div>
     <div class="flex flex-1 overflow-hidden">
       <Suspense>
-        <NoteTree ref="noteTree" node="root" :initiallyOpen="['root']" ></NoteTree>
+        <NoteTree
+          ref="noteTree"
+          node="root"
+          :refreshNotes="refreshNotes"
+          :initiallyOpen="['root']"
+          @note-deleted="updateNotes"
+          @note-added="updateNotes"
+        ></NoteTree>
       </Suspense>
       <div class="flex flex-1 overflow-y-auto justify-center transition-all duration-300">
         <NoteView
-          :order="order"
-          :filter="selected"
-          :viewMode="viewMode"
           :edit="true"
           :extended="true"
+          :refreshNotes="refreshNotes"
+          :filter="selected"
+          :order="order"
+          :viewMode="viewMode"
+          @note-deleted="updateNotes"
+          @note-added="updateNotes"
         ></NoteView>
       </div>
     </div>

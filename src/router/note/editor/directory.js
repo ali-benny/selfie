@@ -10,14 +10,12 @@ export async function getDirectoryStructure(userId) {
 
 // Create new directory
 export async function createDirectory(name, parentId, author) {
-  const id = name.toLowerCase().replace(/\s+/g, '-')
   const response = await fetch(`${API_URL}/directories`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      id,
       name,
       parentDirectory: parentId,
       author
@@ -33,8 +31,8 @@ export async function moveNote(noteId, directoryId) {
       id: noteId,
       directory: directoryId
     })
-    
-    return true // Return success instead of checking response
+
+    return true
   } catch (error) {
     console.error('Error moving note:', error)
     throw error
