@@ -121,7 +121,8 @@ const filteredNotes = computed(() => {
   if (props.order) orderBy(props.order)
   if (props.lastModified) {
     orderBy('date')
-    const start = filtered.length <= props.lastModified ? 0 : filtered.length - (props.lastModified+1)
+    const start =
+      filtered.length <= props.lastModified ? 0 : filtered.length - (props.lastModified + 1)
     return filtered.slice(start, props.lastModified)
   }
   return filtered

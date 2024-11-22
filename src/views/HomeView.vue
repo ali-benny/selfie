@@ -9,11 +9,11 @@
       <div class="p-3 rounded-xl shadow-sm bg-surface-0" data-swapy-item="notes">
         <div class="flex flew-row justify-between">
           <h4 class="font-semibold text-lg ml-3">Last Notes</h4>
-           <Popper arrow>
+          <Popper arrow>
             <button
               class="btn btn-circle btn-sm transform hover:rotate-45 text-lg hover:text-secondary btn-ghost"
             >
-              <Icon icon="fluent:settings-16-filled"/>
+              <Icon icon="fluent:settings-16-filled" />
             </button>
             <template #content>
               <div class="flex flex-row items-center p-3">
