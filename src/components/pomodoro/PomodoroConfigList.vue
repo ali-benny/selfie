@@ -2,8 +2,12 @@
   <div class="w-full overflow-visible">
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 items-stretch gap-4">
       <div v-for="(config, idx) in configs" :key="config._id">
-        <PomodoroConfigCard @select="onSelect(config)" @delete="this.loadConfigs" v-model:config="configs[idx]"
-          :class="{ selected: isSelected(config) }" />
+        <PomodoroConfigCard
+          @select="onSelect(config)"
+          @delete="this.loadConfigs"
+          v-model:config="configs[idx]"
+          :class="{ selected: isSelected(config) }"
+        />
       </div>
     </div>
   </div>
@@ -16,8 +20,7 @@ import { loadConfigs } from '../../router/pomodoro/pomodoro.js'
 export default {
   emits: {
     select: (config) => {
-      if (config)
-        return true
+      if (config) return true
       return false
     }
   },
@@ -46,6 +49,5 @@ export default {
   components: {
     PomodoroConfigCard
   }
-
 }
 </script>
