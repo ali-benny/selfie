@@ -40,11 +40,8 @@ async function updateNotes() {
 <template>
   <div class="flex flex-col h-[calc(100vh-7vh)]">
     <!-- floating add new note button -->
-    <!-- <a
-      href="/editor"
-      class="btn btn-accent floating-btn btn-circle !text-base-100 shadow-xl text-2xl"
-      title="Add new note"
-    >
+    <!-- <a href="/editor" class="btn btn-accent floating-btn btn-circle !text-base-100 shadow-xl text-2xl"
+      title="Add new note">
       <Icon icon="fluent:note-add-24-filled" />
     </a> -->
     <div class="container mx-auto flex justify-between items-center flex-wrap px-2 md:px-5">
@@ -90,11 +87,7 @@ async function updateNotes() {
           >
             Order by Title
           </button>
-          <button
-            class="btn btn-sm btn-default rounded-box"
-            v-else-if="order === 'date'"
-            @click="orderBy('author')"
-          >
+          <button class="btn btn-sm btn-default rounded-box" v-else-if="order === 'date'" @click="orderBy('author')">
             Order by Date
           </button>
           <button
