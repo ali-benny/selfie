@@ -1,9 +1,34 @@
+import bodyParser from 'body-parser'
 import express from 'express'
 import mongoose from 'mongoose'
-import { connected, connect } from '../app.js'
-import bodyParser from 'body-parser'
+import { connect, connected } from '../app.js'
 
 const app = express()
+
+const DirectorySchema = new mongoose.Schema({
+  _id: {
+    type: String,
+    default: () => new mongoose.Types.ObjectId().toString()
+  },
+  name: {
+    type: String,
+    required: true
+  },
+  parentDirectory: {
+    type: String,
+    default: null
+  },
+  author: {
+    type: String,
+    required: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+})
+
+const Directory = mongoose.model('Directory', DirectorySchema)
 
 const NoteSchema = new mongoose.Schema({
   name: {
@@ -29,6 +54,11 @@ const NoteSchema = new mongoose.Schema({
   tags: {
     type: Object,
     default: []
+  },
+  directory: {
+    type: String,
+    ref: 'Directory',
+    default: 'root'
   }
 })
 
@@ -135,7 +165,7 @@ app.get('/notes/:id', async (req, res) => {
  */
 app.put('/notes/:id', async (req, res) => {
   const { id } = req.params
-  const { filename, data, tags, author, readers } = req.body
+  const { filename, data, tags, author, readers, directory } = req.body
   console.log('Saving: ' + filename)
   if (!connected['note']) await connect('note')
   try {
@@ -150,7 +180,8 @@ app.put('/notes/:id', async (req, res) => {
           date: new Date(),
           tags: tags,
           author: author,
-          readers: readers
+          readers: readers,
+          directory: directory
         }
       )
       console.log('Updated!')
@@ -160,7 +191,8 @@ app.put('/notes/:id', async (req, res) => {
         data: data,
         author: author,
         tags: tags,
-        readers: readers
+        readers: readers,
+        directory: directory
       })
       await note.save()
       console.log('Saved!')
@@ -255,6 +287,76 @@ app.get('/user/:id/tags', async (req, res) => {
 })
 
 /**
+ * Retrieves directories created by a specific user.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} req.params - The parameters from the request.
+ * @param {string} req.params.userId - The ID of the user whose directories are to be retrieved.
+ * @returns {Promise<Array>} A promise that resolves to an array of directories.
+ */
+app.get('/users/:userId/directories', async (req, res) => {
+  try {
+    const directories = await Directory.find({ author: req.params.userId })
+    res.status(200).json(directories)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+/**
+ * Creates a new Directory object.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} req.body - The body of the request.
+ * @param {string} req.body.id - The unique identifier for the directory.
+ * @param {string} req.body.name - The name of the directory.
+ * @param {string} req.body.parentDirectory - The ID of the parent directory.
+ * @param {string} req.body.author - The author of the directory.
+ *
+ * @returns {Directory} The newly created Directory object.
+ */
+app.post('/directories', async (req, res) => {
+  try {
+    const directory = new Directory({
+      name: req.body.name,
+      parentDirectory: req.body.parentDirectory,
+      author: req.body.author
+    })
+    await directory.save()
+    res.status(201).json(directory)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+/**
+ * Delete a directory by id
+ * @param {string} req.params.id - The ID of the directory to delete.
+ * @returns {string} A success message or an error message.
+ */
+app.delete('/directories/:id', async (req, res) => {
+  const { id } = req.params
+  try {
+    const directory = await Directory.findById(id)
+    if (!directory) {
+      return res.status(404).json({ error: 'Directory not found' })
+    }
+
+    // Elimina tutte le note con il directory ID
+    const deleteResult = await Note.deleteMany({ directory: id })
+    console.log(`Deleted ${deleteResult.deletedCount} notes`)
+
+    // Elimina la directory
+    await Directory.findByIdAndDelete(id)
+
+    res.status(200).json({ message: 'Directory deleted successfully' })
+  } catch (err) {
+    console.error('/directories/:id | ' + err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+/**
  * Get readers from Note by id
  * @returns readers Array [] with ids
  */
@@ -298,6 +400,17 @@ import * as cheerio from 'cheerio'
 
 /**
  * Including Block external link url
+ *
+ * This endpoint fetches the metadata of a given URL.
+ * It uses the Cheerio library to parse the HTML content of the URL
+ * and extract the title, description, and image metadata.
+ *
+ * Cheerio provides a jQuery-like API for manipulating and extracting
+ * information from the HTML document.
+ *
+ * Example usage:
+ * GET /fetchUrl?url=https://example.com
+ *
  */
 app.get('/fetchUrl', async (req, res) => {
   const url = req.query.url

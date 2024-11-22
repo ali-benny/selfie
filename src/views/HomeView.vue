@@ -14,5 +14,5 @@
 </template>
 
 <script setup>
-import NoteView from '@/components/NoteView.vue'
+import NoteView from '@/components/note/NoteView.vue'
 </script>

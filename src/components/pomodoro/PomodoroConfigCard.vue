@@ -1,9 +1,16 @@
 <template>
-  <div class="max-w-56 sm:max-w-64 h-full card card-compact sm:card-normal" @click="$emit('select')">
+  <div
+    class="max-w-56 sm:max-w-64 h-full card card-compact sm:card-normal"
+    @click="$emit('select')"
+  >
     <div class="card-body relative">
       <!-- Form edit -->
       <div @click.stop class="absolute top-4 right-4 flex justify-center align-center">
-        <PomodoroConfigForm :config="config" @update:config="$emit('update:config', $event)" @delete="$emit('delete')">
+        <PomodoroConfigForm
+          :config="config"
+          @update:config="$emit('update:config', $event)"
+          @delete="$emit('delete')"
+        >
           <template #trigger>
             <button class="z-10 hover:text-secondary">
               <Icon icon="fluent:edit-48-filled" />
@@ -35,7 +42,9 @@
       <div class="flex items-center gap-2">
         <Icon icon="fluent-emoji-flat:zzz" class="text-xl" />
         <p class="m-0">
-          {{ config.longBreakTime }}'<span class="text-black-50"> every {{ config.longBreakInterval }} breaks</span>
+          {{ config.longBreakTime }}'<span class="text-black-50">
+            every {{ config.longBreakInterval }} breaks</span
+          >
         </p>
       </div>
     </div>
@@ -52,11 +61,7 @@ export default {
       required: true
     }
   },
-  emits: [
-    'select',
-    'update:config',
-    'delete'
-  ],
+  emits: ['select', 'update:config', 'delete'],
   components: {
     PomodoroConfigForm,
     IconPomodoro
@@ -72,6 +77,8 @@ export default {
 .selected {
   @apply border-2 bg-base-300 cursor-pointer;
   border-color: v-bind('config?.color.hex + 80') !important;
-  box-shadow: 0 10px 15px -3px v-bind('config?.color.hex + 40'), 0 4px 6px -4px v-bind('config?.color.hex + 30');
+  box-shadow:
+    0 10px 15px -3px v-bind('config?.color.hex + 40'),
+    0 4px 6px -4px v-bind('config?.color.hex + 30');
 }
 </style>
