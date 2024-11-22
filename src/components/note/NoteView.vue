@@ -1,12 +1,12 @@
 <script setup>
-import { deleteNote, getNotes, saveNoteMongo } from '@/router/note/editor/note.js'
-import { getUsersByIds } from '@/router/user/user.js'
-import { useUserStore } from '@/stores/account'
-import { API_URL } from '~/const.js'
+import { ref, onMounted, computed } from 'vue'
 import { Icon } from '@iconify/vue'
 import edjsHTML from 'editorjs-html'
-import { computed, onMounted, ref, watch } from 'vue'
+import { API_URL } from '~/const.js'
+import { getNotes, saveNoteMongo, deleteNote } from '@/router/note/editor/note.js'
 import { useToast } from 'vue-toastification'
+import { useUserStore } from '@/stores/account'
+import { getUsersByIds } from '@/router/user/user.js'
 
 const userStore = useUserStore()
 
@@ -16,7 +16,6 @@ const props = defineProps({
   edit: Boolean,
   extended: Boolean,
   order: String,
-  refreshNotes: Boolean,
   filter: Array
 })
 const notes = ref([])
@@ -33,20 +32,7 @@ const checklistParser = (block) => {
 }
 const edjsParser = edjsHTML({ checklist: checklistParser })
 
-const emit = defineEmits(['note-deleted', 'note-added'])
-
 onMounted(async () => {
-  await fetchNotes()
-})
-
-watch(
-  () => props.refreshNotes,
-  async () => {
-    await fetchNotes()
-  }
-)
-
-async function fetchNotes() {
   try {
     notes.value = await getNotes(userStore.loggedUser._id)
     const authorIds = notes.value.map((note) => note.author)
@@ -56,7 +42,7 @@ async function fetchNotes() {
   } catch (error) {
     console.error('Failed to fetch notes:', error)
   }
-}
+})
 
 async function duplicateNote(id) {
   try {
@@ -85,36 +71,23 @@ async function duplicateNote(id) {
       author: userStore.loggedUser._id
     })
 
-    await fetchNotes()
-    emit('note-added')
+    notes.value = await getNotes(userStore.loggedUser._id)
     toast.success('Note duplicated successfully')
   } catch (error) {
     toast.error('Error - duplicating note:', error)
   }
 }
 
-async function removeNote(id) {
-  try {
-    await deleteNote(id)
-    await fetchNotes()
-    emit('note-deleted')
-    toast.success('Note deleted successfully')
-  } catch (error) {
-    console.error('Failed to delete note:', error)
-    toast.error('Failed to delete note')
-  }
-}
-
 function orderBy(ordertype) {
   let sortedNotes = []
-  if (ordertype == 'title') {
+  if (ordertype === 'title') {
     sortedNotes = [...notes.value].sort((a, b) => a.name.localeCompare(b.name))
-  } else if (ordertype == 'date') {
+  } else if (ordertype === 'date') {
     sortedNotes = [...notes.value].sort((a, b) => new Date(a.date) - new Date(b.date))
-  } else if (ordertype == 'author') {
+  } else if (ordertype === 'author') {
     sortedNotes = [...notes.value].sort((a, b) => a.author.localeCompare(b.author))
   }
-  return sortedNotes
+  notes.value = sortedNotes
 }
 
 function formatDate(isoString) {
@@ -145,14 +118,26 @@ const filteredNotes = computed(() => {
   if (props.filter && props.filter.length != 0) {
     filtered = filtered.filter((note) => note.tags.some((tag) => props.filter.includes(tag)))
   }
+  if (props.order) orderBy(props.order)
   if (props.lastModified) {
-    filtered = orderBy('date')
-    const start = filtered.length >= props.lastModified ? 0 : filtered.length
+    orderBy('date')
+    const start =
+      filtered.length <= props.lastModified ? 0 : filtered.length - (props.lastModified + 1)
     return filtered.slice(start, props.lastModified)
   }
-  if (props.order) filtered = orderBy(props.order)
   return filtered
 })
+
+async function removeNote(id) {
+  try {
+    await deleteNote(id)
+    notes.value = await getNotes(userStore.loggedUser._id)
+    toast.success('Note deleted successfully')
+  } catch (error) {
+    console.error('Failed to delete note:', error)
+    toast.error('Failed to delete note')
+  }
+}
 
 function toggleShowOptions(note) {
   note.showOptions = !note.showOptions
@@ -165,12 +150,12 @@ function toggleShowOptions(note) {
       :to="`/editor?edit=${note._id}`"
       v-for="note in filteredNotes"
       :key="note._id"
-      class="bg-base-200 rounded-box flex flex-wrap md:flex-nowrap w-30 p-4 px-6 sm:p-3 gap-3 justify-between hover:bg-surface-0 hover:cursor-pointer"
-      :class="props.extended ? 'md:grid md:grid-cols-7' : 'flex-row'"
+      class="bg-base-200 rounded-box flex flex-wrap md:flex-nowrap p-3 gap-2 justify-between hover:bg-surface-0 hover:cursor-pointer"
+      :class="props.extended ? 'md:grid md:grid-cols-6' : 'flex-row'"
     >
       <div
-        class="flex flex-none col-span-2 grow w-100"
-        :class="props.extended ? 'flex-col' : 'flex-row gap-4 !w-1/3 items-center justify-between'"
+        class="flex flex-none"
+        :class="props.extended ? 'flex-col' : 'flex-row gap-4 w-64 items-center justify-between'"
       >
         <!-- DEBUG: note _id -->
         <!-- <p>{{ note._id }}</p>  -->
@@ -220,7 +205,7 @@ function toggleShowOptions(note) {
       <div
         v-if="props.extended"
         id="preview"
-        class="col-span-4 p-3 mt-2 flex rounded-lg bg-base-300 grow flex-wrap text-balance truncate"
+        class="col-span-4 p-3 flex rounded-lg bg-base-300 text-balance truncate"
         v-html="truncate(note.data, 400)"
       ></div>
       <!-- <img
@@ -231,7 +216,7 @@ function toggleShowOptions(note) {
           /> -->
       <div
         v-if="props.edit"
-        class="md:grid flex md:flex-col flex-wrap justify-center items-center gap-1"
+        class="md:grid flex md:flex-col flex-wrap justify-center gap-2 mx-auto mt-2"
       >
         <!-- <RouterLink
           :to="`/editor?edit=${note._id}`"
@@ -244,7 +229,7 @@ function toggleShowOptions(note) {
         <button
           @click.stop.prevent="duplicateNote(note._id)"
           role="button"
-          class="btn btn-sm sm:btn-lg btn-outline btn-primary text-xl flex justify-center w-max items-center"
+          class="btn btn-outline btn-primary text-xl flex justify-center items-center"
           title="Duplicate note"
         >
           <Icon icon="fluent:copy-24-regular" /> Duplicate
@@ -252,7 +237,7 @@ function toggleShowOptions(note) {
         <button
           @click.stop.prevent="removeNote(note._id)"
           role="button"
-          class="btn btn-sm sm:btn-lg btn-error btn-outline text-xl flex justify-center items-center"
+          class="btn btn-error btn-outline text-xl flex justify-center items-center"
           title="Delete note"
         >
           <Icon icon="fluent:delete-24-regular" /> Delete
@@ -272,14 +257,13 @@ function toggleShowOptions(note) {
       class="card flex flex-col gap-1 p-3 bg-base-200 h-full hover:bg-surface-0 hover:cursor-pointer"
     >
       <div
-        class="relative flex justify-between"
+        class="absolute right-0 top-0"
         v-if="props.edit"
         @open.stop.prevent="toggleShowOptions(note)"
       >
-        <h2 class="text-xl font-bold">{{ note.name }}</h2>
         <button
           :class="[
-            'btn rounded-tr-box rounded-circle btn-xs p-1',
+            'btn rounded-tr-box rounded-circle btn-xs m-1 p-1',
             note.showOptions ? 'btn-secondary text-lg' : 'hover:text-secondary btn-ghost'
           ]"
           @click.stop.prevent="toggleShowOptions(note)"
@@ -313,6 +297,7 @@ function toggleShowOptions(note) {
           </button>
         </div>
       </div>
+      <h2 class="text-xl font-bold">{{ note.name }}</h2>
       <div class="flex flex-row items-center w-full">
         <div class="avatar w-10 m-2">
           <div class="ring-primary ring-offset-base-100 rounded-full ring ring-offset-2">

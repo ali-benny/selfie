@@ -2,7 +2,9 @@
 import NoteTree from '@/components/note/NoteTree.vue'
 import NoteView from '@/components/note/NoteView.vue'
 import { onMounted, ref } from 'vue'
+import { getNotes } from './editor/note.js'
 import { getTags } from './editor/tags.js'
+import { useUserStore } from '@/stores/account'
 
 const viewMode = ref('list')
 const order = ref('title')
