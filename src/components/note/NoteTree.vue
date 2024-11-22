@@ -78,7 +78,7 @@ async function handleCreateDir(name, parentId) {
   try {
     await createDirectory(name, parentId, userStore.loggedUser._id)
     await refreshDirectories()
-    
+
     emit('note-added')
   } catch (err) {
     toast.error('Failed to create directory')

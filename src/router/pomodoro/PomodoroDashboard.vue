@@ -1,9 +1,6 @@
 <template>
   <div class="mx-auto flex flex-col items-stretch gap-12">
-
-    {{
-      this.store
-    }}
+    {{ this.store }}
     <!--- Pomodoro Timer -->
     <div class="mt-5 basis-80">
       <PomodoroTimer

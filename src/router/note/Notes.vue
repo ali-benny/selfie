@@ -87,7 +87,11 @@ async function updateNotes() {
           >
             Order by Title
           </button>
-          <button class="btn btn-sm btn-default rounded-box" v-else-if="order === 'date'" @click="orderBy('author')">
+          <button
+            class="btn btn-sm btn-default rounded-box"
+            v-else-if="order === 'date'"
+            @click="orderBy('author')"
+          >
             Order by Date
           </button>
           <button
