@@ -9,20 +9,24 @@ import { Transition } from 'vue'
 
 import App from './App.vue'
 import router from './router'
-import Toast from 'vue-toastification'
-import 'vue-toastification/dist/index.css'
 import './assets/main.css'
 
+import { createNotivue } from 'notivue'
+import 'notivue/notification.css' // Only needed if using built-in notifications
+import 'notivue/animations.css' // Only needed if using built-in animations
+
 const app = createApp(App)
-
-const options = {
-  // You can set your default options here
-  toastClassName: 'themed',
-  closeButtonClassName: 'themed'
-}
-
-app.use(Toast, options)
-
+const notivue = createNotivue({
+  position: 'bottom-right',
+  enqueue: true,
+  limit: 4,
+  notifications: {
+    global: {
+      duration: 3000
+    }
+  }
+})
+app.use(notivue)
 app.use(createPinia())
 app.use(vuetify)
 app.use(router)
