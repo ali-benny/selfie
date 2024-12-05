@@ -5,6 +5,7 @@ import NoteList from './note/Notes.vue'
 import NoteEditor from './note/editor/NoteEditor.vue'
 import UserView from '../views/UserView.vue'
 import PomodoroDashboard from './pomodoro/PomodoroDashboard.vue'
+import GroupDash from './group/GroupDash.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -28,6 +29,11 @@ const router = createRouter({
       path: '/user',
       name: 'user',
       component: UserView
+    },
+    {
+      path: '/group',
+      name: 'group',
+      component: GroupDash
     },
     {
       path: '/pomodoro',
