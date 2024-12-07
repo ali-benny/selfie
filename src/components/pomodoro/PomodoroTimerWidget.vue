@@ -1,7 +1,6 @@
 <template>
-  <div v-if="pomodoro.started && !pomodoro.finished">
-    <div v-if="isSmallScreen"
-      class="fixed flex justify-end bottom-20 right-0 h-16 z-10 bg-base-200 rounded-l-lg overflow-hidden shadow">
+  <div v-if="isSmallScreen" class="absolute bottom-20 left-0 w-full h-16 flex justify-end">
+    <div class="fixed w-fit h-16 z-10 flex justify-end bg-base-200 rounded-l-lg overflow-hidden shadow grow">
       <button @click="() => isWidgetOpen = !isWidgetOpen"
         class="flex flex-col justify-center px-4 text-4xl cursor-pointer">
         <IconPomodoro v-if="pomodoroStore.isPomodoroPhase()" :color="config.color.hex" />
@@ -35,33 +34,35 @@
         </div>
       </Transition>
     </div>
-    <div v-else class="fixed bottom-0 w-screen h-16 z-10 bg-base-200">
-      <div class="w-full h-full static flex justify-center items-center">
-        <PomodoroAnimation widget />
+  </div>
+  <div v-else class="fixed bottom-0 left-0 w-screen h-16 z-10 bg-base-200">
+    <div class="w-full h-full static flex justify-center items-center">
+      <PomodoroAnimation widget />
 
 
-        <div class="absolute flex justify-center items-center top-0 left-0 w-full h-full p-3">
-          <div class="flex justify-center w-12 text-4xl">
-            <IconPomodoro v-if="pomodoroStore.isPomodoroPhase()" :color="config.color.hex" />
-            <Icon v-else-if="pomodoroStore.isShortBreakPhase()" icon="fluent-emoji-flat:teacup-without-handle" />
-            <Icon v-else-if="pomodoroStore.isLongBreakPhase()" icon="fluent-emoji-flat:zzz" />
-          </div>
-          <div class="flex justify-center digital select-none text-5xl grow ">
+      <div class="absolute flex justify-center items-center top-0 left-0 w-full h-full p-3">
+        <div class="flex justify-center w-12 text-4xl">
+          <IconPomodoro v-if="pomodoroStore.isPomodoroPhase()" :color="config.color.hex" />
+          <Icon v-else-if="pomodoroStore.isShortBreakPhase()" icon="fluent-emoji-flat:teacup-without-handle" />
+          <Icon v-else-if="pomodoroStore.isLongBreakPhase()" icon="fluent-emoji-flat:zzz" />
+        </div>
+        <div class="flex justify-center items-end digital select-none text-5xl grow ">
+          <div class="pt-2">
             {{ pomodoroStore.timer }}
           </div>
-          <div class="w-12 flex items-center gap-2">
-            <button v-if="pomodoro.running" @click="pomodoroStore.pausePomodoroTimer()"
-              class="text-2xl hover:text-accent">
-              <Icon icon="mingcute:pause-fill" inline />
-            </button>
-            <button v-else @click="pomodoroStore.playPomodoroTimer()" class="text-2xl hover:text-accent">
-              <Icon icon="mingcute:play-fill" inline />
-            </button>
-            <button v-if="pomodoro.started" :disabled="!pomodoro.running" @click="pomodoroStore.skipPomodoroPhase()"
-              class="transition text-lg hover:text-success disabled:text-base-content/20">
-              <Icon icon="mingcute:fast-forward-fill" inline />
-            </button>
-          </div>
+        </div>
+        <div class="w-12 flex items-center gap-2">
+          <button v-if="pomodoro.running" @click="pomodoroStore.pausePomodoroTimer()"
+            class="text-2xl hover:text-accent">
+            <Icon icon="mingcute:pause-fill" inline />
+          </button>
+          <button v-else @click="pomodoroStore.playPomodoroTimer()" class="text-2xl hover:text-accent">
+            <Icon icon="mingcute:play-fill" inline />
+          </button>
+          <button v-if="pomodoro.started" :disabled="!pomodoro.running" @click="pomodoroStore.skipPomodoroPhase()"
+            class="transition text-lg hover:text-success disabled:text-base-content/20">
+            <Icon icon="mingcute:fast-forward-fill" inline />
+          </button>
         </div>
       </div>
     </div>

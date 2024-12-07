@@ -1,14 +1,14 @@
 <script setup>
 import PomodoroTimerWidget from './components/pomodoro/PomodoroTimerWidget.vue';
-import { useRoute } from 'vue-router';
 import { useUserStore } from './stores/account'
+import { usePomodoroStore } from './stores/pomodoro';
 
 const userStore = useUserStore()
-const currentRoute = useRoute()
+const pomodoroStore = usePomodoroStore()
 </script>
 
 <template>
-  <div class="container min-h-screen mx-auto flex flex-col pb-16 sm:!pb-0">
+  <div class="container min-h-screen mx-auto flex flex-col ">
     <div class="navbar relative bg-base-300 justify-around rounded-b-xl text-2xl !text-primary z-20">
       <RouterLink class="hover:!text-accent" to="/">
         <Icon icon="ic:round-dashboard" />
@@ -25,9 +25,9 @@ const currentRoute = useRoute()
         <Icon v-else icon="fluent:settings-48-filled" />
       </RouterLink>
     </div>
-    <div id="app" class="relative w-full grow px-2">
+    <div id="app" class="relative w-full grow px-2 pb-16 sm:!pb-0">
       <RouterView />
+      <PomodoroTimerWidget v-if="pomodoroStore.showPomodoroWidget()" />
     </div>
-    <PomodoroTimerWidget v-if="currentRoute.name !== 'pomodoro'" />
   </div>
 </template>

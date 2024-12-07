@@ -4,8 +4,10 @@ import { useAsyncState, useSessionStorage, whenever } from '@vueuse/core'
 import { defaultConfig, loadConfigs, loadLatestConfig } from '@/router/pomodoro/pomodoro.js'
 import { computed, watch } from 'vue'
 import { useToast } from 'vue-toastification'
+import { useRoute } from 'vue-router'
 
 export const usePomodoroStore = defineStore('pomodoro', () => {
+  const currentRoute = useRoute()
   const toast = useToast()
 
   const fallbackConfig = {
@@ -190,6 +192,10 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
     )
   }
 
+  function showPomodoroWidget() {
+    return currentRoute.name !== 'pomodoro' && pomodoro.value.started && !pomodoro.value.finished
+  }
+
   return {
     currentConfig,
     pomodoro,
@@ -203,6 +209,7 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
     setCurrentConfig,
     isPomodoroPhase,
     isShortBreakPhase,
-    isLongBreakPhase
+    isLongBreakPhase,
+    showPomodoroWidget
   }
 })

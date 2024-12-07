@@ -212,71 +212,65 @@ function toggleShowOptions(note) {
     </RouterLink>
   </ul>
   <div v-if="props.viewMode == 'grid'" class="m-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-    <<<<<<< HEAD:src/components/NoteView.vue <RouterLink :to="`/editor?edit=${note._id}`" v-for="note in filteredNotes"
-      :key="note._id"
-      class="card flex flex-col gap-1 p-3 relative bg-base-200 h-full hover:bg-overlay-0 hover:cursor-pointer">
-      =======
-      <RouterLink :to="`/editor?edit=${note._id}`" v-for="note in filteredNotes" :key="note._id"
-        style="position: inherit"
-        class="card flex flex-col gap-1 p-3 bg-base-200 h-full hover:bg-surface-0 hover:cursor-pointer">
-        >>>>>>> main:src/components/note/NoteView.vue
-        <div class="absolute right-0 top-0" v-if="props.edit" @open.stop.prevent="toggleShowOptions(note)">
-          <button :class="[
-            'btn rounded-tr-box rounded-circle btn-xs m-1 p-1',
-            note.showOptions ? 'btn-secondary text-lg' : 'hover:text-secondary btn-ghost'
-          ]" @click.stop.prevent="toggleShowOptions(note)">
-            <div v-if="!note.showOptions" class="text-xl">
-              <Icon icon="fluent:more-vertical-24-filled" />
-            </div>
-            <div v-else>
-              <Icon icon="mingcute:close-fill" />
-            </div>
-          </button>
+    <RouterLink :to="`/editor?edit=${note._id}`" v-for="note in filteredNotes" :key="note._id" style="position: inherit"
+      class="card flex flex-col gap-1 p-3 bg-base-200 h-full hover:bg-surface-0 hover:cursor-pointer">
+      <div class="absolute right-0 top-0" v-if="props.edit" @open.stop.prevent="toggleShowOptions(note)">
+        <button :class="[
+          'btn rounded-tr-box rounded-circle btn-xs m-1 p-1',
+          note.showOptions ? 'btn-secondary text-lg' : 'hover:text-secondary btn-ghost'
+        ]" @click.stop.prevent="toggleShowOptions(note)">
+          <div v-if="!note.showOptions" class="text-xl">
+            <Icon icon="fluent:more-vertical-24-filled" />
+          </div>
+          <div v-else>
+            <Icon icon="mingcute:close-fill" />
+          </div>
+        </button>
 
-          <div v-if="note.showOptions"
-            class="flex flex-col justify-center absolute bg-surface-0 rounded-[10px] gap-2 w-32 mx-auto z-10 p-2"
-            style="right: inherit">
-            <button @click.stop.prevent="duplicateNote(note._id)" role="button"
-              class="btn btn-sm btn-outline btn-primary flex justify-center items-center" title="Duplicate note">
-              <Icon icon="fluent:copy-24-regular" />Duplicate
-            </button>
-            <button @click.stop.prevent="removeNote(note._id)" role="button"
-              class="btn btn-sm btn-outline btn-error flex justify-center items-center" title="Delete note">
-              <Icon icon="fluent:delete-24-regular" />Delete
-            </button>
+        <div v-if="note.showOptions"
+          class="flex flex-col justify-center absolute bg-surface-0 rounded-[10px] gap-2 w-32 mx-auto z-10 p-2"
+          style="right: inherit">
+          <button @click.stop.prevent="duplicateNote(note._id)" role="button"
+            class="btn btn-sm btn-outline btn-primary flex justify-center items-center" title="Duplicate note">
+            <Icon icon="fluent:copy-24-regular" />Duplicate
+          </button>
+          <button @click.stop.prevent="removeNote(note._id)" role="button"
+            class="btn btn-sm btn-outline btn-error flex justify-center items-center" title="Delete note">
+            <Icon icon="fluent:delete-24-regular" />Delete
+          </button>
+        </div>
+      </div>
+      <h2 class="text-xl font-bold">{{ note.name }}</h2>
+      <div class="flex flex-row items-center w-full">
+        <div class="avatar w-10 m-2">
+          <div class="ring-primary ring-offset-base-100 rounded-full ring ring-offset-2">
+            <img :src="users[note.author]?.image"
+              :title="users[note.author]?.name + ' ' + users[note.author]?.surname" />
           </div>
         </div>
-        <h2 class="text-xl font-bold">{{ note.name }}</h2>
-        <div class="flex flex-row items-center w-full">
-          <div class="avatar w-10 m-2">
-            <div class="ring-primary ring-offset-base-100 rounded-full ring ring-offset-2">
-              <img :src="users[note.author]?.image"
-                :title="users[note.author]?.name + ' ' + users[note.author]?.surname" />
-            </div>
+        <div class="avatar-group w-full -space-x-6 hover:-space-x-0 rtl:space-x-reverse">
+          <div v-for="(reader, index) in note.readers.slice(0, 3)" class="avatar h-10" :key="index">
+            <img class="mask mask-circle !bg-secondary" :src="users[reader]?.image"
+              :title="users[reader]?.name + ' ' + users[reader]?.surname" />
           </div>
-          <div class="avatar-group w-full -space-x-6 hover:-space-x-0 rtl:space-x-reverse">
-            <div v-for="(reader, index) in note.readers.slice(0, 3)" class="avatar h-10" :key="index">
-              <img class="mask mask-circle !bg-secondary" :src="users[reader]?.image"
-                :title="users[reader]?.name + ' ' + users[reader]?.surname" />
-            </div>
-            <div v-if="note.readers.length > 3" class="avatar h-10 placeholder">
-              <div class="bg-neutral font-bold text-neutral-content">
-                <span>+{{ note.readers.length - 3 }}</span>
-              </div>
+          <div v-if="note.readers.length > 3" class="avatar h-10 placeholder">
+            <div class="bg-neutral font-bold text-neutral-content">
+              <span>+{{ note.readers.length - 3 }}</span>
             </div>
           </div>
         </div>
-        <p class="flex align-items-center gap-2">
-          <Icon icon="ic:round-update" /> {{ formatDate(note.date) }}
+      </div>
+      <p class="flex align-items-center gap-2">
+        <Icon icon="ic:round-update" /> {{ formatDate(note.date) }}
+      </p>
+      <!-- Tags -->
+      <div class="flex flex-row flex-wrap gap-2">
+        <p v-for="tag in note.tags" :key="tag._id" class="flex px-2 rounded-xl !bg-primary/50 font-semibold">
+          {{ tag }}
         </p>
-        <!-- Tags -->
-        <div class="flex flex-row flex-wrap gap-2">
-          <p v-for="tag in note.tags" :key="tag._id" class="flex px-2 rounded-xl !bg-primary/50 font-semibold">
-            {{ tag }}
-          </p>
-        </div>
-        <div id="preview" class="flex flex-col grow text-balance bg-base-300 card p-2 truncate"
-          v-html="truncate(note.data, 200)"></div>
-      </RouterLink>
+      </div>
+      <div id="preview" class="flex flex-col grow text-balance bg-base-300 card p-2 truncate"
+        v-html="truncate(note.data, 200)"></div>
+    </RouterLink>
   </div>
 </template>
