@@ -47,6 +47,7 @@
     "npm": "^10.8.2",
     "pinia": "^2.1.7",
     "swapy": "^0.4.2",
+    "tailwindcss-motion": "^0.4.1-beta",
     "uuid": "^10.0.0",
     "vue": "^3.4.21",
     "vue-router": "^4.3.0",

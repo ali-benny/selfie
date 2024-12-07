@@ -10,7 +10,8 @@
   /* Rimuove la larghezza massima */
 }
 
-.btn-outline {
+.btn-outline,
+.input-bordered {
   border-style: solid !important;
 }
 

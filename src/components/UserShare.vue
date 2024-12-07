@@ -106,7 +106,10 @@ async function sendshare() {
         ...props.modelValue.filter((id) => id !== undefined && id !== null),
         ...readers.map((reader) => reader._id).filter((id) => id !== undefined && id !== null)
       ])
-      await saveNoteMongo({ id: props.id, readers: props.modelValue.filter((id) => id !== undefined && id !== null) })
+      await saveNoteMongo({
+        id: props.id,
+        readers: props.modelValue.filter((id) => id !== undefined && id !== null)
+      })
       break
     }
     case 'Pomodoro': {

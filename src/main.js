@@ -24,8 +24,8 @@ const options = {
 app.use(Toast, options)
 
 app.use(createPinia())
-app.use(router)
 app.use(vuetify)
+app.use(router)
 app.component('Popper', Popper)
 app.component('Icon', Icon)
 app.component('Transition', Transition)

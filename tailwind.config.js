@@ -6,6 +6,7 @@ import daisyui from 'daisyui'
 import { flavors } from '@catppuccin/palette'
 import Color from 'colorjs.io'
 import { SCREENS } from './const'
+import tailwindcss_motion from 'tailwindcss-motion'
 
 const hexToOklch_coords = (hex) => {
   const color = new Color(hex).to('oklch')
@@ -68,7 +69,7 @@ export default {
       }
     }
   },
-  plugins: [typography, daisyui, addDynamicIconSelectors()],
+  plugins: [typography, daisyui, addDynamicIconSelectors(), tailwindcss_motion],
   daisyui: {
     themes: [
       fixCustomTheme({

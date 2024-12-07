@@ -78,9 +78,7 @@
 
             <!-- Pulsanti  -->
             <div class="flex flex-row justify-end gap-1">
-              <button type="button" class="btn btn-ghost" @click="close()">
-                Cancel
-              </button>
+              <button type="button" class="btn btn-ghost" @click="close()">Cancel</button>
               <input type="submit" value="Save" class="btn btn-outline btn-secondary" />
             </div>
           </div>

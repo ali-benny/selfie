@@ -91,7 +91,7 @@
           </div>
         </div>
       </div>
-      <div>
+      <div class="flex justify-around flex-wrap">
         <v-autocomplete
           bg-color="#494d64"
           item-color="#5b6078"
@@ -109,6 +109,44 @@
           variant="solo-filled"
           @keydown.enter.prevent="addTag"
         ></v-autocomplete>
+
+        <div class="flex items-center mx-4 mb-5 px-2 bg-surface-1 rounded-lg">
+          <div class="flex items-center gap-2">
+            <Icon icon="fluent:folder-20-filled" class="-right-10 !text-primary text-xl" />
+            <select v-model="selectedFolder" class="select select-sm select-ghost w-fit max-w-sm">
+              <option v-for="folder in folders" :key="folder._id" :value="folder._id">
+                {{ folder.name }}
+              </option>
+            </select>
+          </div>
+          <button
+            class="btn btn-ghost btn-sm hover:!text-secondary"
+            @click="showNewFolderDialog = true"
+          >
+            <Icon icon="fluent:folder-add-20-regular" />
+            New Folder
+          </button>
+        </div>
+
+        <!-- New Folder Dialog -->
+        <dialog id="new_folder_modal" class="modal" :open="showNewFolderDialog">
+          <div class="modal-box">
+            <h3 class="font-bold text-lg">Create New Folder</h3>
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Folder Name</span>
+              </label>
+              <input v-model="newFolderName" type="text" class="input input-bordered" />
+            </div>
+            <div class="modal-action">
+              <button class="btn" @click="showNewFolderDialog = false">Cancel</button>
+              <button class="btn btn-primary" @click="createFolder">Create</button>
+            </div>
+          </div>
+          <form method="dialog" class="modal-backdrop">
+            <button @click="showNewFolderDialog = false">close</button>
+          </form>
+        </dialog>
       </div>
       <EditorComponent v-if="showEditor" @editor-ready="onEditorReady" />
     </template>
@@ -122,6 +160,7 @@ import { getEditNoteTitle, getEditNoteId } from './editor.js'
 import {
   getNoteAuthor,
   getNoteTags,
+  getNoteById,
   getReaders,
   getReadersIds,
   saveNoteMongo,
@@ -129,8 +168,9 @@ import {
 } from './note.js'
 import { getTags, createTag } from '@/router/note/editor/tags'
 import UserShare from '@/components/UserShare.vue'
-import EditorComponent from '@/components/EditorComponent.vue'
+import EditorComponent from '@/components/note/EditorComponent.vue'
 import { useUserStore } from '@/stores/account'
+import { getDirectoryStructure, createDirectory } from './directory.js'
 
 export default {
   computed: {
@@ -150,6 +190,9 @@ export default {
       if (this.id) {
         this.author = await getNoteAuthor(this.id)
         this.readers = await getReadersIds(this.id)
+        const tmp = await getNoteById(this.id)
+        this.selectedFolder = tmp.directory
+        console.log('🔥 - mounted - tmp.directory:', tmp.directory)
       }
       // Mostra l'editor se è una nuova nota o se l'utente ha i permessi
       this.showEditor = !this.id || this.hasPermission
@@ -159,6 +202,7 @@ export default {
         this.selectedTags = await getNoteTags(this.id)
         this.readers_verbose = await getReaders(this.id)
       }
+      await this.refreshFolders()
     } catch (error) {
       console.error('Error during component initialization:', error)
     } finally {
@@ -189,7 +233,11 @@ export default {
       userStore: useUserStore(),
       readers: [],
       readers_verbose: [],
-      draggedReader: null
+      draggedReader: null,
+      selectedFolder: 'root',
+      folders: [],
+      showNewFolderDialog: false,
+      newFolderName: ''
     }
   },
   methods: {
@@ -198,6 +246,53 @@ export default {
     },
     toggleIcon() {
       this.isChecked = !this.isChecked
+    },
+    async createFolder() {
+      if (!this.newFolderName) return
+
+      try {
+        await createDirectory(this.newFolderName, 'root', this.userStore.loggedUser._id)
+
+        // Refresh directories
+        await this.refreshFolders()
+
+        // Update selected folder to new one
+        this.selectedFolder = this.newFolderName.toLowerCase().replace(/\s+/g, '-')
+
+        this.showNewFolderDialog = false
+        this.newFolderName = ''
+
+        toast.success('Folder created successfully')
+
+        // Emit event for NoteTree update
+        this.$emit('folder-created')
+      } catch (err) {
+        toast.error('Failed to create folder')
+        console.error(err)
+      }
+    },
+    async refreshFolders() {
+      try {
+        const directoryTree = await getDirectoryStructure(this.userStore.loggedUser._id)
+        // Convert tree to flat array for select dropdown
+        this.folders = this.flattenDirectoryTree(directoryTree)
+      } catch (err) {
+        console.error('Failed to refresh folders:', err)
+      }
+    },
+    // Helper to flatten directory tree for select dropdown
+    flattenDirectoryTree(node, arr = []) {
+      arr.push({
+        _id: node._id,
+        name: node.name
+      })
+
+      if (node.children) {
+        for (const child of node.children) {
+          this.flattenDirectoryTree(child, arr)
+        }
+      }
+      return arr
     },
     async saveNote() {
       const toast = useToast()
@@ -209,10 +304,12 @@ export default {
       try {
         const outputData = await this.editor.save()
         let newnote = false
+        console.log('🔥 - saveNote - this.selectedFolder:', this.selectedFolder)
         if (this.id == null) newnote = true
         this.id = await saveNoteMongo({
           id: this.id,
           filename: this.title,
+          directory: this.selectedFolder,
           data: outputData,
           tags: this.selectedTags,
           readers: this.readers,
@@ -256,6 +353,7 @@ export default {
         this.id = await saveNoteMongo({
           id: this.id,
           filename: this.title,
+          directory: this.selectedFolder,
           data: outputData,
           tags: this.selectedTags,
           readers: this.readers,

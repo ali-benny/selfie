@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full h-full">
+  <<<<<<< HEAD <div class="w-full h-full">
     <svg v-if="widget" width="100%" height="100%" ref="animationElem" class="overflow-hidden stroke-[.6em]"
       viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
       <g class="fill-none stroke-none">
@@ -20,7 +20,7 @@
           stroke-dasharray="1" />
       </g>
     </svg>
-  </div>
+    </div>
 </template>
 
 <script setup>
@@ -33,8 +33,8 @@ import { useElementSize, useMounted } from '@vueuse/core';
 const pomodoroColor = flavors.macchiato.colors.red.hex
 const breakColor = flavors.macchiato.colors.lavender.hex
 
+<<<<<<< HEAD
 const isMounted = useMounted()
-
 /*
  * Actual animation object of WEB Animation API
  */

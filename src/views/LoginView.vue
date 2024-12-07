@@ -1,8 +1,17 @@
 <template>
-  <div class="flex justify-center items-center h-full *:prose">
+  <div class="flex justify-center items-center min-h-[90vh] *:prose">
     <form class="card flex min-w-96 bg-surface-0 shadow-xl" @submit.prevent="handleSubmit">
       <div class="card-body pt-0">
-        <h2 class="card-title font-italic">Selfie</h2>
+        <h2 class="card-title font-italic mb-0">
+          Selfie >
+          {{
+            status == 'create'
+              ? 'Create new account'
+              : status == 'reset'
+                ? 'Reset password'
+                : 'Login'
+          }}
+        </h2>
         <div
           class="mt-2"
           :class="(status == 'create') === true ? 'md:flex flex-row' : 'items-center'"
@@ -56,14 +65,10 @@
                 required
               />
             </label>
-            <password-meter
-              v-if="status == 'create' || (status == 'reset' && focus == 'password1')"
-              :password="password1"
-            />
+            <password-meter v-if="status == 'create' || status == 'reset'" :password="password1" />
             <label
               v-if="status == 'create' || status == 'reset'"
-              class="input input-bordered flex items-center gap-2"
-              :class="focus == 'password1' ? 'my-2' : 'mb-2'"
+              class="input input-bordered flex items-center gap-2 my-3"
             >
               <Icon icon="fluent:key-16-filled" class="text-overlay-0" />
               <input
@@ -177,6 +182,7 @@ async function handleSubmit() {
         toast.error(error.message)
         console.error('Failed to reset password:', error)
       }
+      users.value = await getUsers()
       break
     default:
       await login()

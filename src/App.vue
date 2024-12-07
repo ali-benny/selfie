@@ -20,7 +20,7 @@ const currentRoute = useRoute()
         <Icon icon="fluent-emoji-high-contrast:tomato" />
       </RouterLink>
       <RouterLink class="hover:!text-accent" to="/user">
-        <img v-if="userStore.loggedUser?.image" :src="userStore.loggedUser.image" alt="User Image"
+        <img v-if="userStore.loggedUser.image" :src="userStore.loggedUser.image" alt="User Image"
           class="mask mask-squircle !bg-primary h-9 m-0" />
         <Icon v-else icon="fluent:settings-48-filled" />
       </RouterLink>

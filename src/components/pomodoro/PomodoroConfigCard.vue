@@ -36,7 +36,8 @@
       <div class="flex items-center gap-2">
         <Icon icon="fluent-emoji-flat:zzz" class="text-xl" />
         <p class="m-0">
-          {{ config.longBreakTime }}'<span class="text-black-50"> every {{ config.longBreakInterval }} breaks</span>
+          {{ config.longBreakTime }}'<span class="text-black-50">
+            every {{ config.longBreakInterval }} breaks</span>
         </p>
       </div>
     </div>
