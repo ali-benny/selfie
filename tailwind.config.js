@@ -5,6 +5,7 @@ import typography from '@tailwindcss/typography'
 import daisyui from 'daisyui'
 import { flavors } from '@catppuccin/palette'
 import Color from 'colorjs.io'
+import { SCREENS } from './const'
 
 const hexToOklch_coords = (hex) => {
   const color = new Color(hex).to('oklch')
@@ -47,6 +48,7 @@ const fixCustomTheme = ({
 export default {
   content: ['./index.html', './src/**/*.{vue,js,ts}'],
   theme: {
+    screens: SCREENS,
     extend: {
       colors: {
         surface: {

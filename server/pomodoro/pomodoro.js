@@ -196,7 +196,7 @@ app.post('/:userId/pomodoros/configs/', async (req, res) => {
     config.lastUsed = Date.now()
     await config.save()
 
-    res.status(200).send('Config created successfully!')
+    res.status(200).json(config)
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: err.message })

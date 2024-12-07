@@ -1,5 +1,5 @@
 <template>
-  <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 32 32" @click="console.log">
+  <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 32 32">
     <g fill="none">
       <path fill="#255e19" d="M15.99 5a1 1 0 0 1 1 1v4.42a1 1 0 1 1-2 0V6a1 1 0 0 1 1-1" />
       <path :fill="this.color"

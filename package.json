@@ -32,6 +32,7 @@
     "@editorjs/table": "^2.3.0",
     "@mdi/font": "^7.4.47",
     "@popperjs/core": "^2.11.8",
+    "@vueuse/core": "^11.3.0",
     "bcryptjs": "^2.4.3",
     "cheerio": "^1.0.0",
     "colorjs.io": "^0.5.2",

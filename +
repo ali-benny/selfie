@@ -1,6 +1,16 @@
 <template>
   <div class="w-full h-full">
-    <svg v-if="widget" width="100%" height="100%" ref="animationElem" class="overflow-hidden stroke-[.6em]"
+    <svg v-if="widget && isSmallScreen" width="100%" height="100%" class="overflow-hidden stroke-[.15em]"
+      viewBox="0 0 48 16" xmlns="http://www.w3.org/2000/svg">
+      <g class=" fill-none stroke-none">
+        <line id="dot" x1="24" y1="0" x2="24" y2="0" :stroke="breakColor" class="linecap-round" pathLength="1" />
+        <rect width="48" height="16" class="linecap-round stroke-surface-0/50" />
+        <polygon ref="progress" points="24,0 0,0 0,16, 48,16 48,0 24,0" class="linecap-round" pathLength="1"
+          stroke-dasharray=" 1">
+        </polygon>
+      </g>
+    </svg>
+    <svg v-else-if="widget" width="100%" height="100%" ref="animationElem" class="overflow-hidden stroke-[.6em]"
       viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
       <g class="fill-none stroke-none">
         <line id="dot" x1="50" y1="0" x2="50" y2="0" vector-effect="non-scaling-stroke" :stroke="breakColor"
@@ -27,7 +37,8 @@
 import { flavors } from '@catppuccin/palette'
 import { usePomodoroStore } from '@/stores/pomodoro';
 import { storeToRefs } from 'pinia';
-import { computed, onMounted, reactive, useTemplateRef, watch } from 'vue';
+import { computed, onMounted, reactive, useTemplateRef, watch, watchEffect } from 'vue';
+import { useScreens } from '@/stores/screens';
 import { useElementSize, useMounted } from '@vueuse/core';
 
 const pomodoroColor = flavors.macchiato.colors.red.hex
@@ -48,8 +59,10 @@ const animationSize = reactive(useElementSize(animationElem, { width: 0, height:
 
 const progress = useTemplateRef('progress')
 
-const pomodoroDashoffset = computed(() => widget ? [0, -progressPathLength.value] : [0, 1])
-const breakDashoffset = computed(() => widget ? [progressPathLength.value, 0] : [-1, 0])
+const isSmallScreen = computed(() => useScreens().isSmallScreen)
+
+const pomodoroDashoffset = computed(() => widget ? (isSmallScreen.value ? [0, -1] : [0, -progressPathLength.value]) : [0, 1])
+const breakDashoffset = computed(() => widget ? (isSmallScreen.value ? [1, 0] : [progressPathLength.value, 0]) : [-1, 0])
 
 const pomodoroKeyframes = computed(() => {
   return {
@@ -87,9 +100,13 @@ onMounted(() => restart())
 
 watch([() => currentConfig.value._id, () => pomodoro.value.phase], () => restart())
 
+setInterval(() => {
+  if (animation) {
+    console.log(animation.playState)
+  }
+}, 1000)
 
 watch(() => currentTime.value, () => {
-  if (!animation) return
   if (pomodoro.value.running) {
     if (animation.playState !== 'running')
       animation.play()
@@ -99,25 +116,22 @@ watch(() => currentTime.value, () => {
   animation.currentTime = currentTime.value * 1000
 })
 
-watch(() => pomodoro.value.running, () => {
-  if (!animation) return
-
-  if (pomodoro.value.running) {
-    animation.currentTime = currentTime.value * 1000
+watchEffect(() => {
+  if (pomodoro.value.running)
     animation.play()
-  } else
+  else
     animation.pause()
 })
 
-watch(() => animationSize.width, () => { if (widget) restart() })
+watch(() => animationSize.width, () => { if (widget && !isSmallScreen.value) restart() })
 
-/* Termina l'animazione in corso (se esiste), e ne fa partire una nuova  */
+/* Termina l'animazione in corso (se esiste), e ne fa partire una nuova con la stessa 
+ * durata e fase
+ */
 function restart() {
   if (!isMounted.value) return
 
-  if (animation) {
-    animation.cancel()
-  }
+  animation.cancel()
 
   animation = progress.value.animate(animationKeyframes.value, {
     duration: pomodoro.value.initialTimer * 1000,
@@ -125,13 +139,11 @@ function restart() {
   })
 
   animation.currentTime = currentTime.value * 1000
-
-  if (pomodoro.value.running) animation.play()
-  else animation.pause()
+  animation.pause()
 }
 
 /*
- * Used when animation is widget to make the animation responsive
+ * Used on small screens to make the animation responsive
  */
 const progressPathLength = computed(() => (animationSize.width + animationSize.height) * 2)
 </script>

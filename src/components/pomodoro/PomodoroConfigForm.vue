@@ -1,16 +1,16 @@
 <template>
-  <Popper @open:popper="openHandler" v-bind="this.$attrs" arrow>
+  <Popper @open:popper="openHandler" :locked="locked" :placement="placement" arrow>
     <slot name="trigger"></slot>
     <template #content="{ close }">
       <div class="w-screen sm:w-80 h-100 p-3 rounded-box flex flex-col items-stretch gap-2" @keyup.escape="close()">
         <!-- Header e delete -->
         <div class="flex justify-between items-center cursor-default">
           <h4 class="font-bold">
-            <span v-if="this.config">Edit your focus</span>
+            <span v-if="config">Edit your focus</span>
             <span v-else>Create your new focus</span>
           </h4>
-          <button v-if="this.config" class="btn btn-outline btn-error btn-sm " @click="deleteConfig(close)"
-            :disabled="this.disableDelete">
+          <button class="btn btn-outline btn-error btn-sm " @click="deleteConfig(close)"
+            :disabled="pomodoroStore.isConfigSelected(config)" v-if="config">
             <Icon icon="fluent:delete-32-regular" />
           </button>
         </div>
@@ -22,8 +22,8 @@
               <div class="label">
                 <span class="label-text">Name</span>
               </div>
-              <input type="text" v-model="form_config.name" class="input input-bordered input-md" placeholder="Pomodoro"
-                ref="input_configName" required />
+              <input type="text" v-model="editableConfig.name" class="input input-bordered input-md"
+                placeholder="Pomodoro" ref="configName" required />
             </label>
 
             <!-- Pomodoro time -->
@@ -36,7 +36,7 @@
                   <div class="label">
                     <span class="label-text">Focus</span>
                   </div>
-                  <input type="text" v-model="form_config.pomodoroTime"
+                  <input type="text" v-model="editableConfig.pomodoroTime"
                     class="w-fit input input-bordered input-md text-center" maxlength="2" size="2" inputmode="numeric"
                     pattern="[0-9]*" placeholder="25" required />
                 </label>
@@ -45,7 +45,7 @@
                   <div class="label">
                     <span class="label-text">Short break</span>
                   </div>
-                  <input type="text" v-model="form_config.shortBreakTime"
+                  <input type="text" v-model="editableConfig.shortBreakTime"
                     class="w-fit input input-bordered input-md text-center" maxlength="2" size="2" inputmode="numeric"
                     pattern="[0-9]*" placeholder="5" required />
                 </label>
@@ -54,7 +54,7 @@
                   <div class="label">
                     <span class="label-text">Long break</span>
                   </div>
-                  <input type="text" v-model="form_config.longBreakTime"
+                  <input type="text" v-model="editableConfig.longBreakTime"
                     class="w-fit input input-bordered input-md text-center" maxlength="2" size="2" inputmode="numeric"
                     pattern="[0-9]*" placeholder="20" required />
                 </label>
@@ -62,14 +62,14 @@
             </div>
             <div class="flex justify-between items-center">
               <label>Long break interval</label>
-              <input type="text" v-model="form_config.longBreakInterval" class="input input-sm input-bordered"
+              <input type="text" v-model="editableConfig.longBreakInterval" class="input input-sm input-bordered"
                 maxlength="2" size="2" inputmode="numeric" pattern="[0-9]*" placeholder="4" required />
             </div>
 
             <!-- Colore -->
             <div class="flex justify-between items-center">
               <label>Color</Label>
-              <select name="color" v-model="form_config.color" class="select select-sm" required>
+              <select name="color" v-model="editableConfig.color" class="select select-sm" required>
                 <option v-for="(color, idx) in colors" :key="idx" :value="{ name: color.name, hex: color.hex }">
                   {{ color.name }}
                 </option>
@@ -90,94 +90,85 @@
   </Popper>
 </template>
 
-<script>
+<script setup>
 import { useToast } from 'vue-toastification'
 import { flavors } from '@catppuccin/palette'
 import { createPomodoroConfig, deletePomodoroConfig, updatePomodoroConfig } from '@/router/pomodoro/pomodoro'
 import { useUserStore } from '@/stores/account'
+import { computed, nextTick, ref, useTemplateRef } from 'vue';
+import { usePomodoroStore } from '@/stores/pomodoro';
+
+const colors = [
+  flavors.macchiato.colors.rosewater,
+  flavors.macchiato.colors.flamingo,
+  flavors.macchiato.colors.pink,
+  flavors.macchiato.colors.mauve,
+  flavors.macchiato.colors.red,
+  flavors.macchiato.colors.maroon,
+  flavors.macchiato.colors.peach,
+  flavors.macchiato.colors.yellow,
+  flavors.macchiato.colors.teal,
+  flavors.macchiato.colors.sky,
+  flavors.macchiato.colors.sapphire,
+  flavors.macchiato.colors.blue,
+  flavors.macchiato.colors.lavender
+]
 
 const toast = useToast()
 
-export default {
-  props: {
-    config: Object,
-    placement: String,
-    locked: Boolean,
-    arrow: Boolean,
-    disableDelete: {
-      type: Boolean,
-      default: false
-    }
+const { configId, placement, locked } = defineProps({
+  configId: {
+    type: String,
+    default: null
   },
-  emits: ['submit', 'update:config', 'delete'],
-  data() {
-    return {
-      form_config: null,
-      userId: null,
-      colors: [
-        flavors.macchiato.colors.rosewater,
-        flavors.macchiato.colors.flamingo,
-        flavors.macchiato.colors.pink,
-        flavors.macchiato.colors.mauve,
-        flavors.macchiato.colors.red,
-        flavors.macchiato.colors.maroon,
-        flavors.macchiato.colors.peach,
-        flavors.macchiato.colors.yellow,
-        flavors.macchiato.colors.teal,
-        flavors.macchiato.colors.sky,
-        flavors.macchiato.colors.sapphire,
-        flavors.macchiato.colors.blue,
-        flavors.macchiato.colors.lavender
-      ]
-    }
-  },
-  created() {
-    this.form_config = { ...this.config }
-    this.userId = useUserStore().loggedUser._id
-  },
-  methods: {
-    async saveConfig(close) {
-      try {
-        if (this.config) {
-          await updatePomodoroConfig(this.form_config)
-          toast.success('Focus saved!')
-        } else {
-          await createPomodoroConfig(this.userId, this.form_config)
-          toast.success('Focus created successfully!')
-        }
-        this.$emit('update:config', this.form_config)
-        this.$emit('submit', 'success')
+  placement: String,
+  locked: Boolean
+})
+const pomodoroStore = usePomodoroStore()
+const configMap = usePomodoroStore().configMap
+const config = computed(() => configMap.get(configId))
+const editableConfig = ref({ ...config.value }, {})
 
-        close()
-      } catch (error) {
-        console.error(error.message)
-        toast.error('Failed to save focus')
-      }
-    },
-    async deleteConfig(close) {
-      try {
-        await deletePomodoroConfig(this.form_config._id)
+const configName = useTemplateRef('configName')
+const userId = useUserStore().loggedUser._id
 
-        this.$emit('delete')
-        toast.success('Focus deleted')
+async function saveConfig(close) {
+  try {
+    if (configId) {
+      configMap.set(configId, { ...editableConfig.value })
+      if (pomodoroStore.isConfigSelected(config.value))
+        pomodoroStore.setCurrentConfig(config.value)
+      await updatePomodoroConfig(config.value)
+      toast.success('Focus saved!')
+    } else {
+      const createdConfig = await createPomodoroConfig(userId, editableConfig.value)
+      configMap.set(createdConfig._id, createdConfig)
+      editableConfig.value = {}
+      toast.success('Focus created successfully!')
+    }
 
-        close()
-      } catch (error) {
-        console.error(error.message)
-        toast.error('Failed to delete focus')
-      }
-    },
-    openHandler() {
-      this.form_config = { ...this.config }
-      // From https://stackoverflow.com/questions/1096436/document-getelementbyidid-focus-is-not-working-for-firefox-or-chrome
-      window.setTimeout(() => this.$refs.input_configName.focus(), 0)
-    }
-  },
-  computed: {
-    configName() {
-      return this.$refs.configName
-    }
+    close()
+  } catch (error) {
+    console.error(error.message)
+    toast.error('Failed to save focus')
   }
+}
+
+async function deleteConfig(close) {
+  try {
+    configMap.delete(configId)
+    await deletePomodoroConfig(configId)
+    toast.success('Focus deleted')
+    close()
+  } catch (error) {
+    console.error(error.message)
+    toast.error('Failed to delete focus')
+  }
+}
+
+async function openHandler() {
+  await nextTick()
+  configName.value.focus()
 }
 </script>
 <style scoped>

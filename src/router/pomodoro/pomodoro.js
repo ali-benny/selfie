@@ -42,6 +42,37 @@ export async function loadPomodoro(userId) {
   }
 }
 
+export async function loadPomodoro_(userId, fallbackConfig = defaultConfig) {
+  if (userId == null) return null
+  try {
+    const response = await fetch(API_URL + `/${userId}/pomodoros`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+
+    if (!response.ok) {
+      throw new Error(`ERROR - loadPomodoro, response status ${response.status}`)
+    }
+    return (
+      (await response.json()) || {
+        config: fallbackConfig,
+        initialTimer: null,
+        timer: null,
+        phase: null,
+        cycle: 1,
+        started: false,
+        running: false,
+        finished: false,
+        timeoutId: null
+      }
+    )
+  } catch (error) {
+    console.error(error.message)
+  }
+}
+
 /*
  * Aggiorna i campi di un Pomodoro esistente
  */
@@ -71,7 +102,7 @@ export async function updatePomodoro(pomodoro) {
 /*
  * Crea un nuovo timer Pomodoro
  */
-async function createPomodoro(userId, config) {
+export async function createPomodoro(userId, config) {
   try {
     const response = await fetch(API_URL + `/${userId}/pomodoros`, {
       method: 'POST',
@@ -125,29 +156,12 @@ export async function loadConfigs(userId) {
     if (!response.ok) {
       throw new Error(`ERROR - loadPomodoro, response status ${response.status}`)
     }
-    return response.json()
+    const arr = await response.json()
+    return new Map(arr.map((config) => [config._id, config]))
   } catch (error) {
     console.error(error.message)
   }
 }
-
-// export async function loadLatestConfigs() {
-//   try {
-//     const response = await fetch(API_URL + '/pomodoros/configs?sort=lastUsed,-1', {
-//       method: 'GET',
-//       headers: {
-//         'Content-Type': 'application/json'
-//       }
-//     })
-
-//     if (!response.ok) {
-//       throw new Error(`ERROR - loadLatestConfigs, response status ${response.status}`)
-//     }
-//     return response.json()
-//   } catch (error) {
-//     console.error(error.message)
-//   }
-// }
 
 /*
  * Crea la Config
@@ -164,6 +178,7 @@ export async function createPomodoroConfig(userId, config) {
     if (!response.ok) {
       throw new Error(`ERROR - createPomodoroConfig, response status ${response.status}`)
     }
+    return response.json()
   } catch (error) {
     console.error(error.message)
   }
@@ -189,7 +204,11 @@ export async function updatePomodoroConfig(config) {
 /*
  * Carica la config usata più di recente
  */
-export async function loadLatestConfig(userId) {
+export async function loadLatestConfig(
+  userId,
+  fallbackConfig = { ...defaultConfig, userId: userId }
+) {
+  if (!userId) return fallbackConfig
   try {
     const response = await fetch(API_URL + `/${userId}/pomodoros/configs/latest`, {
       method: 'GET',
@@ -201,7 +220,7 @@ export async function loadLatestConfig(userId) {
     if (!response.ok) {
       throw new Error(`ERROR - loadLatesConfig, response status ${response.status}`)
     }
-    return response.json()
+    return (await response.json()) || fallbackConfig
   } catch (error) {
     console.error(error.message)
   }

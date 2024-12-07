@@ -1,28 +1,23 @@
 <template>
   <div>
-    <p v-if="userId === ''">
-      Auth required.
-    </p>
-
-    <div class="w-full h-full flex flex-col items-stretch gap-10" v-if="userId !== ''">
+    <div class="w-full h-full flex flex-col items-stretch gap-10">
 
       <!--- Pomodoro Timer -->
-      <div id="timer-container" class="grow pt-10" :class="{ 'flex-animation': !showConfigs }">
-        <PomodoroTimer @play="showConfigs = false" @pause="showConfigs = true" ref="timer" />
+      <div id="timer-container" class="grow pt-10" :class="{ 'flex-animation': !showConfigList }">
+        <PomodoroTimer />
       </div>
 
       <!-- Pomodoro configs -->
       <Transition :duration="2000" name="config-fade">
-        <div class="flex flex-col items-stretch gap-2 pb-4" v-if="showConfigs">
+        <div class="flex flex-col items-stretch gap-2 pb-4" v-if="showConfigList">
           <div class="flex justify-between items-center">
             <h2 class="font-bold text-lg">
               Your saved focuses
             </h2>
 
-            <PomodoroConfigForm @submit="(res) => { if (res === 'success') this.$refs.configList.loadConfigs() }"
-              :disabled="!showConfigs">
+            <PomodoroConfigForm>
               <template #trigger>
-                <button class="btn btn-sm btn-accent" :disabled="!showConfigs">
+                <button class="btn btn-sm btn-accent" :disabled="!showConfigList">
                   New focus
                   <Icon icon="fluent:new-24-regular" class="text-xl" />
                 </button>
@@ -30,10 +25,7 @@
             </PomodoroConfigForm>
           </div>
 
-
-          <div>
-            <PomodoroConfigList @select="reloadPomodoro" :selected="this.timer?.config" ref="configList" />
-          </div>
+          <PomodoroConfigList />
         </div>
       </Transition>
     </div>
@@ -41,49 +33,15 @@
 
 </template>
 
-<script>
+<script setup>
 import PomodoroConfigForm from '@/components/pomodoro/PomodoroConfigForm.vue';
 import PomodoroConfigList from '@/components/pomodoro/PomodoroConfigList.vue';
 import PomodoroTimer from '@/components/pomodoro/PomodoroTimer.vue';
-import { useUserStore } from '@/stores/account';
+import { usePomodoroStore } from '@/stores/pomodoro';
+import { computed } from 'vue';
 
+const showConfigList = computed(() => !usePomodoroStore().pomodoro.running)
 
-export default {
-  data() {
-    return {
-      showConfigs: true,
-      isMounted: false,
-      userId: null
-    }
-  },
-  created() {
-    this.userId = useUserStore().loggedUser._id
-    console.log(this.userId)
-  },
-  mounted() {
-    this.isMounted = true
-  },
-  methods: {
-    reloadPomodoro(config) {
-      this.timer.replacePomodoro(config)
-    },
-  },
-  computed: {
-    timer() {
-      if (!this.isMounted) return
-      return this.$refs.timer
-    },
-    configList() {
-      if (!this.isMounted) return
-      return this.$refs.configList
-    }
-  },
-  components: {
-    PomodoroTimer,
-    PomodoroConfigList,
-    PomodoroConfigForm
-  }
-}
 </script>
 
 <style scoped>
@@ -111,7 +69,7 @@ export default {
 
 @keyframes flex-grow {
   100% {
-    flex-grow: 1;
+    grow: 1
   }
 }
 </style>

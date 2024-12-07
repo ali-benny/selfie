@@ -1,11 +1,10 @@
 <template>
-  <div class="max-w-56 sm:max-w-64 h-full card card-compact sm:card-normal" @click="$emit('select')"
-    :class="{ selected: this.selected }">
+  <div class="max-w-56 sm:max-w-64 h-full card card-compact sm:card-normal"
+    @click="pomodoroStore.setCurrentConfig(config)" :class="{ selected: pomodoroStore.isConfigSelected(config) }">
     <div class="card-body relative">
       <!-- Form edit -->
       <div @click.stop class="absolute top-4 right-4 flex justify-center align-center">
-        <PomodoroConfigForm :config="config" @update:config="$emit('update:config', $event)" @delete="$emit('delete')"
-          :disable-delete="selected">
+        <PomodoroConfigForm :configId="configId">
           <template #trigger>
             <button class="z-10 text-secondary">
               <Icon icon="fluent:edit-48-filled" />
@@ -27,11 +26,11 @@
 
       <!-- Dati config -->
       <div class="flex items-center gap-2">
-        <Icon icon="fluent-emoji-flat:tomato" :inline="true" class="text-xl" />
+        <Icon icon="fluent-emoji-flat:tomato" inline class="text-xl" />
         <p class="m-0">{{ config.pomodoroTime }}'</p>
       </div>
       <div class="flex items-center gap-2">
-        <Icon icon="fluent-emoji-flat:teacup-without-handle" :inline="true" class="text-xl" />
+        <Icon icon="fluent-emoji-flat:teacup-without-handle" inline class="text-xl" />
         <p class="m-0">{{ config.shortBreakTime }}'</p>
       </div>
       <div class="flex items-center gap-2">
@@ -44,28 +43,22 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import PomodoroConfigForm from './PomodoroConfigForm.vue'
 import IconPomodoro from '../icons/IconPomodoro.vue'
+import { usePomodoroStore } from '@/stores/pomodoro';
+import { computed } from 'vue';
 
-export default {
-  props: {
-    config: {
-      required: true
-    },
-    selected: Boolean
-  },
-  emits: [
-    'select',
-    'update:config',
-    'delete'
-  ],
-  components: {
-    PomodoroConfigForm,
-    IconPomodoro
+const { configId } = defineProps({
+  configId: {
+    type: String,
+    required: true
   }
-}
+})
+const pomodoroStore = usePomodoroStore()
+const config = computed(() => pomodoroStore.configMap.get(configId))
 </script>
+
 <style lang="postcss" scoped>
 .card {
   @apply transition-all bg-base-200 shadow-lg shadow-base-300 border-2 border-base-300;

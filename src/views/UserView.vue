@@ -138,8 +138,8 @@ onMounted(fetchUsers)
           </button>
         </div>
         <div class="flex flex-row gap-2 justify-center items-center">
-          <img :src="userStore.loggedUser.image" class="mask mask-squircle w-48 m-0" />
-          <h3 class="m-0">{{ userStore.loggedUser.name }} {{ userStore.loggedUser.surname }}</h3>
+          <img :src="userStore.loggedUser?.image" class="mask mask-squircle w-48 m-0" />
+          <h3 class="m-0">{{ userStore.loggedUser?.name }} {{ userStore.loggedUser?.surname }}</h3>
         </div>
         <h4 class="flex items-center justify-center gap-2 m-0" v-if="!editUser">
           <Icon icon="mingcute:birthday-2-fill" />
@@ -161,7 +161,7 @@ onMounted(fetchUsers)
     <div class="divider divider-primary md:divider-horizontal"></div>
     <div class="flex flex-col grow m-5 prose">
       <h1>Login with</h1>
-      <UserDropdown :users="users" :selectedUserId="userStore.loggedUser._id" @update:selectedUserId="selectUser" />
+      <UserDropdown :users="users" :selectedUserId="userStore.loggedUser?._id" @update:selectedUserId="selectUser" />
       <div class="divider"></div>
       <h2 class="mt-0">Change Profile Avatar</h2>
       <div class="flex flex-row justify-around items-center">
