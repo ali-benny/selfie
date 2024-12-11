@@ -1,8 +1,10 @@
 <script setup>
+import { ref } from 'vue'
 import { API_URL } from '~/const.js'
 import { useUserStore } from '@/stores/account.js'
+import { updateGroup } from '@/router/group/group.js'
 import GroupList from '@/components/group/GroupList.vue'
-import { ref } from 'vue'
+import UserShare from '@/components/UserShare.vue'
 
 var new_group = {}
 const selectedGroup = ref(null)
@@ -30,10 +32,20 @@ async function createGroup() {
     console.error('ERROR: createGroup')
   }
 }
+
+async function saveGroup(group) {
+  if (selectedGroup.value) {
+    const updateFields = {
+      description: selectedGroup.value.description
+    }
+    const updatedGroup = await updateGroup(selectedGroup.value._id, updateFields)
+    selectedGroup.value = updatedGroup
+  }
+}
 </script>
 
 <template>
-  <div class="flex flex-row w-full h-full mt-3 prose">
+  <div class="flex flex-row w-full mt-3 prose">
     <div class="flex flex-col w-1/2">
       <div class="flex items-baseline justify-between">
         <h2>My Groups</h2>
@@ -61,19 +73,23 @@ async function createGroup() {
       </div>
       <GroupList @select-group="handleSelectGroup"></GroupList>
     </div>
-    <div class="divider divider-horizontal"></div>
-    <div class="flex flex-col w-1/2" id="dynamic-view">
-      <div v-if="selectedGroup">
+    <div v-if="selectedGroup != null" class="divider divider-horizontal"></div>
+    <Transition name="slide-fade" :duration="550">
+      <div v-if="selectedGroup != null" class="flex flex-col w-full bg-surface-0 rounded-box p-5 h-min pt-0 my-auto" id="dynamic-view">
         <div class="flex items-baseline justify-between">
           <h2>{{ selectedGroup.name }}</h2>
-          <button class="btn btn-secondary rounded-box btn-sm"><Icon icon="fluent:save-edit-20-filled" />Save</button>
+          <button class="btn btn-secondary rounded-box btn-sm" @click="saveGroup(selectedGroup)">
+            <Icon icon="fluent:save-edit-20-filled" />Save
+          </button>
         </div>
-        <textarea class="textarea textarea-borderd w-full" :value="selectedGroup.description" />
-        <UserShare></UserShare>
+        <label class="form-control">
+          <div class="label">
+            <span class="label-text">Description</span>
+          </div>
+            <textarea class="textarea textarea-borderd w-full" :value="selectedGroup.description" />
+        </label>
+        <UserShare :id="selectedGroup._id" type="Group" msg="Invites"></UserShare>
       </div>
-      <div v-else>
-        <p>Seleziona un gruppo per gestirlo</p>
-      </div>
-    </div>
+      </Transition>
   </div>
 </template>

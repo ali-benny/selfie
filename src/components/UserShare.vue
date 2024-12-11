@@ -38,7 +38,7 @@
           class="btn btn-outline btn-primary mt-2 flex items-center justify-center rounded-lg gap-2"
           @click="sendshare()"
         >
-          Condividi<Icon icon="fluent:send-person-16-filled" />
+          {{ props.msg }}<Icon icon="fluent:send-person-16-filled" />
         </button>
       </div>
     </template>
@@ -50,6 +50,7 @@ import { ref, onMounted } from 'vue'
 import { API_URL } from '../../const'
 import { useToast } from 'vue-toastification'
 import { saveNoteMongo, getReadersIds } from '@/router/note/editor/note'
+import { updateGroup } from '@/router/group/group'
 
 const toast = useToast()
 
@@ -64,7 +65,11 @@ const props = defineProps({
     validator: (value) => value.every((item) => typeof item === 'string')
   },
   id: String,
-  type: String
+  type: String,
+  msg: {
+    type: String,
+    default: 'Share'
+  }
 })
 
 onMounted(async () => {
@@ -119,6 +124,9 @@ async function sendshare() {
     case 'Event': {
       //TODO: add user to event share
       break
+    }
+    case 'Group': {
+      await updateGroup(props.id, { members: props.modelValue })
     }
   }
   sharewith.value = []

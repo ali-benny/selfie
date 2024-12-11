@@ -75,14 +75,28 @@ app.get('/group/:id', async (req, res) => {
  * Update a group by id
  */
 app.patch('/group/:id', async (req, res) => {
-	const id = req.params.id
-	try {
-		await Group.findByIdAndUpdate(id, { $set: req.body })
-		res.status(200).send('Group updated successfully!')
-	} catch (err) {
-		console.error(err)
-		res.status(500).json({ error: err.message })
-	}
+  const id = req.params.id
+  const updateFields = req.body
+
+  try {
+    // Verifica che l'ID sia valido
+    if (!id) {
+      return res.status(400).json({ error: 'Invalid group ID' })
+    }
+
+    // Verifica che ci siano campi da aggiornare
+    if (Object.keys(updateFields).length === 0) {
+      return res.status(400).json({ error: 'No fields to update' })
+    }
+
+    // Aggiorna solo i campi specificati
+    const updatedGroup = await Group.findByIdAndUpdate(id, { $set: updateFields }, { new: true })
+
+    res.status(200).json(updatedGroup)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: err.message })
+  }
 })
 
 /**
