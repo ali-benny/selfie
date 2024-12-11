@@ -4,7 +4,7 @@ import { Icon } from '@iconify/vue'
 import edjsHTML from 'editorjs-html'
 import { API_URL } from '~/const.js'
 import { getNotes, saveNoteMongo, deleteNote } from '@/router/note/editor/note.js'
-import { useToast } from 'vue-toastification'
+import { useNotivue } from 'notivue'
 import { useUserStore } from '@/stores/account'
 import { getUsersByIds } from '@/router/user/user.js'
 
@@ -16,10 +16,13 @@ const props = defineProps({
   edit: Boolean,
   extended: Boolean,
   order: String,
-  filter: Array
+  filter: Array,
+  refreshNotes: Boolean
 })
+defineEmits(['noteDeleted', 'noteAdded'])
+
 const notes = ref([])
-const toast = useToast()
+// const toast = useNotivue()
 const users = ref({})
 
 const checklistParser = (block) => {
@@ -72,9 +75,9 @@ async function duplicateNote(id) {
     })
 
     notes.value = await getNotes(userStore.loggedUser._id)
-    toast.success('Note duplicated successfully')
+    push.success('Note duplicated successfully')
   } catch (error) {
-    toast.error('Error - duplicating note:', error)
+    push.error('Error - duplicating note:', error)
   }
 }
 
@@ -132,10 +135,10 @@ async function removeNote(id) {
   try {
     await deleteNote(id)
     notes.value = await getNotes(userStore.loggedUser._id)
-    toast.success('Note deleted successfully')
+    push.success('Note deleted successfully')
   } catch (error) {
     console.error('Failed to delete note:', error)
-    toast.error('Failed to delete note')
+    push.error('Failed to delete note')
   }
 }
 

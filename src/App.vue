@@ -1,5 +1,6 @@
 <script setup>
 import { useUserStore } from './stores/account'
+import { Notivue, Notification } from 'notivue'
 
 const userStore = useUserStore()
 </script>
@@ -27,6 +28,9 @@ const userStore = useUserStore()
       </RouterLink>
     </div>
     <div id="app" class="w-full grow">
+      <Notivue v-slot="item">
+        <Notification :item="item" />
+      </Notivue>
       <RouterView class="px-2" />
     </div>
   </div>

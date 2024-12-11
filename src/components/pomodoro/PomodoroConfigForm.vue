@@ -138,7 +138,7 @@
 </template>
 
 <script>
-import { useToast } from 'vue-toastification'
+import { useNotivue } from 'notivue'
 import { flavors } from '@catppuccin/palette'
 import {
   createPomodoroConfig,
@@ -146,7 +146,7 @@ import {
   updatePomodoroConfig
 } from '@/router/pomodoro/pomodoro'
 
-const toast = useToast()
+// const toast = useNotivue()
 
 export default {
   props: {
@@ -184,10 +184,10 @@ export default {
       try {
         if (this.config) {
           await updatePomodoroConfig(this.form_config)
-          toast.success('Focus saved!')
+          push.success('Focus saved!')
         } else {
           await createPomodoroConfig(this.form_config)
-          toast.success('Focus created successfully!')
+          push.success('Focus created successfully!')
         }
         this.$emit('update:config', this.form_config)
         this.$emit('submit', 'success')
@@ -195,7 +195,7 @@ export default {
         close()
       } catch (error) {
         console.error(error.message)
-        toast.error('Failed to save focus')
+        push.error('Failed to save focus')
       }
     },
     async deleteConfig(close) {
@@ -203,12 +203,12 @@ export default {
         await deletePomodoroConfig(this.form_config._id)
 
         this.$emit('delete')
-        toast.success('Focus deleted')
+        push.success('Focus deleted')
 
         close()
       } catch (error) {
         console.error(error.message)
-        toast.error('Failed to delete focus')
+        push.error('Failed to delete focus')
       }
     },
     openHandler() {

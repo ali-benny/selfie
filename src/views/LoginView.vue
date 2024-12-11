@@ -116,9 +116,9 @@ import { createUser, getUsers, updateUser } from '@/router/user/user'
 import { API_URL } from '~/const'
 import passwordMeter from 'vue-simple-password-meter'
 import bcrypt from 'bcryptjs'
-import { useToast } from 'vue-toastification'
+import { useNotivue } from 'notivue'
 import { useUserStore } from '@/stores/account'
-const toast = useToast()
+// const toast = useNotivue()
 
 const focus = ref('')
 const status = ref('')
@@ -162,7 +162,7 @@ async function handleSubmit() {
     case 'create':
       if (!isExtistingUser()) {
         if (!checkPassword()) {
-          toast.warning('Passwords do not match')
+          push.warning('Passwords do not match')
           break
         }
         await createAccount()
@@ -170,16 +170,16 @@ async function handleSubmit() {
       break
     case 'reset':
       if (!checkPassword()) {
-        toast.warning('Passwords do not match')
+        push.warning('Passwords do not match')
         break
       }
       const user = users.value.find((user) => user.username === username.value)
       try {
         await updateUser(user._id, { password: password1.value })
-        toast.success('Password reset successfully!')
+        push.success('Password reset successfully!')
         status.value = ''
       } catch (error) {
-        toast.error(error.message)
+        push.error(error.message)
         console.error('Failed to reset password:', error)
       }
       users.value = await getUsers()
@@ -194,7 +194,7 @@ function isExtistingUser() {
   const existingUser = users.value.find((user) => user.username === username.value)
 
   if (existingUser) {
-    toast.error('Username already exists, try to login again')
+    push.error('Username already exists, try to login again')
     return true
   }
   return false
@@ -208,13 +208,13 @@ async function login() {
   try {
     const user = users.value.find((user) => user.username === username.value)
     if (!user) {
-      toast.warning('Username not found, try to create an account')
+      push.warning('Username not found, try to create an account')
       return
     }
 
     const passwordMatch = await bcrypt.compare(password1.value, user.password)
     if (!passwordMatch) {
-      toast.error('Incorrect password')
+      push.error('Incorrect password')
       return
     }
 
@@ -235,12 +235,12 @@ async function login() {
         image: user.image,
         logged: true
       })
-      toast.success('Login successful')
+      push.success('Login successful')
     } else {
-      toast.error('Failed to log in!')
+      push.error('Failed to log in!')
     }
   } catch (error) {
-    toast.error(error.message)
+    push.error(error.message)
     console.error('Failed to log in:', error)
   }
 }
@@ -257,7 +257,7 @@ async function createAccount() {
   }
   try {
     const createdUser = await createUser(newUser)
-    toast.success(createdUser.name + ' ' + createdUser.surname + ' created successfully')
+    push.success(createdUser.name + ' ' + createdUser.surname + ' created successfully')
     name.value = ''
     surname.value = ''
     birthday.value = ''
@@ -267,7 +267,7 @@ async function createAccount() {
     status.value = ''
     users.value = await getUsers()
   } catch (error) {
-    toast.error(error.message)
+    push.error(error.message)
     console.error('Failed to create user:', error)
   }
 }

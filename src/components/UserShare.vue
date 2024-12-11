@@ -48,10 +48,10 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { API_URL } from '../../const'
-import { useToast } from 'vue-toastification'
+import { useNotivue } from 'notivue'
 import { saveNoteMongo, getReadersIds } from '@/router/note/editor/note'
 
-const toast = useToast()
+// const toast = useNotivue()
 
 const users = ref()
 const sharewith = ref([])
@@ -95,7 +95,7 @@ function select(user) {
 
 async function sendshare() {
   if (!props.id) {
-    toast.warning(`Please, save your ${props.type} before sharing`)
+    push.warning(`Please, save your ${props.type} before sharing`)
     return
   }
 
@@ -122,7 +122,7 @@ async function sendshare() {
     }
   }
   sharewith.value = []
-  toast.success(`${props.type} shared successfully!`)
+  push.success(`${props.type} shared successfully!`)
 }
 </script>
 
