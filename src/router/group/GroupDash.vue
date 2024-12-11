@@ -34,13 +34,13 @@ async function createGroup() {
 }
 
 async function saveGroup(group) {
-  if (selectedGroup.value) {
-    const updateFields = {
-      description: selectedGroup.value.description
-    }
-    const updatedGroup = await updateGroup(selectedGroup.value._id, updateFields)
-    selectedGroup.value = updatedGroup
+  console.log('🔥 - saveGroup - group:', group)
+  const updateFields = {
+    description: group.description
   }
+  const updatedGroup = await updateGroup(group)
+  group.value = updatedGroup
+  // TODO: add toast saved!
 }
 </script>
 
@@ -75,7 +75,11 @@ async function saveGroup(group) {
     </div>
     <div v-if="selectedGroup != null" class="divider divider-horizontal"></div>
     <Transition name="slide-fade" :duration="550">
-      <div v-if="selectedGroup != null" class="flex flex-col w-full bg-surface-0 rounded-box p-5 h-min pt-0 my-auto" id="dynamic-view">
+      <div
+        v-if="selectedGroup != null"
+        class="flex flex-col w-full bg-surface-0 rounded-box p-5 h-min pt-0 my-auto"
+        id="dynamic-view"
+      >
         <div class="flex items-baseline justify-between">
           <h2>{{ selectedGroup.name }}</h2>
           <button class="btn btn-secondary rounded-box btn-sm" @click="saveGroup(selectedGroup)">
@@ -86,10 +90,10 @@ async function saveGroup(group) {
           <div class="label">
             <span class="label-text">Description</span>
           </div>
-            <textarea class="textarea textarea-borderd w-full" :value="selectedGroup.description" />
+          <textarea class="textarea textarea-borderd w-full" v-model="selectedGroup.description" />
         </label>
         <UserShare :id="selectedGroup._id" type="Group" msg="Invites"></UserShare>
       </div>
-      </Transition>
+    </Transition>
   </div>
 </template>
