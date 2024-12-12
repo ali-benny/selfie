@@ -1,6 +1,6 @@
 <template>
   <div v-if="isSmallScreen" class="absolute bottom-20 left-0 w-full h-16 flex justify-end">
-    <div class="fixed w-fit h-16 z-10 flex justify-end bg-base-200 rounded-l-lg overflow-hidden shadow grow">
+    <div class="fixed w-fit h-16 z-10 flex justify-end bg-base-200 rounded-l-lg overflow-hidden shadow-lg grow">
       <button @click="() => isWidgetOpen = !isWidgetOpen"
         class="flex flex-col justify-center px-4 text-4xl cursor-pointer">
         <IconPomodoro v-if="pomodoroStore.isPomodoroPhase()" :color="config.color.hex" />

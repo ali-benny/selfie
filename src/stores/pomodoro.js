@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
 import { useUserStore } from './account'
-import { useAsyncState, useSessionStorage, whenever } from '@vueuse/core'
-import { defaultConfig, loadConfigs, loadLatestConfig } from '@/router/pomodoro/pomodoro.js'
-import { computed, watch } from 'vue'
+import { reactivePick, toReactive, useAsyncState, useSessionStorage, whenever } from '@vueuse/core'
+import { defaultConfig, loadUserConfigs, loadLatestConfig } from '@/router/pomodoro/pomodoro.js'
+import { computed, toRaw, watch } from 'vue'
 import { useToast } from 'vue-toastification'
 import { useRoute } from 'vue-router'
 
@@ -17,34 +17,34 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
 
   const { state: currentConfig, isReady: isCurrentConfigReady } = useAsyncState(
     loadLatestConfig(useUserStore().loggedUser?._id),
-    fallbackConfig,
-    { shallow: false }
+    fallbackConfig
   )
 
-  const { state: configMap } = useAsyncState(
-    loadConfigs(useUserStore().loggedUser?._id),
-    new Map(),
-    { shallow: false }
+  const { state: userConfigs } = useAsyncState(
+    loadUserConfigs(useUserStore().loggedUser?._id),
+    new Map()
   )
 
-  const pomodoro = useSessionStorage('pomodoro', {
-    initialTimer: null,
-    timer: null,
-    phase: 'pomodoro',
-    cycle: 1,
-    started: false,
-    running: false,
-    finished: false,
-    timeoutId: 0
-  })
+  const pomodoro = toReactive(
+    useSessionStorage('pomodoro', {
+      initialTimer: null,
+      timer: null,
+      phase: 'pomodoro',
+      cycle: 1,
+      started: false,
+      running: false,
+      finished: false,
+      timeoutId: 0
+    })
+  )
 
-  const timer = computed(() => formatClockTime(pomodoro.value.timer))
+  const timer = computed(() => formatClockTime(pomodoro.timer))
 
   watch(
-    isCurrentConfigReady,
+    () => isCurrentConfigReady,
     () => {
-      if (pomodoro.value.started) {
-        if (pomodoro.value.running) playPomodoroTimer()
+      if (pomodoro.started) {
+        if (pomodoro.running) playPomodoroTimer()
         return
       }
       initNewPomodoro()
@@ -53,117 +53,131 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
   )
 
   whenever(
-    () => pomodoro.value.timer == 30 && pomodoro.value.phase === 'break',
+    () => pomodoro.timer == 30 && pomodoro.phase === 'break',
     () => {
       toast.info('Get ready! Focus is about to start.')
     }
   )
 
   function initNewPomodoro() {
-    pomodoro.value.initialTimer = currentConfig.value.pomodoroTime * 60
-    pomodoro.value.timer = pomodoro.value.initialTimer
-    pomodoro.value.phase = 'pomodoro'
-    pomodoro.value.cycle = 1
-    pomodoro.value.started = false
-    pomodoro.value.running = false
-    pomodoro.value.finished = false
-    pomodoro.value.timeoutId = 0
+    pomodoro.initialTimer = currentConfig.pomodoroTime * 60
+    pomodoro.timer = pomodoro.initialTimer
+    pomodoro.phase = 'pomodoro'
+    pomodoro.cycle = 0
+    pomodoro.started = false
+    pomodoro.running = false
+    pomodoro.finished = false
+    pomodoro.timeoutId = 0
   }
 
   function playPomodoroTimer() {
     if (pomodoro.value.finished) return
 
     if (!pomodoro.value.started) {
-      pomodoro.value.started = true
-      pomodoro.value.phase = 'pomodoro'
-      pomodoro.value.timer = pomodoro.value.initialTimer
+      pomodoro.started = true
+      pomodoro.phase = 'pomodoro'
+      pomodoro.timer = pomodoro.initialTimer
+      pomodoro.cycle = 1
+      if (currentConfig.longBreak) {
+        pomodoro.longBreakLap = 1
+      }
     }
 
-    pomodoro.value.running = true
+    pomodoro.running = true
 
-    if (pomodoro.value.timeoutId) clearTimeout(pomodoro.value.timeoutId)
-    pomodoro.value.timeoutId = setTimeout(timerProgress, 1000)
+    if (pomodoro.timeoutId) clearTimeout(pomodoro.timeoutId)
+    pomodoro.timeoutId = setTimeout(timerProgress, 1000)
   }
 
   function pausePomodoroTimer() {
-    if (!pomodoro.value.running) return
+    if (!pomodoro.running) return
 
-    clearTimeout(pomodoro.value.timeoutId)
-    pomodoro.value.running = false
-    pomodoro.value.timeoutId = null
+    clearTimeout(pomodoro.timeoutId)
+    pomodoro.running = false
+    pomodoro.timeoutId = null
   }
 
   function finishPomodoro() {
-    if (!pomodoro.value.started) return
+    if (!pomodoro.started) return
     pausePomodoroTimer()
-    pomodoro.value.finished = true
-    pomodoro.value.timer = 0
-    pomodoro.value.phase = null
+    pomodoro.finished = true
+    pomodoro.timer = 0
+    pomodoro.phase = null
   }
 
   function skipPomodoroPhase() {
-    if (!pomodoro.value.started || pomodoro.value.finished) return
+    if (!pomodoro.started || pomodoro.finished) return
 
-    switch (pomodoro.value.phase) {
+    switch (pomodoro.phase) {
       case 'pomodoro':
-        pomodoro.value.phase = 'break'
-        if (pomodoro.value.cycle % currentConfig.value.longBreakInterval == 0) {
-          pomodoro.value.initialTimer = currentConfig.value.longBreakTime * 60
+        pomodoro.phase = 'break'
+        pomodoro.cycle++
+
+        if (!currentConfig.longBreak) {
+          pomodoro.initialTimer = currentConfig.shortBreak.time * 60
+          break
+        }
+
+        pomodoro.longBreakLap++
+        if (pomodoro.longBreakLap == currentConfig.longBreak.interval) {
+          pomodoro.initialTimer = currentConfig.longBreak.time * 60
+          pomodoro.longBreakLap = 0
         } else {
-          pomodoro.value.initialTimer = currentConfig.value.shortBreakTime * 60
+          pomodoro.initialTimer = currentConfig.shortBreak.time * 60
         }
         break
       case 'break':
-        pomodoro.value.cycle++
-        if (currentConfig.value.cycles && pomodoro.value.cycle >= currentConfig.value.cycles) {
+        if (currentConfig.cycles && pomodoro.cycle >= currentConfig.cycles) {
           finishPomodoro()
         } else {
-          pomodoro.value.phase = 'pomodoro'
-          pomodoro.value.initialTimer = currentConfig.value.pomodoroTime * 60
+          pomodoro.phase = 'pomodoro'
+          pomodoro.initialTimer = currentConfig.pomodoroTime * 60
         }
         break
     }
 
-    pomodoro.value.timer = pomodoro.value.initialTimer
+    pomodoro.timer = pomodoro.initialTimer
     playPomodoroTimer()
   }
-  function restartPomodoroPhase() {
-    if (!pomodoro.value.started || pomodoro.value.finished) return
 
-    if (pomodoro.value.running) {
-      clearTimeout(pomodoro.value.timeoutId)
+  function restartPomodoroPhase() {
+    if (!pomodoro.started || pomodoro.finished) return
+
+    if (pomodoro.running) {
+      clearTimeout(pomodoro.timeoutId)
       playPomodoroTimer()
     }
 
-    pomodoro.value.timer = pomodoro.value.initialTimer
+    pomodoro.timer = pomodoro.initialTimer
   }
 
   function timerProgress() {
-    pomodoro.value.timer--
-    if (pomodoro.value.timer <= 0) skipPomodoroPhase()
-    else if (pomodoro.value.running && !pomodoro.value.finished)
-      pomodoro.value.timeoutId = setTimeout(timerProgress, 1000)
+    pomodoro.timer--
+    if (pomodoro.timer <= 0) skipPomodoroPhase()
+    else if (pomodoro.running && !pomodoro.finished)
+      pomodoro.timeoutId = setTimeout(timerProgress, 1000)
   }
 
   function isConfigSelected(config) {
-    return config._id === currentConfig.value._id
+    return config._id === currentConfig._id
   }
 
   function setCurrentConfig(config) {
-    if (currentConfig.value._id !== config._id) {
-      currentConfig.value = config
+    if (currentConfig._id !== config._id) {
+      Object.assign(currentConfig, config)
       initNewPomodoro()
       return
     }
 
-    let restartNeeded = false
-    if (
-      currentConfig.value.pomodoroTime != config.pomodoroTime ||
-      currentConfig.value.shortBreakTime != config.shortBreakTime ||
-      currentConfig.value.longBreakTime != config.longBreakTime
-    )
-      restartNeeded = true
-    currentConfig.value = config
+    let restartNeeded =
+      currentConfig.pomodoroTime != config.pomodoroTime ||
+      currentConfig.shortBreakTime != config.shortBreakTime ||
+      currentConfig.longBreak != config.longBreak ||
+      currentConfig.longBreak.time != config.longBreak.time ||
+      currentConfig.longBreak.interval != config.longBreak.interval
+
+    Object.assign(currentConfig, config)
+
     if (restartNeeded) restartPomodoroPhase()
   }
 
@@ -175,31 +189,30 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
   }
 
   function isPomodoroPhase() {
-    return pomodoro.value.phase === 'pomodoro'
+    return pomodoro.phase === 'pomodoro'
   }
 
   function isShortBreakPhase() {
-    return (
-      pomodoro.value.phase === 'break' &&
-      pomodoro.value.initialTimer === currentConfig.value.shortBreakTime * 60
-    )
+    return pomodoro.phase === 'break' && pomodoro.initialTimer === currentConfig.shortBreakTime * 60
   }
 
   function isLongBreakPhase() {
-    return (
-      pomodoro.value.phase === 'break' &&
-      pomodoro.value.initialTimer === currentConfig.value.longBreakTime * 60
-    )
+    if (!currentConfig.longBreak) return false
+    return pomodoro.phase === 'break' && pomodoro.initialTimer === currentConfig.longBreak.time * 60
   }
 
   function showPomodoroWidget() {
-    return currentRoute.name !== 'pomodoro' && pomodoro.value.started && !pomodoro.value.finished
+    return currentRoute.name !== 'pomodoro' && pomodoro.started && !pomodoro.finished
+  }
+
+  function getUserConfig(configId) {
+    return toRaw(userConfigs.get(configId))
   }
 
   return {
     currentConfig,
     pomodoro,
-    configMap,
+    userConfigs,
     timer,
     playPomodoroTimer,
     pausePomodoroTimer,
@@ -210,6 +223,7 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
     isPomodoroPhase,
     isShortBreakPhase,
     isLongBreakPhase,
-    showPomodoroWidget
+    showPomodoroWidget,
+    getUserConfig
   }
 })

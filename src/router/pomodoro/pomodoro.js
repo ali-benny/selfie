@@ -8,8 +8,10 @@ export const defaultConfig = {
   name: 'Pomodoro',
   pomodoroTime: 25,
   shortBreakTime: 5,
-  longBreakTime: 15,
-  longBreakInterval: 4,
+  longBreak: {
+    time: 10,
+    interval: 3
+  },
   color: flavors.macchiato.colors.maroon
 }
 
@@ -144,7 +146,7 @@ export async function deletePomodoro(pomodoro) {
   }
 }
 
-export async function loadConfigs(userId) {
+export async function loadUserConfigs(userId) {
   try {
     const response = await fetch(API_URL + `/${userId}/pomodoros/configs`, {
       method: 'GET',
@@ -156,8 +158,8 @@ export async function loadConfigs(userId) {
     if (!response.ok) {
       throw new Error(`ERROR - loadPomodoro, response status ${response.status}`)
     }
-    const arr = await response.json()
-    return new Map(arr.map((config) => [config._id, config]))
+    const configs = await response.json()
+    return new Map(configs.map((c) => [c._id, c]))
   } catch (error) {
     console.error(error.message)
   }
@@ -216,11 +218,14 @@ export async function loadLatestConfig(
         'Content-Type': 'application/json'
       }
     })
+    console.log(response)
 
     if (!response.ok) {
       throw new Error(`ERROR - loadLatesConfig, response status ${response.status}`)
     }
-    return (await response.json()) || fallbackConfig
+    const c = await response.json()
+    console.log(c)
+    return c || fallbackConfig
   } catch (error) {
     console.error(error.message)
   }
@@ -343,7 +348,7 @@ export class Pomodoro {
     switch (this.phase) {
       case 'pomodoro':
         this.phase = 'break'
-        if (this.cycle % this.config.longBreakInterval == 0) {
+        if (this.cycle % this.config.longBreak.interval == 0) {
           this.initialTimer = this.config.longBreakTime * 60
         } else {
           this.initialTimer = this.config.shortBreakTime * 60

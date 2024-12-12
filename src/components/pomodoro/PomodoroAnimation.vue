@@ -27,8 +27,8 @@
 import { flavors } from '@catppuccin/palette'
 import { usePomodoroStore } from '@/stores/pomodoro';
 import { storeToRefs } from 'pinia';
-import { computed, onMounted, reactive, useTemplateRef, watch } from 'vue';
-import { useElementSize, useMounted } from '@vueuse/core';
+import { computed, onMounted, useTemplateRef, watch } from 'vue';
+import { reactiveComputed, toReactive, useElementSize, useMounted } from '@vueuse/core';
 
 const pomodoroColor = flavors.macchiato.colors.red.hex
 const breakColor = flavors.macchiato.colors.lavender.hex
@@ -41,39 +41,40 @@ let animation = null
 
 const pomodoroStore = usePomodoroStore()
 const { pomodoro, currentConfig } = storeToRefs(pomodoroStore)
+console.log(currentConfig)
 
 const animationElem = useTemplateRef('animationElem')
-const animationSize = reactive(useElementSize(animationElem, { width: 0, height: 0 }))
+const animationSize = toReactive(useElementSize(animationElem, { width: 0, height: 0 }))
 
 const progress = useTemplateRef('progress')
 
-const pomodoroDashoffset = computed(() => widget ? [0, -progressPathLength.value] : [0, 1])
-const breakDashoffset = computed(() => widget ? [progressPathLength.value, 0] : [-1, 0])
+const pomodoroDashoffset = reactiveComputed(() => widget ? [0, -progressPathLength.value] : [0, 1])
+const breakDashoffset = reactiveComputed(() => widget ? [progressPathLength.value, 0] : [-1, 0])
 
-const pomodoroKeyframes = computed(() => {
+const pomodoroKeyframes = reactiveComputed(() => {
   return {
     stroke: [pomodoroColor, breakColor],
-    strokeDashoffset: pomodoroDashoffset.value,
+    strokeDashoffset: pomodoroDashoffset,
     easing: 'linear'
   }
 })
 
-const breakKeyframes = computed(() => {
+const breakKeyframes = reactiveComputed(() => {
   return {
     stroke: [breakColor, pomodoroColor],
-    strokeDashoffset: breakDashoffset.value,
+    strokeDashoffset: breakDashoffset,
     easing: 'linear'
   }
 })
 
-const animationKeyframes = computed(() => {
-  if (pomodoro.value.phase === 'pomodoro') {
-    return pomodoroKeyframes.value
+const animationKeyframes = reactiveComputed(() => {
+  if (pomodoro.phase === 'pomodoro') {
+    return pomodoroKeyframes
   }
-  return breakKeyframes.value
+  return breakKeyframes
 })
 
-const currentTime = computed(() => pomodoro.value.initialTimer - pomodoro.value.timer)
+const currentTime = computed(() => pomodoro.initialTimer - pomodoro.timer)
 
 const { widget } = defineProps({
   widget: {
@@ -84,12 +85,12 @@ const { widget } = defineProps({
 
 onMounted(() => restart())
 
-watch([() => currentConfig.value._id, () => pomodoro.value.phase], () => restart())
+watch([() => currentConfig._id, () => pomodoro.phase], () => restart())
 
 
-watch(() => currentTime.value, () => {
+watch(currentTime, () => {
   if (!animation) return
-  if (pomodoro.value.running) {
+  if (pomodoro.running) {
     if (animation.playState !== 'running')
       animation.play()
   } else if (animation.playState !== 'paused') {
@@ -98,10 +99,10 @@ watch(() => currentTime.value, () => {
   animation.currentTime = currentTime.value * 1000
 })
 
-watch(() => pomodoro.value.running, () => {
+watch(() => pomodoro.running, () => {
   if (!animation) return
 
-  if (pomodoro.value.running) {
+  if (pomodoro.running) {
     animation.currentTime = currentTime.value * 1000
     animation.play()
   } else
@@ -118,14 +119,14 @@ function restart() {
     animation.cancel()
   }
 
-  animation = progress.value.animate(animationKeyframes.value, {
-    duration: pomodoro.value.initialTimer * 1000,
+  animation = progress.animate(animationKeyframes, {
+    duration: pomodoro.initialTimer * 1000,
     fill: 'forwards'
   })
 
   animation.currentTime = currentTime.value * 1000
 
-  if (pomodoro.value.running) animation.play()
+  if (pomodoro.running) animation.play()
   else animation.pause()
 }
 

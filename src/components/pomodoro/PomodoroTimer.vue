@@ -40,28 +40,7 @@
             <h5 class="font-bold mb-1">
               Current focus
             </h5>
-            <div class="flex gap-1">
-              <p class="m-0 font-semibold">Name:</p>
-              <p class="m-0">{{ config.name }}</p>
-            </div>
-
-            <div class="flex flex-wrap gap-x-4 gap-y-1">
-              <div class="flex items-center gap-2">
-                <Icon icon="fluent-emoji-flat:tomato" :inline="true" class="text-lg" />
-                <p class="m-0">{{ config.pomodoroTime }}'</p>
-              </div>
-              <div class="flex items-center gap-2">
-                <Icon icon="fluent-emoji-flat:teacup-without-handle" :inline="true" class="text-lg" />
-                <p class="m-0">{{ config.shortBreakTime }}'</p>
-              </div>
-              <div class="flex items-center gap-2">
-                <Icon icon="fluent-emoji-flat:zzz" class="text-lg" />
-                <p class="m-0">
-                  {{ config.longBreakTime }}'<span class="text-black-50"> every {{
-                    config.longBreakInterval }} breaks</span>
-                </p>
-              </div>
-            </div>
+            <PomodoroConfigInfo :config="config" />
           </div>
         </template>
       </Popper>
@@ -73,6 +52,7 @@
 import { usePomodoroStore } from '@/stores/pomodoro.js'
 import { storeToRefs } from 'pinia';
 import PomodoroAnimation from './PomodoroAnimation.vue';
+import PomodoroConfigInfo from './PomodoroConfigInfo.vue';
 
 const pomodoroStore = usePomodoroStore()
 const { pomodoro, currentConfig: config } = storeToRefs(pomodoroStore)

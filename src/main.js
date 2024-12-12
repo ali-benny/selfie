@@ -3,6 +3,7 @@ import '../const.js'
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import vuetify from './plugins/vuetify'
+import vueDebounce from 'vue-debounce'
 import Popper from 'vue3-popper'
 import { Icon } from '@iconify/vue'
 import { Transition } from 'vue'
@@ -29,4 +30,5 @@ app.use(router)
 app.component('Popper', Popper)
 app.component('Icon', Icon)
 app.component('Transition', Transition)
+app.directive('debounce', vueDebounce())
 app.mount('#app')

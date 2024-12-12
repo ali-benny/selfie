@@ -5,6 +5,17 @@ import { connect } from '../app.js'
 
 const app = express()
 
+const LongBreakSchema = new mongoose.Schema({
+  time: {
+    type: Number,
+    required: true
+  },
+  interval: {
+    type: Number,
+    required: true
+  }
+})
+
 /*
  * Schema della collection che mantiene le configurazioni dei timer pomodoro.
  * Ogni pomodoro ha una configurazione che specifica i parametri dello stesso (durata dello studio,
@@ -25,13 +36,9 @@ const PomodoroConfigSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
-  longBreakTime: {
-    type: Number,
-    required: true
-  },
-  longBreakInterval: {
-    type: Number,
-    required: true
+  longBreak: {
+    type: LongBreakSchema,
+    required: false
   },
   cycles: {
     type: Number
@@ -84,7 +91,6 @@ const PomodoroConfig = mongoose.model('pomodoroConfig', PomodoroConfigSchema)
 const Pomodoro = mongoose.model('pomodoro', PomodoroSchema)
 
 app.on('mount', async () => {
-  await connect('pomodoro')
   await connect('pomodoroConfig')
 })
 
@@ -237,10 +243,14 @@ app.delete('/pomodoros/configs/:id', async (req, res) => {
  */
 app.get('/:userId/pomodoros/configs/latest', async (req, res) => {
   try {
+    console.log('popi')
     const config = await PomodoroConfig.findOne({ userId: req.params.userId }).sort({
       lastUsed: -1
     })
+    console.log(config)
     res.status(200).json(config)
+    res.on('finish', () => console.log(res))
+    console.log(res)
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: err.message })

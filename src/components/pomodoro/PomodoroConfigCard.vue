@@ -24,22 +24,7 @@
         </div>
       </div>
 
-      <!-- Dati config -->
-      <div class="flex items-center gap-2">
-        <Icon icon="fluent-emoji-flat:tomato" inline class="text-xl" />
-        <p class="m-0">{{ config.pomodoroTime }}'</p>
-      </div>
-      <div class="flex items-center gap-2">
-        <Icon icon="fluent-emoji-flat:teacup-without-handle" inline class="text-xl" />
-        <p class="m-0">{{ config.shortBreakTime }}'</p>
-      </div>
-      <div class="flex items-center gap-2">
-        <Icon icon="fluent-emoji-flat:zzz" class="text-xl" />
-        <p class="m-0">
-          {{ config.longBreakTime }}'<span class="text-black-50">
-            every {{ config.longBreakInterval }} breaks</span>
-        </p>
-      </div>
+      <PomodoroConfigInfo :config="config" />
     </div>
   </div>
 </template>
@@ -49,6 +34,7 @@ import PomodoroConfigForm from './PomodoroConfigForm.vue'
 import IconPomodoro from '../icons/IconPomodoro.vue'
 import { usePomodoroStore } from '@/stores/pomodoro';
 import { computed } from 'vue';
+import PomodoroConfigInfo from './PomodoroConfigInfo.vue';
 
 const { configId } = defineProps({
   configId: {
@@ -57,7 +43,7 @@ const { configId } = defineProps({
   }
 })
 const pomodoroStore = usePomodoroStore()
-const config = computed(() => pomodoroStore.configMap.get(configId))
+const config = computed(() => pomodoroStore.userConfigs.get(configId))
 </script>
 
 <style lang="postcss" scoped>
