@@ -1,6 +1,6 @@
 <template>
   <div v-if="isSmallScreen" class="absolute bottom-20 left-0 w-full h-16 flex justify-end">
-    <div class="fixed w-fit h-16 z-10 flex justify-end bg-base-200 rounded-l-lg overflow-hidden shadow-lg grow">
+    <div class="fixed w-fit h-16 z-10 flex bg-base-200 rounded-l-lg overflow-hidden shadow-lg grow">
       <button @click="() => isWidgetOpen = !isWidgetOpen"
         class="flex flex-col justify-center px-4 text-4xl cursor-pointer">
         <IconPomodoro v-if="pomodoroStore.isPomodoroPhase()" :color="config.color.hex" />
@@ -35,11 +35,9 @@
       </Transition>
     </div>
   </div>
-  <div v-else class="fixed bottom-0 left-0 w-screen h-16 z-10 bg-base-200">
-    <div class="w-full h-full static flex justify-center items-center">
+  <div v-else class="fixed bottom-0 left-0 w-screen h-16 z-10">
+    <div class="w-full h-full flex justify-center items-center bg-base-200">
       <PomodoroAnimation widget />
-
-
       <div class="absolute flex justify-center items-center top-0 left-0 w-full h-full p-3">
         <div class="flex justify-center w-12 text-4xl">
           <IconPomodoro v-if="pomodoroStore.isPomodoroPhase()" :color="config.color.hex" />
@@ -78,12 +76,11 @@ import { useScreens } from '@/stores/screens';
 import IconPomodoro from '../icons/IconPomodoro.vue';
 
 const pomodoroStore = usePomodoroStore()
-const isWidgetOpen = ref(false)
+const isWidgetOpen = ref(true)
 
 const { isSmallScreen } = storeToRefs(useScreens())
 
 const { pomodoro, currentConfig: config } = storeToRefs(pomodoroStore)
-
 </script>
 
 <style scoped>

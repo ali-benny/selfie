@@ -40,16 +40,21 @@ const isMounted = useMounted()
 let animation = null
 
 const pomodoroStore = usePomodoroStore()
-const { pomodoro, currentConfig } = storeToRefs(pomodoroStore)
-console.log(currentConfig)
+const pomodoro = toReactive(storeToRefs(pomodoroStore).pomodoro)
+const currentConfig = toReactive(storeToRefs(pomodoroStore).currentConfig)
 
 const animationElem = useTemplateRef('animationElem')
 const animationSize = toReactive(useElementSize(animationElem, { width: 0, height: 0 }))
 
 const progress = useTemplateRef('progress')
 
+/*
+ * Used when animation is widget to make the animation responsive
+ */
+const progressPathLength = computed(() => (animationSize.width + animationSize.height) * 2)
+
 const pomodoroDashoffset = reactiveComputed(() => widget ? [0, -progressPathLength.value] : [0, 1])
-const breakDashoffset = reactiveComputed(() => widget ? [progressPathLength.value, 0] : [-1, 0])
+const breakDashoffset = reactiveComputed(() => widget ? [progressPathLength, 0] : [-1, 0])
 
 const pomodoroKeyframes = reactiveComputed(() => {
   return {
@@ -119,7 +124,7 @@ function restart() {
     animation.cancel()
   }
 
-  animation = progress.animate(animationKeyframes, {
+  animation = progress.value.animate(animationKeyframes, {
     duration: pomodoro.initialTimer * 1000,
     fill: 'forwards'
   })
@@ -130,10 +135,6 @@ function restart() {
   else animation.pause()
 }
 
-/*
- * Used when animation is widget to make the animation responsive
- */
-const progressPathLength = computed(() => (animationSize.width + animationSize.height) * 2)
 </script>
 
 <style scoped>

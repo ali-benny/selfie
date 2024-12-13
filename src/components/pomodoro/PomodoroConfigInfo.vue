@@ -10,7 +10,7 @@
         title="Short break duration in minutes." />
       <p class="m-0">{{ config.shortBreakTime }}'</p>
     </div>
-    <div class="flex items-center gap-2" v-if="config.longBreak">
+    <div class="flex items-center gap-2" v-if="hasLongBreak">
       <Icon icon="fluent-emoji-flat:zzz" class="text-xl" title="Long break duratio in minutes." />
       <p class="m-0">
         {{ config.longBreak.time }}'<span class="text-black-50">
@@ -21,15 +21,15 @@
       <Icon icon="fluent-emoji-flat:counterclockwise-arrows-button" inline class="text-xl" title="Number of cycles." />
       <p class="m-0">{{ config.cycles }} <span class="text-black-50">cycles</span></p>
     </div>
-    <h5 class="font-medium flex items-center" v-if="duration !== Infinity">
+    <div class="flex items-center gap-2" v-if="duration !== Infinity">
       <Icon icon="fluent-emoji-flat:three-oclock" inline class="text-xl" title="Total focus duration." />
-      <p class="m-0">{{ duration }}<span class="text-sm"> minutes</span>
-      </p>
-    </h5>
+      <p class="m-0">{{ formattedDuration }}</p>
+    </div>
   </div>
 </template>
 <script setup>
-import { computed } from 'vue'
+import { usePomodoroStore } from '@/stores/pomodoro';
+import { computed, ref, watch } from 'vue'
 
 const { config } = defineProps({
   config: {
@@ -38,30 +38,19 @@ const { config } = defineProps({
   }
 })
 
-const duration = computed(() => {
-  if (!config.cycles) {
-    return Infinity
-  }
-  let c = 0
-  let l = 0
-  let duration = 0
-  while (c < config.cycles) {
-    c++
-    duration += config.pomodoroTime
-    if (!config.longBreak) {
-      duration += config.shortBreakTime
-      continue
-    }
+const durationFormat = ref(config.durationFormat || usePomodoroStore().preferredDurationFormat)
 
-    if (l == config.longBreak.interval) {
-      duration += config.longBreak.time
-      l = 0
-    } else {
-      duration += config.shortBreakTime
-      l++
-    }
-  }
-  return duration
+watch(() => config.durationFormat, () => durationFormat.value = config.durationFormat)
+
+const duration = computed(() => usePomodoroStore().computeConfigDuration(config))
+
+const hasLongBreak = computed(() => {
+  if (!config.longBreak)
+    return false
+  return config.longBreak.time && config.longBreak.interval
 })
+
+const formattedDuration = computed(() => usePomodoroStore().formatDuration(duration.value, durationFormat.value))
+
 
 </script>

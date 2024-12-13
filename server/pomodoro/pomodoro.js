@@ -243,14 +243,10 @@ app.delete('/pomodoros/configs/:id', async (req, res) => {
  */
 app.get('/:userId/pomodoros/configs/latest', async (req, res) => {
   try {
-    console.log('popi')
     const config = await PomodoroConfig.findOne({ userId: req.params.userId }).sort({
       lastUsed: -1
     })
-    console.log(config)
     res.status(200).json(config)
-    res.on('finish', () => console.log(res))
-    console.log(res)
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: err.message })

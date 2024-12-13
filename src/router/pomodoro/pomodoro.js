@@ -170,6 +170,17 @@ export async function loadUserConfigs(userId) {
  */
 export async function createPomodoroConfig(userId, config) {
   try {
+    if (
+      config.longBreak &&
+      (!config.longBreak.time != !config.longBreak.interval ||
+        !config.longBreak.time ||
+        !config.longBreak.interval ||
+        config.longBreak.timer === '' ||
+        config.longBreak.interval === '')
+    ) {
+      delete config.longBreak
+    }
+
     const response = await fetch(API_URL + `/${userId}/pomodoros/configs/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -188,6 +199,14 @@ export async function createPomodoroConfig(userId, config) {
 
 export async function updatePomodoroConfig(config) {
   try {
+    if (
+      config.longBreak &&
+      (!config.longBreak.time != !config.longBreak.interval ||
+        config.longBreak.timer === '' ||
+        config.longBreak.interval === '')
+    ) {
+      config.longBreak = undefined
+    }
     const response = await fetch(API_URL + '/pomodoros/configs/' + config._id, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -218,14 +237,11 @@ export async function loadLatestConfig(
         'Content-Type': 'application/json'
       }
     })
-    console.log(response)
 
     if (!response.ok) {
       throw new Error(`ERROR - loadLatesConfig, response status ${response.status}`)
     }
-    const c = await response.json()
-    console.log(c)
-    return c || fallbackConfig
+    return (await response.json()) || fallbackConfig
   } catch (error) {
     console.error(error.message)
   }

@@ -2,7 +2,8 @@
   <Popper @open:popper="openHandler" :locked="locked" :placement="placement" arrow>
     <slot name="trigger"></slot>
     <template #content="{ close }">
-      <div class="w-screen sm:w-80  p-3 rounded-box flex flex-col items-stretch gap-2" @keyup.escape="close()">
+      <div class="w-screen sm:w-80 cursor-default p-3 rounded-box flex flex-col items-stretch gap-2"
+        @keyup.escape="close()">
         <!-- Header e delete -->
         <div class="flex justify-between items-center">
           <h4 class="font-bold">
@@ -16,46 +17,60 @@
         </div>
 
         <form @submit.prevent="saveConfig(close)" ref="form">
-          <div class="flex flex-col items-stretch gap-y-4">
+          <div class="flex flex-col items-stretch gap-y-2">
             <!-- Nome -->
             <label class="form-control">
               <div class="label">
                 <span class="label-text">Name</span>
               </div>
               <input type="text" v-model="editableConfig.name" class="input input-md" placeholder="Pomodoro"
-                ref="configName" required />
+                ref="configName" :required="firstStepDone" />
             </label>
-            <div v-if="!firstStepDone" class="flex flex-col justify-between items-stretch h-72">
-              <div class="flex flex-col  gap-1">
-                <h5 class="font-semibold flex items-center">
-                  Desired focus duration:
-                </h5>
-                <label class="relative input input-md flex justify-end items-center gap-2">
-                  <input v-debounce="updateProposedFocus" type="text"
-                    class="absolute top-0 left-0 w-full h-full text-center" maxlength="3" size="3" inputmode="numeric"
-                    pattern="[0-9]*" placeholder="120" />
-                  minutes
-                </label>
+            <div v-if="!firstStepDone" class="flex flex-col justify-between items-stretch h-[19em] gap-1">
+              <h5 class="font-semibold flex items-center">
+                Desired focus duration:
+              </h5>
+              <div class="flex items-center gap-2">
+                <div class="relative input input-md flex justify-center items-center grow">
+                  <label class="flex justify-center items-center" v-if="editableConfig.durationFormat === 'mm'">
+                    <input @keypress="updateProposedFocus()" v-model="totalMinutes" type="text" maxlength="3" size="3"
+                      inputmode="numeric" pattern="[0-9]*" placeholder="120" class="text-center" required />
+                    minutes
+                  </label>
+                  <div class="flex justify-end items-center" v-else>
+                    <input @keypress="updateProposedFocus()" v-model="hours" type="text" class="text-center"
+                      maxlength="2" size="2" inputmode="numeric" pattern="[0-9]*" placeholder="2" required />
+                    h
+                    <input
+                      @input="(e) => { if (e.target.value.length > 2) e.target.value = e.target.value.substr(0, 2) }"
+                      @keypress="updateProposedFocus()" v-model="minutes" type="text" class="text-center" maxlength="3"
+                      size="2" inputmode="numeric" pattern="[0-9]*" placeholder="00" required />
+                    m
+                  </div>
+                  <div class="absolute top-0 right-0 w-fit h-full flex justify-center items-center pr-3 gap-2 pt-1">
+                    <ToggleSpin v-model="preferredDurationFormat" true-value="mm" false-value="hhmm" />
+                  </div>
+                </div>
+              </div>
+              <div class="flex flex-col justify-between items-stretch gap-1">
                 <h5 class="font-semibold flex items-center">
                   Proposed focus:
                 </h5>
                 <PomodoroConfigInfo :config="editableConfig" />
-                {{ focusMinutes }}
-              </div>
-              <div v-if="focusMinutes">
               </div>
               <div class="flex justify-end items-center">
                 <div class="btn btn-neutral" @click="firstStepDone = true">
                   Skip
                 </div>
-                <div class="btn btn-outline btn-secondary" @click="firstStepDone = true">
+                <div class="btn btn-outline btn-secondary"
+                  @click="() => { if (form.reportValidity()) firstStepDone = true }">
                   Next
                 </div>
               </div>
             </div>
-            <div v-else class="flex flex-col justify-between items-stretch h-72">
+            <div v-else class="flex flex-col justify-between items-stretch h-[19em]">
               <!-- Pomodoro time -->
-              <div class="flex flex-col gap-1">
+              <div class="flex flex-col">
                 <h5 class="font-medium flex items-center">
                   <Icon icon="fluent:clock-24-regular" class="pr-1" />Timer (minutes)
                 </h5>
@@ -64,32 +79,57 @@
                     <div class="label">
                       <span class="label-text">Focus</span>
                     </div>
-                    <input type="text" v-model="editableConfig.pomodoroTime" class="w-fit input input-md text-center"
-                      maxlength="2" size="2" inputmode="numeric" pattern="[0-9]*" placeholder="25" required />
+                    <input type="text" v-model="pomodoroTime" class="w-fit input input-md text-center" maxlength="2"
+                      size="2" inputmode="numeric" pattern="[0-9]*" placeholder="25" required />
                   </label>
 
                   <label class="form-control">
                     <div class="label">
                       <span class="label-text">Short break</span>
                     </div>
-                    <input type="text" v-model="editableConfig.shortBreakTime" class="w-fit input input-md text-center"
-                      maxlength="2" size="2" inputmode="numeric" pattern="[0-9]*" placeholder="5" required />
+                    <input type="text" v-model="shortBreakTime" class="w-fit input input-md text-center" maxlength="2"
+                      size="2" inputmode="numeric" pattern="[0-9]*" placeholder="5" required />
                   </label>
 
                   <label class="form-control">
                     <div class="label">
                       <span class="label-text">Long break</span>
                     </div>
-                    <input type="text" v-model="editableConfig.longBreak.time" class="w-fit input  input-md text-center"
-                      maxlength="2" size="2" inputmode="numeric" pattern="[0-9]*" placeholder="-"
-                      :required="isLongBreakRequired()" />
+                    <input type="text" v-model="longBreakTime" class="w-fit input  input-md text-center" maxlength="2"
+                      size="2" inputmode="numeric" pattern="[0-9]*" placeholder="-" :required="isLongBreakRequired()" />
                   </label>
                 </div>
               </div>
               <div class="flex justify-between items-center">
                 <label>Long break interval</label>
-                <input type="text" v-model="editableConfig.longBreak.interval" class="input input-sm " maxlength="2"
-                  size="2" inputmode="numeric" pattern="[0-9]*" placeholder="-" :required="isLongBreakRequired()" />
+                <input type="text" v-model="longBreakInterval" class="input input-sm " maxlength="2" size="2"
+                  inputmode="numeric" pattern="[0-9]*" placeholder="-" :required="isLongBreakRequired()" />
+              </div>
+
+              <div class="flex justify-between items-center">
+                <label>Cycles</label>
+                <input type="text" v-model="cycles" class="input input-sm " maxlength="2" size="2" inputmode="numeric"
+                  pattern="[0-9]*" placeholder="-" />
+              </div>
+
+              <div class="flex justify-between items-center">
+                <span>Total duration: </span>
+                <div class="flex justify-center items-center gap-2 select-none">
+                  <div v-if="duration === Infinity" class="input input-sm flex items-center gap-2">
+                    Inf
+                    <Icon icon="fluent-emoji-flat:three-oclock" inline class="text-lg" title="Total focus duration." />
+                  </div>
+                  <div v-else class="flex items-center gap-2">
+                    <ToggleSpin v-model="editableConfig.durationFormat" true-value="mm" false-value="hhmm" />
+                    <div class="input input-sm px-2">
+                      <div class="w-20 flex justify-end items-center gap-1">
+                        {{ formattedDuration }}
+                        <Icon icon="fluent-emoji-flat:three-oclock" inline class="text-lg"
+                          title="Total focus duration." />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <!-- Colore -->
@@ -111,7 +151,6 @@
           </div>
         </form>
       </div>
-      {{ editableConfig.longBreak }}
     </template>
   </Popper>
 </template>
@@ -121,14 +160,22 @@ import { useToast } from 'vue-toastification'
 import { flavors } from '@catppuccin/palette'
 import { createPomodoroConfig, deletePomodoroConfig, updatePomodoroConfig } from '@/router/pomodoro/pomodoro'
 import { useUserStore } from '@/stores/account'
-import { nextTick, ref, useTemplateRef, shallowReactive, toRaw, reactive } from 'vue';
+import { nextTick, ref, useTemplateRef, toRaw, reactive, computed, watch } from 'vue';
 import { usePomodoroStore } from '@/stores/pomodoro';
 import PomodoroConfigInfo from './PomodoroConfigInfo.vue';
+import { storeToRefs } from 'pinia';
+import { useDebounceFn, whenever } from '@vueuse/core';
+import ToggleSpin from '../ToggleSpin.vue';
 
 const defaultConfig = {
   pomodoroTime: 25,
   shortBreakTime: 5,
   cycles: 4,
+  longBreak: {},
+  color: {
+    name: "Red",
+    hex: "#ed8796"
+  }
 }
 
 const colors = [
@@ -159,35 +206,92 @@ const { configId, placement, locked } = defineProps({
 })
 
 const pomodoroStore = usePomodoroStore()
-const userConfigs = pomodoroStore.userConfigs
+const { userConfigs } = storeToRefs(pomodoroStore)
+const { preferredDurationFormat } = storeToRefs(pomodoroStore)
+const userId = useUserStore().loggedUser._id
+const firstStepDone = ref(false)
+
+const configName = useTemplateRef('configName')
+const form = useTemplateRef('form')
 
 const editableConfig = reactive({ ...defaultConfig })
 if (configId) {
   Object.assign(editableConfig, structuredClone(pomodoroStore.getUserConfig(configId)))
+} else {
+  editableConfig.durationFormat = preferredDurationFormat.value
 }
 
-if (!editableConfig.longBreak) {
-  editableConfig.longBreak = {}
-}
+/* Used in first step to input the desired focus duration */
+const desiredDuration = ref(0)
 
-const configName = useTemplateRef('configName')
-const userId = useUserStore().loggedUser._id
+/* Used in second step to display the focus duration */
+const duration = computed(() => pomodoroStore.computeConfigDuration(editableConfig))
+const formattedDuration = computed(() => pomodoroStore.formatDuration(duration.value, editableConfig.durationFormat))
 
-const firstStepDone = ref(false)
-const focusMinutes = ref(null)
+const pomodoroTime = computed(buildFormField({ obj: editableConfig, fieldName: 'pomodoroTime', validators: [validateMinutes] }))
+const shortBreakTime = computed(buildFormField({ obj: editableConfig, fieldName: 'shortBreakTime', validators: [validateMinutes] }))
+const cycles = computed(buildFormField({ obj: editableConfig, fieldName: 'cycles', validators: [validateNumberPositive] }))
+
+const longBreakTime = computed(buildLongBreakField('time'))
+const longBreakInterval = computed(buildLongBreakField('interval'))
+
+const totalMinutes = computed({
+  get() {
+    return desiredDuration.value == 0 ? null : Number(desiredDuration.value)
+  },
+  set(value) {
+    if (validateNumberPositive(value))
+      desiredDuration.value = value
+    else
+      desiredDuration.value = null
+  }
+})
+
+const hours = computed({
+  get() {
+    return desiredDuration.value == 0 ? null : Math.floor(Number(desiredDuration.value) / 60)
+  },
+  set(value) {
+    desiredDuration.value = Number(minutes.value)
+    if (validateNumberPositive(value))
+      desiredDuration.value += Number(value) * 60
+  }
+})
+
+const minutes = computed({
+  get() {
+    if (desiredDuration.value == 0) return null
+    const value = Number(desiredDuration.value) - hours.value * 60
+    if (value < 10)
+      return '0' + value
+    return value
+  },
+  async set(value) {
+    desiredDuration.value = hours.value * 60
+    value %= 100
+    if (validateMinutes(value))
+      desiredDuration.value += Number(value)
+  }
+})
+
+
+whenever(() => desiredDuration.value == null, () => desiredDuration.value = 0)
+watch(preferredDurationFormat, () => {
+  editableConfig.durationFormat = preferredDurationFormat.value
+})
+
 
 async function saveConfig(close) {
   try {
     if (configId) {
-      userConfigs.set(configId, toRaw(editableConfig))
+      userConfigs.value.set(configId, structuredClone(toRaw(editableConfig)))
       if (pomodoroStore.isConfigSelected(configId))
         pomodoroStore.setCurrentConfig(configId)
-      await updatePomodoroConfig(editableConfig)
+      await updatePomodoroConfig(toRaw(editableConfig))
       toast.success('Focus saved!')
     } else {
-      const createdConfig = await createPomodoroConfig(userId, editableConfig)
-      userConfigs.set(createdConfig._id, createdConfig)
-      Object.assign(editableConfig, defaultConfig)
+      const createdConfig = await createPomodoroConfig(userId, toRaw(editableConfig))
+      userConfigs.value.set(createdConfig._id, createdConfig)
       toast.success('Focus created successfully!')
     }
 
@@ -200,7 +304,7 @@ async function saveConfig(close) {
 
 async function deleteConfig(close) {
   try {
-    userConfigs.delete(configId)
+    userConfigs.value.delete(configId)
     await deletePomodoroConfig(configId)
     toast.success('Focus deleted')
     close()
@@ -215,25 +319,35 @@ async function openHandler() {
     firstStepDone.value = true
   else
     firstStepDone.value = false
+
+  desiredDuration.value = 0
+
+  if (configId) {
+    Object.assign(editableConfig, structuredClone(pomodoroStore.getUserConfig(configId)))
+  } else {
+    editableConfig.durationFormat = preferredDurationFormat.value
+  }
+
   await nextTick()
   configName.value.focus()
 }
 
-function updateProposedFocus(minutes) {
-  if (minutes === '' || Number(minutes) <= 1) {
-    focusMinutes.value = null
+
+const updateProposedFocus = useDebounceFn(() => {
+  const minutes = desiredDuration.value
+  const resultConfig = { longBreak: {} }
+
+  if (isNaN(minutes) || minutes <= 1) {
+    desiredDuration.value = null
     Object.assign(editableConfig, defaultConfig)
     return
   }
-  const resultConfig = {}
 
-  minutes = Number(minutes)
   if (minutes < 15) {
     resultConfig.pomodoroTime = Math.floor(minutes * 2 / 3)
     resultConfig.shortBreakTime = minutes - resultConfig.pomodoroTime
     resultConfig.cycles = 1
-    editableConfig.value = resultConfig
-    focusMinutes.value = minutes
+    Object.assign(editableConfig, resultConfig)
     return
   }
 
@@ -258,7 +372,6 @@ function updateProposedFocus(minutes) {
     longBreakTime = 15
   }
 
-
   resultConfig.pomodoroTime = Math.ceil(cycleDuration * proportion)
   resultConfig.shortBreakTime = cycleDuration - resultConfig.pomodoroTime
 
@@ -278,14 +391,12 @@ function updateProposedFocus(minutes) {
     }
 
     resultConfig.cycles = cyclesWith
-    focusMinutes.value = minutesWith
   } else {
     resultConfig.cycles = cyclesWithout
-    focusMinutes.value = minutesWithout
   }
 
   Object.assign(editableConfig, resultConfig)
-}
+}, 300)
 
 function computeMinutes(minutes, config) {
   let l = 0
@@ -313,10 +424,84 @@ function computeMinutes(minutes, config) {
 }
 
 function isLongBreakRequired() {
+  if (!editableConfig.longBreak)
+    return false
+
   if (!editableConfig.longBreak.time && !editableConfig.longBreak.interval)
     return false
 
   return editableConfig.longBreak.time !== '' || editableConfig.longBreak.interval !== ''
+}
+
+function validateNumber(n) {
+  return n !== '' && !isNaN(n)
+}
+
+function validateNumberPositive(n) {
+  return validateNumber(n) && Number(n) > 0
+}
+
+function validateMinutes(n) {
+  return validateNumberPositive(n) && Number(n) <= 60
+}
+
+function buildFormField({ obj, fieldName, validators = [], _default = null }) {
+  return {
+    get() {
+      return obj[fieldName] || _default
+    },
+    async set(value) {
+      let valid = true
+      validators.forEach((validator) => valid &= validator(value))
+      if (valid)
+        obj[fieldName] = value
+      else
+        await invalidate({ obj: obj, fieldName: fieldName, _default: _default })
+    }
+  }
+}
+
+function buildLongBreakField(longBreakSubField) {
+  return {
+    get() {
+      return editableConfig.longBreak ? editableConfig.longBreak[longBreakSubField] : undefined
+    },
+    set(value) {
+      if (validateNumberPositive(value)) {
+        if (!editableConfig.longBreak) editableConfig.longBreak = {}
+        editableConfig.longBreak[longBreakSubField] = Number(value)
+      } else {
+        invalidate({ obj: editableConfig, fieldName: 'longBreak', subfieldName: longBreakSubField })
+      }
+    }
+  }
+}
+
+async function invalidate({ obj, fieldName, subfieldName, _default = null }) {
+  if (subfieldName) {
+    if (_default) {
+      obj[fieldName] = _default
+      return
+    }
+
+    if (!obj[fieldName][subfieldName]) {
+      obj[fieldName][subfieldName] = {}
+      await nextTick()
+    }
+    delete obj[fieldName][subfieldName]
+    if (!obj[fieldName]) delete obj[fieldName]
+  } else {
+    if (_default) {
+      obj[fieldName] = _default
+      return
+    }
+
+    if (!obj[fieldName]) {
+      obj[fieldName] = {}
+      await nextTick()
+    }
+    delete obj[fieldName]
+  }
 }
 
 </script>
@@ -335,5 +520,19 @@ function isLongBreakRequired() {
 
 .btn-outline {
   border-style: solid !important;
+}
+
+.spin {
+  animation: myspin 500ms ease-in-out infinite forwards;
+}
+
+@keyframes myspin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(180deg);
+  }
 }
 </style>

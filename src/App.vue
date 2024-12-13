@@ -25,7 +25,7 @@ const pomodoroStore = usePomodoroStore()
         <Icon v-else icon="fluent:settings-48-filled" />
       </RouterLink>
     </div>
-    <div id="app" class="relative w-full grow px-2 pb-16 sm:!pb-0">
+    <div id="app" class="relative w-full grow px-2 mb-16 sm:!pb-0">
       <RouterView />
       <PomodoroTimerWidget v-if="pomodoroStore.showPomodoroWidget()" />
     </div>
