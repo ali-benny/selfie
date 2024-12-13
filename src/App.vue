@@ -2,6 +2,7 @@
 import PomodoroTimerWidget from './components/pomodoro/PomodoroTimerWidget.vue';
 import { useUserStore } from './stores/account'
 import { usePomodoroStore } from './stores/pomodoro';
+import { Notivue, Notification } from 'notivue'
 
 const userStore = useUserStore()
 const pomodoroStore = usePomodoroStore()
@@ -26,6 +27,9 @@ const pomodoroStore = usePomodoroStore()
       </RouterLink>
     </div>
     <div id="app" class="relative w-full grow px-2 mb-16 sm:!pb-0">
+      <Notivue v-slot="item">
+        <Notification :item="item" />
+      </Notivue>
       <RouterView />
       <PomodoroTimerWidget v-if="pomodoroStore.showPomodoroWidget()" />
     </div>

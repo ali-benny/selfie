@@ -155,7 +155,7 @@
 
 <script>
 import { nextTick } from 'vue'
-import { useToast } from 'vue-toastification'
+import { useNotivue } from 'notivue'
 import { getEditNoteTitle, getEditNoteId } from './editor.js'
 import {
   getNoteAuthor,
@@ -262,12 +262,12 @@ export default {
         this.showNewFolderDialog = false
         this.newFolderName = ''
 
-        toast.success('Folder created successfully')
+        push.success('Folder created successfully')
 
         // Emit event for NoteTree update
         this.$emit('folder-created')
       } catch (err) {
-        toast.error('Failed to create folder')
+        push.error('Failed to create folder')
         console.error(err)
       }
     },
@@ -295,10 +295,10 @@ export default {
       return arr
     },
     async saveNote() {
-      const toast = useToast()
+      // const toast = useNotivue()
       if (!this.editor) {
         console.error('Editor not initialized')
-        toast.error('Editor not ready. Please try again.')
+        push.error('Editor not ready. Please try again.')
         return
       }
       try {
@@ -337,10 +337,10 @@ export default {
             await saveTodoMongo(todo)
           }
         }
-        toast.success('Note saved successfully!')
+        push.success('Note saved successfully!')
       } catch (error) {
         console.error('Failed to save EditorJS data:', error)
-        toast.error('Failed to save the note')
+        push.error('Failed to save the note')
       }
     },
     async addTag(event) {
@@ -368,7 +368,7 @@ export default {
       }
     },
     async removeShare(reader) {
-      const toast = useToast()
+      // const toast = useNotivue()
       const index = this.readers.indexOf(reader._id)
       if (index !== -1) this.readers.splice(index, 1)
 
@@ -382,10 +382,10 @@ export default {
           readers: this.readers
         })
 
-        toast.success(`Removed ${reader.name} ${reader.surname} from readers.`)
+        push.success(`Removed ${reader.name} ${reader.surname} from readers.`)
       } catch (error) {
         console.error('Failed to save updated readers:', error)
-        toast.error('Failed to remove reader')
+        push.error('Failed to remove reader')
         // Ricarico i readers in caso di errore per mantenere la sincronizzazione
         this.readers = await getReaders(this.id)
         this.readers_verbose = await getReadersIds(this.readers)

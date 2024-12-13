@@ -156,7 +156,7 @@
 </template>
 
 <script setup>
-import { useToast } from 'vue-toastification'
+import { useNotivue } from 'notivue'
 import { flavors } from '@catppuccin/palette'
 import { createPomodoroConfig, deletePomodoroConfig, updatePomodoroConfig } from '@/router/pomodoro/pomodoro'
 import { useUserStore } from '@/stores/account'
@@ -166,6 +166,8 @@ import PomodoroConfigInfo from './PomodoroConfigInfo.vue';
 import { storeToRefs } from 'pinia';
 import { useDebounceFn, whenever } from '@vueuse/core';
 import ToggleSpin from '../ToggleSpin.vue';
+
+// const toast = useNotivue()
 
 const defaultConfig = {
   pomodoroTime: 25,
@@ -193,8 +195,6 @@ const colors = [
   flavors.macchiato.colors.blue,
   flavors.macchiato.colors.lavender
 ]
-
-const toast = useToast()
 
 const { configId, placement, locked } = defineProps({
   configId: {
@@ -288,17 +288,17 @@ async function saveConfig(close) {
       if (pomodoroStore.isConfigSelected(configId))
         pomodoroStore.setCurrentConfig(configId)
       await updatePomodoroConfig(toRaw(editableConfig))
-      toast.success('Focus saved!')
+      push.success('Focus saved!')
     } else {
       const createdConfig = await createPomodoroConfig(userId, toRaw(editableConfig))
       userConfigs.value.set(createdConfig._id, createdConfig)
-      toast.success('Focus created successfully!')
+      push.success('Focus created successfully!')
     }
 
     close()
   } catch (error) {
     console.error(error.message)
-    toast.error('Failed to save focus')
+    push.error('Failed to save focus')
   }
 }
 
@@ -306,11 +306,11 @@ async function deleteConfig(close) {
   try {
     userConfigs.value.delete(configId)
     await deletePomodoroConfig(configId)
-    toast.success('Focus deleted')
+    push.success('Focus deleted')
     close()
   } catch (error) {
     console.error(error.message)
-    toast.error('Failed to delete focus')
+    push.error('Failed to delete focus')
   }
 }
 

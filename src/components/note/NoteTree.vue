@@ -48,12 +48,12 @@ import { createDirectory, getDirectoryStructure, moveNote } from '@/router/note/
 import { getNotes } from '@/router/note/editor/note'
 import { useUserStore } from '@/stores/account'
 import { onMounted, ref, watch } from 'vue'
-import { useToast } from 'vue-toastification'
+import { useNotivue } from 'notivue'
 import { API_URL } from '~/const'
 import TreeNode from './TreeNode.vue'
 
 const userStore = useUserStore()
-const toast = useToast()
+// const toast = useNotivue()
 const directories = ref([])
 const notes = ref([])
 const isOpen = ref(false) // Stato della sidebar
@@ -81,7 +81,7 @@ async function handleCreateDir(name, parentId) {
 
     emit('note-added')
   } catch (err) {
-    toast.error('Failed to create directory')
+    push.error('Failed to create directory')
   }
 }
 
@@ -95,9 +95,9 @@ async function handleDelete(directoryId) {
     }
     await refreshDirectories()
     emit('note-deleted')
-    toast.success('Directory deleted successfully')
+    push.success('Directory deleted successfully')
   } catch (err) {
-    toast.error('Failed to delete directory: ', err)
+    push.error('Failed to delete directory: ', err)
     console.error(err)
   }
 }
@@ -107,7 +107,7 @@ async function handleMoveNote(noteId, directoryId) {
     await moveNote(noteId, directoryId)
     await refreshDirectories()
   } catch (err) {
-    toast.error('Failed to move note: ', err)
+    push.error('Failed to move note: ', err)
   }
 }
 </script>
