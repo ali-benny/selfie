@@ -5,6 +5,7 @@ import { useUserStore } from '@/stores/account.js'
 import { updateGroup } from '@/router/group/group.js'
 import GroupList from '@/components/group/GroupList.vue'
 import UserShare from '@/components/UserShare.vue'
+import ChatComponent from '@/components/ChatComponent.vue'
 
 var new_group = {}
 const selectedGroup = ref(null)
@@ -96,4 +97,5 @@ async function saveGroup(group) {
       </div>
     </Transition>
   </div>
+  <ChatComponent></ChatComponent>
 </template>
