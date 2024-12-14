@@ -12,7 +12,7 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
 
   const fallbackConfig = {
     ...defaultConfig,
-    userId: useUserStore().loggedUser._id
+    userId: useUserStore().loggedUser?._id
   }
 
   const { state: currentConfig, isReady: isCurrentConfigReady } = useAsyncState(
@@ -204,7 +204,12 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
   }
 
   function showPomodoroWidget() {
-    return currentRoute.name !== 'pomodoro' && pomodoro.value.started && !pomodoro.value.finished
+    return (
+      currentRoute.name !== 'pomodoro' &&
+      currentRoute.name !== 'login' &&
+      pomodoro.value.started &&
+      !pomodoro.value.finished
+    )
   }
 
   function computeConfigDuration(config) {

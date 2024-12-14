@@ -147,6 +147,7 @@ export async function deletePomodoro(pomodoro) {
 }
 
 export async function loadUserConfigs(userId) {
+  if (!userId) return new Map()
   try {
     const response = await fetch(API_URL + `/${userId}/pomodoros/configs`, {
       method: 'GET',
