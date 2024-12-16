@@ -1,6 +1,13 @@
 <template>
-  <div v-if="isSmallScreen" class="absolute bottom-20 left-0 w-full h-16 flex justify-end">
-    <div class="fixed w-fit h-16 z-10 flex bg-base-200 rounded-l-lg overflow-hidden shadow-lg grow">
+  <div v-if="isSmallScreen"
+    class="absolute relative bottom-20 left-0 w-full h-20 bg-transparent flex justify-end overflow-hidden">
+    <Transition name="pulse_appear">
+      <div class="absolute top-0 right-0 w-[68px] h-16 rounded-l-xl bg-transparent shadow-md shadow-transparent"
+        :class="{ 'animate-pulse': !isWidgetOpen, 'shadow-pomocolor': !isWidgetOpen }" v-if="!isWidgetOpen"></div>
+    </Transition>
+
+    <div class="fixed w-fit h-16 z-10 flex bg-base-200 rounded-l-lg shadow-md"
+      :class="{ 'shadow-base-300': isWidgetOpen }">
       <button @click="() => isWidgetOpen = !isWidgetOpen"
         class="flex flex-col justify-center px-4 text-4xl cursor-pointer">
         <IconPomodoro v-if="pomodoroStore.isPomodoroPhase()" :color="config.color.hex" />
@@ -9,7 +16,7 @@
       </button>
 
       <Transition name="pomo_widget">
-        <div class="relative flex justify-center items-center w-52 h-16" v-if="isWidgetOpen">
+        <div class="relative flex justify-center items-center w-52 overflow-hidden" v-if="isWidgetOpen">
           <PomodoroAnimation widget />
           <div class="absolute w-full h-full flex items-center  gap-2 px-3">
             <div class="flex justify-center items-center  grow">
@@ -88,10 +95,6 @@ const { pomodoro, currentConfig: config } = storeToRefs(pomodoroStore)
   font-family: Digital-7;
 }
 
-.running {
-  color: v-bind('config.color.hex') !important;
-}
-
 .pomo_widget-enter-active,
 .pomo_widget-leave-active {
   transition: all .5s ease-in;
@@ -99,11 +102,35 @@ const { pomodoro, currentConfig: config } = storeToRefs(pomodoroStore)
 
 .pomo_widget-enter-to,
 .pomo_widget-leave-from {
-  @apply w-48 opacity-100 w-48
+  @apply w-48 opacity-100
 }
 
 .pomo_widget-enter-from,
 .pomo_widget-leave-to {
-  @apply w-0 opacity-0 w-0
+  @apply w-0 opacity-0
+}
+
+.pulse_appear-enter-active {
+  opacity: 0;
+  animation: fade-in .5s;
+  animation-delay: .5s;
+}
+
+.pulse_appear-leave-active {
+  animation: fade-in .1s reverse;
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 100%;
+  }
+}
+
+.shadow-pomocolor {
+  --tw-shadow-color: v-bind('config.color.hex');
 }
 </style>
