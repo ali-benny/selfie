@@ -11,6 +11,9 @@
           :class="['chat-item', selectedChat.id === group._id ? 'active' : '']"
         >
           {{ group.name }}
+          <!-- <span v-if="unreadMessages.value[group._id]?" class="unread-dot">
+            {{ unreadMessages.value[group._id]? }}</span
+          > -->
         </div>
       </div>
 
@@ -28,6 +31,9 @@
           :class="['chat-item', selectedChat.id === chat.user._id ? 'active' : '']"
         >
           {{ chat.user.name }}
+          <!-- <span v-if="unreadMessages?.value[chat.user._id]" class="unread-dot">
+            {{ unreadMessages?.value[chat.user._id] }}</span
+          > -->
         </div>
       </div>
     </div>
@@ -93,6 +99,7 @@ import { useUserStore } from '@/stores/account'
 import socket from '@/plugins/socket'
 import { getUsers } from '@/router/user/user'
 import { getGroups } from '@/router/group/group'
+import { CHAT_URL } from '~/const.js'
 
 const userStore = useUserStore()
 const messages = ref([])
@@ -118,15 +125,20 @@ const sendMessage = async () => {
   if (newMessage.value.trim() && selectedChat.value.id) {
     const messageData = {
       message: newMessage.value,
-      user: userStore.loggedUser.name,
-      userId: userStore.loggedUser._id,
+      name: userStore.loggedUser.name,
+      user_id: userStore.loggedUser._id,
       chatId: selectedChat.value.id,
       chatType: selectedChat.value.type,
       timestamp: new Date()
     }
 
     try {
-      const response = await fetch(`${API_URL}/messages`, {
+      // Aggiungi il messaggio localmente subito per UI reattiva
+      const tempMessage = { ...messageData, _id: Date.now(), pending: true }
+      currentMessages.value.push(tempMessage)
+
+      // Salva nel DB e notifica gli altri utenti
+      const response = await fetch(`${CHAT_URL}/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -135,78 +147,162 @@ const sendMessage = async () => {
       })
 
       if (!response.ok) throw new Error('Failed to send message')
-      
       const savedMessage = await response.json()
-      currentMessages.value.push(savedMessage)
-      newMessage.value = ''
 
-      nextTick(() => {
-        const container = document.querySelector('.messages-container')
-        if (container) {
-          container.scrollTop = container.scrollHeight
-        }
-      })
+      // Sostituisci il messaggio temporaneo con quello salvato
+      const index = currentMessages.value.findIndex((m) => m._id === tempMessage._id)
+      if (index !== -1) {
+        currentMessages.value[index] = savedMessage
+      }
+
+      // Emetti il messaggio via socket per notifiche real-time
+      socket.emit('chat-message', savedMessage)
+
+      newMessage.value = ''
+      scrollToBottom()
     } catch (error) {
       console.error('Error sending message:', error)
+      // Rimuovi il messaggio temporaneo in caso di errore
+      currentMessages.value = currentMessages.value.filter((m) => m._id !== tempMessage._id)
     }
   }
+}
+
+// Funzione helper per lo scroll
+const scrollToBottom = () => {
+  nextTick(() => {
+    const container = document.querySelector('.messages-container')
+    if (container) {
+      container.scrollTop = container.scrollHeight
+    }
+  })
+}
+
+// Poll for new messages every 3 seconds
+let pollInterval
+
+onMounted(async () => {
+  try {
+    // Carica gruppi e utenti
+    const userGroups = await getGroups(userStore.loggedUser._id)
+    groups.value = userGroups
+
+    const usersList = await getUsers()
+    users.value = usersList.filter((u) => u._id !== userStore.loggedUser._id)
+
+    await loadExistingChats()
+
+    // Socket listeners
+    socket.on('chat-message', (msg) => {
+      if (msg.chatId === selectedChat.value.id) {
+        currentMessages.value.push(msg)
+        scrollToBottom()
+      } else {
+        updateUnreadMessages(msg.chatId)
+      }
+    })
+
+    // Ricezione di una notifica per nuovi messaggi
+    socket.on('new-message', ({ chatId }) => {
+      if (chatId !== selectedChat.value.id) {
+        updateUnreadMessages(chatId)
+      }
+    })
+
+    socket.on('joined', ({ messages }) => {
+      if (messages) {
+        currentMessages.value = messages // Sostituisci tutti i messaggi
+        scrollToBottom()
+      }
+    })
+
+    socket.on('error', (error) => {
+      console.error('Socket error:', error)
+    })
+  } catch (error) {
+    console.error('Error loading initial data:', error)
+  }
+})
+
+const unreadMessages = ref({})
+
+const updateUnreadMessages = (chatId) => {
+  if (!unreadMessages.value[chatId]) {
+    unreadMessages.value[chatId] = 1
+  } else {
+    unreadMessages.value[chatId] += 1
+  }
+}
+
+const loadExistingChats = async () => {
+  try {
+    // Carica le chat private esistenti (quelle che hanno almeno un messaggio)
+    const response = await fetch(`${CHAT_URL}/messages/private/${userStore.loggedUser._id}/chats`)
+    if (!response.ok) throw new Error('Failed to fetch existing chats')
+    const existingChats = await response.json()
+
+    // Per ogni chat esistente, cerca l'utente corrispondente e aggiungi la chat
+    for (const chat of existingChats) {
+      const user = users.value.find((u) => u._id === chat.participantId)
+      if (user && !privateChats.value.find((pc) => pc.user._id === user._id)) {
+        privateChats.value.push({ user })
+      }
+    }
+  } catch (error) {
+    console.error('Error loading existing chats:', error)
+  }
+}
+
+const startPrivateChat = (user) => {
+  // Verifica se la chat privata esiste già
+  const existingChat = privateChats.value.find((chat) => chat.user._id === user._id)
+  if (!existingChat) {
+    privateChats.value.push({ user })
+  }
+  selectChat('private', user._id)
+  showNewChat.value = false
+  searchUsername.value = ''
 }
 
 const selectChat = async (type, id) => {
   selectedChat.value = { type, id }
   currentMessages.value = []
-  
+
   try {
-    const response = await fetch(`${API_URL}/messages/${type}/${id}`)
+    // Carica i messaggi esistenti
+    const response = await fetch(`${CHAT_URL}/messages/${type}/${id}`)
     if (!response.ok) throw new Error('Failed to fetch messages')
     const messages = await response.json()
     currentMessages.value = messages
+
+    // Unisciti alla stanza della chat
+    socket.emit('join-chat', { chatId: id })
+
+    // Resetta i messaggi non letti
+    unreadMessages.value[id] = 0
+
+    scrollToBottom()
+    setTimeout(1000)
   } catch (error) {
     console.error('Error fetching messages:', error)
   }
 }
 
-// Poll for new messages every 3 seconds
-let pollInterval
-onMounted(() => {
-  pollInterval = setInterval(async () => {
-    if (selectedChat.value.id) {
-      try {
-        const lastMessageId = currentMessages.value[currentMessages.value.length - 1]?._id
-        const response = await fetch(
-          `${API_URL}/messages/${selectedChat.value.type}/${selectedChat.value.id}/new?after=${lastMessageId || 0}`
-        )
-        if (!response.ok) throw new Error('Failed to fetch new messages')
-        const newMessages = await response.json()
-        if (newMessages.length > 0) {
-          currentMessages.value.push(...newMessages)
-          nextTick(() => {
-            const container = document.querySelector('.messages-container')
-            if (container) {
-              container.scrollTop = container.scrollHeight
-            }
-          })
-        }
-      } catch (error) {
-        console.error('Error polling messages:', error)
-      }
-    }
-  }, 3000)
-})
-
 onUnmounted(() => {
   if (pollInterval) clearInterval(pollInterval)
 })
-
-const startPrivateChat = (user) => {
-  privateChats.value.push({ user })
-  selectChat('private', user._id)
-  showNewChat.value = false
-  searchUsername.value = ''
-}
 </script>
 
 <style scoped>
+/* Nel <style scoped> di ChatComponent.vue */
+.unread-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-left: 5px;
+  @apply bg-primary;
+}
 .chat-container {
   @apply flex h-[80vh] gap-4;
 }

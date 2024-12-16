@@ -33,11 +33,21 @@ const MessageSchema = new mongoose.Schema({
   timestamp: {
     type: Date,
     default: Date.now
-  }
+  },
+  read: {
+    type: Boolean,
+    default: false
+  },
+  readBy: [
+    {
+      type: String,
+      ref: 'User'
+    }
+  ]
 })
 
 const Message = mongoose.model('Message', MessageSchema)
-// Prima di ogni operazione sul database, assicurati che la connessione sia attiva
+
 const ensureConnection = async () => {
   if (!connected) {
     await connect('messages')
@@ -67,7 +77,7 @@ app.get('/messages/:type/:id', async (req, res) => {
     await ensureConnection()
     const messages = await Message.find({
       chatType: req.params.type,
-      chatId: req.params.id
+      $or: [{ chatId: req.params.id }, { user_id: req.params.id }]
     }).sort({ timestamp: 1 })
     res.json(messages)
   } catch (error) {
@@ -89,57 +99,95 @@ app.get('/messages/:type/:id/new', async (req, res) => {
   }
 })
 
-io.on('connection', function (socket) {
-  console.log('A user with ID: ' + socket.id + ' connected')
+// Endpoint per ottenere le chat private esistenti
+app.get('/messages/private/:userId/chats', async (req, res) => {
+  try {
+    await ensureConnection()
 
-  socket.on('chat-message', async (message) => {
-    try {
-      // Crea e salva il nuovo messaggio nel MongoDB
-      await ensureConnection()
-      const newMessage = new Message({
-        message: message.message,
-        user_id: message.userId,
-        name: message.user,
-        chatId: message.chatId,
-        chatType: message.chatType,
-        timestamp: new Date()
-      })
-      
-      const savedMessage = await newMessage.save()
-      console.log('Message saved:', savedMessage)
-      
-      // Invia il messaggio a tutti i client nella stessa stanza
-      io.to(message.chatId).emit('chat-message', newMessage)
-    } catch (err) {
-      console.error('Error saving message:', err)
-      socket.emit('error', { message: 'Failed to save message' })
-    }
-  })
+    // Trova tutte le chat private dove l'utente è coinvolto
+    const chats = await Message.aggregate([
+      {
+        $match: {
+          chatType: 'private',
+          $or: [{ user_id: req.params.userId }, { chatId: req.params.userId }]
+        }
+      },
+      {
+        $group: {
+          _id: {
+            $cond: [{ $eq: ['$user_id', req.params.userId] }, '$chatId', '$user_id']
+          },
+          lastMessage: { $last: '$$ROOT' }
+        }
+      },
+      {
+        $project: {
+          participantId: '$_id',
+          lastMessage: 1
+        }
+      }
+    ])
 
-  socket.on('joined', async (data) => {
-    try {
-      // Lascia tutte le stanze precedenti
-      socket.rooms.forEach(room => {
-        if (room !== socket.id) socket.leave(room)
-      })
-      
-      // Unisciti alla nuova stanza
-      socket.join(data.chatId)
-      
-      // Recupera la cronologia dei messaggi
-      const messages = await Message.find({
-        chatId: data.chatId,
-        chatType: data.type
-      })
-      .sort({ timestamp: -1 })
-      .limit(50)
-      
-      socket.emit('joined', { messages })
-    } catch (err) {
-      console.error('Error fetching messages:', err)
-      socket.emit('error', { message: 'Failed to fetch messages' })
-    }
-  })
+    res.json(chats)
+  } catch (error) {
+    console.error('Error fetching chats:', error)
+    res.status(500).json({ error: error.message })
+  }
 })
 
+// Endpoint per segnare i messaggi come letti
+app.post('/messages/:messageId/read', async (req, res) => {
+  try {
+    await ensureConnection()
+    const message = await Message.findByIdAndUpdate(
+      req.params.messageId,
+      {
+        $addToSet: { readBy: req.body.userId },
+        read: true
+      },
+      { new: true }
+    )
+    res.json(message)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+// Nel file server/chat/messages.js
+io.on('connection', (socket) => {
+  console.log('A user connected:', socket.id);
+
+  // Quando un utente si unisce a una chat
+  socket.on('join-chat', ({ chatId }) => {
+    socket.join(chatId);
+  });
+
+  // Quando viene inviato un messaggio
+  socket.on('chat-message', async (messageData) => {
+    try {
+      await ensureConnection();
+      const newMessage = new Message({
+        ...messageData,
+        timestamp: new Date(),
+      });
+      const savedMessage = await newMessage.save();
+
+      // Invia il messaggio a tutti gli utenti nella chat
+      io.to(messageData.chatId).emit('chat-message', savedMessage);
+
+      // Notifica gli utenti che hanno la chat chiusa
+      socket.broadcast.emit('new-message', {
+        chatId: messageData.chatId,
+        message: savedMessage,
+      });
+    } catch (err) {
+      console.error('Error saving message:', err);
+      socket.emit('error', { message: 'Failed to send message' });
+    }
+  });
+
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id);
+  });
+});
 export default app
