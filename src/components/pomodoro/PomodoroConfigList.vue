@@ -5,7 +5,7 @@
     </div>
     <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 auto-rows-fr items-stretch gap-4">
       <div v-for="configId in userConfigs.keys()" :key="configId">
-        <PomodoroConfigCard :configId="configId" @delete="console.log" />
+        <PomodoroConfigCard :configId="configId" />
       </div>
     </div>
   </div>

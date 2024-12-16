@@ -71,7 +71,6 @@ export async function updatePomodoroConfig(config) {
     if (!response.ok) {
       throw new Error(`ERROR - updatePomodoroConfig, response status ${response.status}`)
     }
-    console.log('patch')
   } catch (error) {
     console.error(error.message)
   }

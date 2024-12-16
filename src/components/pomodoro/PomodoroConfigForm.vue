@@ -458,7 +458,6 @@ function buildFormField({ obj, fieldName, validators = [], _default = null }) {
         obj[fieldName] = value
       else
         await invalidate({ obj: obj, fieldName: fieldName, _default: _default })
-      console.log(editableConfig)
     }
   }
 }
