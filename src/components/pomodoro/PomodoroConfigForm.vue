@@ -156,7 +156,6 @@
 </template>
 
 <script setup>
-import { useNotivue } from 'notivue'
 import { flavors } from '@catppuccin/palette'
 import { createPomodoroConfig, deletePomodoroConfig, updatePomodoroConfig } from '@/router/pomodoro/pomodoro'
 import { useUserStore } from '@/stores/account'
@@ -235,6 +234,7 @@ const cycles = computed(buildFormField({ obj: editableConfig, fieldName: 'cycles
 const longBreakTime = computed(buildLongBreakField('time'))
 const longBreakInterval = computed(buildLongBreakField('interval'))
 
+
 const totalMinutes = computed({
   get() {
     return desiredDuration.value == 0 ? null : Number(desiredDuration.value)
@@ -276,6 +276,7 @@ const minutes = computed({
 
 
 whenever(() => desiredDuration.value == null, () => desiredDuration.value = 0)
+
 watch(preferredDurationFormat, () => {
   editableConfig.durationFormat = preferredDurationFormat.value
 })
@@ -457,6 +458,7 @@ function buildFormField({ obj, fieldName, validators = [], _default = null }) {
         obj[fieldName] = value
       else
         await invalidate({ obj: obj, fieldName: fieldName, _default: _default })
+      console.log(editableConfig)
     }
   }
 }
@@ -471,7 +473,7 @@ function buildLongBreakField(longBreakSubField) {
         if (!editableConfig.longBreak) editableConfig.longBreak = {}
         editableConfig.longBreak[longBreakSubField] = Number(value)
       } else {
-        invalidate({ obj: editableConfig, fieldName: 'longBreak', subfieldName: longBreakSubField })
+        invalidate({ obj: editableConfig.longBreak, fieldName: longBreakSubField })
       }
     }
   }

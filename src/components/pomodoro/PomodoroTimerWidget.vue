@@ -13,7 +13,7 @@
           <PomodoroAnimation widget />
           <div class="absolute w-full h-full flex items-center  gap-2 px-3">
             <div class="flex justify-center items-center  grow">
-              <span class="align-baseline pt-2 digital select-none text-5xl">
+              <span class="pt-2 digital select-none text-5xl">
                 {{ pomodoroStore.timer }}
               </span>
             </div>
@@ -45,9 +45,9 @@
           <Icon v-else-if="pomodoroStore.isLongBreakPhase()" icon="fluent-emoji-flat:zzz" />
         </div>
         <div class="flex justify-center items-end digital select-none text-5xl grow ">
-          <div class="pt-2">
+          <p class="pt-2">
             {{ pomodoroStore.timer }}
-          </div>
+          </p>
         </div>
         <div class="w-12 flex items-center gap-2">
           <button v-if="pomodoro.running" @click="pomodoroStore.pausePomodoroTimer()"

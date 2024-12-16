@@ -16,7 +16,10 @@
       <g class="fill-none linecap-round">
         <line id="dot" x1="50" y1="0" x2="50" y2="0" :stroke="breakColor" pathLength="1" />
         <circle cx="50" cy="50" r="50" class="stroke-surface-0/50" />
-        <circle ref="progress" class="origin-center -rotate-90" cx="50" cy="50" r="50" pathLength="1"
+        <!-- <circle ref="progress" class="origin-center -rotate-90" cx="50" cy="50" r="50" pathLength="1" -->
+        <!--   stroke-dasharray="1" /> -->
+
+        <circle ref="progress" class="stroke-primary origin-center -rotate-90" cx="50" cy="50" r="50" pathLength="1"
           stroke-dasharray="1" />
       </g>
     </svg>
@@ -27,7 +30,7 @@
 import { flavors } from '@catppuccin/palette'
 import { usePomodoroStore } from '@/stores/pomodoro';
 import { storeToRefs } from 'pinia';
-import { computed, onMounted, useTemplateRef, watch } from 'vue';
+import { computed, onMounted, toRaw, useTemplateRef, watch } from 'vue';
 import { reactiveComputed, toReactive, useElementSize, useMounted } from '@vueuse/core';
 
 const pomodoroColor = flavors.macchiato.colors.red.hex
@@ -53,30 +56,25 @@ const progress = useTemplateRef('progress')
  */
 const progressPathLength = computed(() => (animationSize.width + animationSize.height) * 2)
 
-const pomodoroDashoffset = reactiveComputed(() => widget ? [0, -progressPathLength.value] : [0, 1])
-const breakDashoffset = reactiveComputed(() => widget ? [progressPathLength, 0] : [-1, 0])
-
 const pomodoroKeyframes = reactiveComputed(() => {
   return {
-    stroke: [pomodoroColor, breakColor],
-    strokeDashoffset: pomodoroDashoffset,
-    easing: 'linear'
+    value:
+      [{ stroke: pomodoroColor, strokeDashoffset: 0 }, { stroke: breakColor, strokeDashoffset: widget ? -progressPathLength.value : 1 }]
   }
 })
 
 const breakKeyframes = reactiveComputed(() => {
   return {
-    stroke: [breakColor, pomodoroColor],
-    strokeDashoffset: breakDashoffset,
-    easing: 'linear'
+    value: [{ stroke: breakColor, strokeDashoffset: widget ? progressPathLength.value : -1 }, { stroke: pomodoroColor, strokeDashoffset: 0 }]
   }
 })
 
-const animationKeyframes = reactiveComputed(() => {
-  if (pomodoro.phase === 'pomodoro') {
-    return pomodoroKeyframes
+const animationOptions = reactiveComputed(() => {
+  return {
+    duration: pomodoro.initialTimer * 1000,
+    fill: 'forwards',
+    easing: 'linear'
   }
-  return breakKeyframes
 })
 
 const currentTime = computed(() => pomodoro.initialTimer - pomodoro.timer)
@@ -91,7 +89,6 @@ const { widget } = defineProps({
 onMounted(() => restart())
 
 watch([() => currentConfig._id, () => pomodoro.phase], () => restart())
-
 
 watch(currentTime, () => {
   if (!animation) return
@@ -124,10 +121,11 @@ function restart() {
     animation.cancel()
   }
 
-  animation = progress.value.animate(animationKeyframes, {
-    duration: pomodoro.initialTimer * 1000,
-    fill: 'forwards'
-  })
+  const keyframes = new KeyframeEffect(progress.value,
+    toRaw(pomodoro.phase === 'pomodoro' ? pomodoroKeyframes.value : breakKeyframes.value),
+    animationOptions)
+
+  animation = new Animation(keyframes, document.timeline)
 
   animation.currentTime = currentTime.value * 1000
 

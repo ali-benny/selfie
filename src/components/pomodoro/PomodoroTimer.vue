@@ -7,7 +7,7 @@
         <div class="absolute w-full h-full">
           <PomodoroAnimation />
         </div>
-        <div class="digital select-none text-7xl m-0 ">
+        <div class="pt-2 digital select-none text-7xl m-0 ">
           {{ pomodoroStore.timer }}
         </div>
       </div>

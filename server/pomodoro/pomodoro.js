@@ -5,16 +5,19 @@ import { connect } from '../app.js'
 
 const app = express()
 
-const LongBreakSchema = new mongoose.Schema({
-  time: {
-    type: Number,
-    required: true
+const LongBreakSchema = new mongoose.Schema(
+  {
+    time: {
+      type: Number,
+      required: true
+    },
+    interval: {
+      type: Number,
+      required: true
+    }
   },
-  interval: {
-    type: Number,
-    required: true
-  }
-})
+  { _id: false }
+)
 
 /*
  * Schema della collection che mantiene le configurazioni dei timer pomodoro.
@@ -56,111 +59,10 @@ const PomodoroConfigSchema = new mongoose.Schema({
   }
 })
 
-/*
- * Schema della collection che mantiene lo stato dei diversi timer Pomodoro.
- * Ogni Pomodoro è composto dalla configurazione e dal suo stato. Ogni utente può avere al massimo
- * un timer Pomodoro attivo.
- */
-const PomodoroSchema = new mongoose.Schema({
-  config: PomodoroConfigSchema,
-  userId: mongoose.ObjectId,
-  initialTimer: {
-    type: Number
-  },
-  timer: {
-    type: Number
-  },
-  phase: {
-    type: String,
-    enum: ['pomodoro', 'break']
-  },
-  cycle: {
-    type: Number
-  },
-  running: {
-    type: Boolean
-  },
-  started: {
-    type: Boolean,
-    default: false,
-    required: true
-  }
-})
-
 const PomodoroConfig = mongoose.model('pomodoroConfig', PomodoroConfigSchema)
-const Pomodoro = mongoose.model('pomodoro', PomodoroSchema)
 
 app.on('mount', async () => {
   await connect('pomodoroConfig')
-})
-
-/*
- * Returns all the Pomodoros of the user specified
- */
-app.get('/:userId/pomodoros', async (req, res) => {
-  try {
-    const pomodoro = await Pomodoro.findOne({ userId: req.params.userId })
-    res.status(200).json(pomodoro)
-  } catch (err) {
-    console.error(err)
-    res.status(500).json({ error: err.message })
-  }
-})
-
-/*
- * Edits the properties of the Pomodoro specified
- */
-app.patch('/pomodoros/:id', async (req, res) => {
-  const id = req.params.id
-  try {
-    await Pomodoro.findByIdAndUpdate(id, { $set: req.body })
-    res.status(200).send('Pomodoro updated successfully!')
-  } catch (err) {
-    console.error(err)
-    res.status(500).json({ error: err.message })
-  }
-})
-
-/*
- * Creates a new Pomodoro
- */
-app.post('/:userId/pomodoros', async (req, res) => {
-  try {
-    /* Recupero la config del nuovo pomodoro: se viene passato anche il campo _id, allora
-     * la config è già presente nel db e la carico, altrimenti ne creo una nuova
-     */
-    let config
-    if (req.body.config._id) {
-      config = await PomodoroConfig.findById(req.body.config._id)
-    } else {
-      config = new PomodoroConfig({ ...req.body.config })
-    }
-    config.lastUsed = Date.now()
-    await config.save()
-
-    const pomodoro = new Pomodoro({ config: config, userId: req.params.userId })
-    await pomodoro.save()
-
-    res.json(pomodoro)
-  } catch (err) {
-    console.error(err)
-    res.status(500).json({ error: err.message })
-  }
-})
-
-/*
- * Deletes the specified Pomodoro
- */
-app.delete('/pomodoros/:id', async (req, res) => {
-  const id = req.params.id
-  try {
-    await Pomodoro.deleteOne({ _id: id }).then(() => {
-      res.status(200).send('Pomodoro deleted successfully!')
-    })
-  } catch (err) {
-    console.error(err)
-    res.status(500).json({ error: err.message })
-  }
 })
 
 /*
@@ -215,7 +117,15 @@ app.post('/:userId/pomodoros/configs/', async (req, res) => {
 app.patch('/pomodoros/configs/:id', async (req, res) => {
   const id = req.params.id
   try {
-    await PomodoroConfig.findByIdAndUpdate(id, { $set: req.body })
+    const config = await PomodoroConfig.findById(id)
+    config.name = req.body.name
+    config.pomodoroTime = req.body.pomodoroTime
+    config.breakTime = req.body.breakTime
+    config.cycles = req.body.cycles
+    config.longBreak = req.body.longBreak
+    config.color = req.body.color
+    config.lastUsed = req.body.lastUsed
+    config.save()
     res.status(200).send('Config updated successfully!')
   } catch (err) {
     console.error(err)
