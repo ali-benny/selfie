@@ -43,9 +43,24 @@
       <!-- Header chat -->
       <div
         v-if="selectedChat.id"
-        class="font-bold px-5 py-2 bg-base-100 border-solid border-8 border-base-200 rounded-lg"
+        class="flex items-center font-bold bg-base-100 border-solid border-8 border-base-200 rounded-lg"
       >
-        {{ selectedChat.dest_username }}
+        <div
+          v-if="
+            selectedChat.type === 'private' && selectedChat.dest._id != userStore.loggedUser._id
+          "
+          class="avatar w-10 m-2 z-2"
+        >
+          <img
+            :src="getUserById(selectedChat.dest._id)?.image || ''"
+            :title="
+              getUserById(selectedChat.dest._id)
+                ? `${getUserById(selectedChat.dest._id).name} ${getUserById(selectedChat.dest._id).surname}`
+                : selectedChat.dest.name
+            "
+          />
+        </div>
+        {{ selectedChat.dest.name }}
       </div>
 
       <div class="messages-container">
@@ -58,29 +73,49 @@
         <div
           v-for="message in currentMessages"
           :key="message._id"
-          class="flex flex-col justify-start"
-          :class="['message', message.user_id === userStore.loggedUser._id ? 'sent' : 'received']"
+          :class="[
+            message.user_id === userStore.loggedUser._id ? 'chat chat-end' : 'chat chat-start'
+          ]"
         >
-          <div class="avatar w-10 m-2 z-2">
-            <img
-              :src="getUserById(message.user_id)?.image || ''"
-              :title="
-                getUserById(message.user_id)
-                  ? getUserById(message.user_id).name + ' ' + getUserById(message.user_id).surname
-                  : message.name
-              "
-            />
+          <div
+            class="chat-image avatar"
+            v-if="selectedChat.type !== 'group' && message.user_id != userStore.loggedUser._id"
+          >
+            <div
+              class="ring-offset-base-100 rounded-full ring w-10"
+              :class="{
+                'ring-primary': getUserById(message.user_id)?.color === 'primary',
+                'ring-secondary': getUserById(message.user_id)?.color === 'secondary',
+                'ring-accent': getUserById(message.user_id)?.color === 'accent',
+                'ring-success': getUserById(message.user_id)?.color === 'success',
+                'ring-warning': getUserById(message.user_id)?.color === 'warning',
+                'ring-error': getUserById(message.user_id)?.color === 'error'
+              }"
+            >
+              <img
+                :src="getUserById(message.user_id)?.image || ''"
+                :title="getUserById(message.user_id)?.name || message.name"
+              />
+            </div>
           </div>
-          <div class="flex flex-col justify-start text-sm text-surface-0 font-semibold">
-            {{ message.name }}
-            <span class="flex text-xs">
+          <div class="chat-header text-sm">
+            <p v-if="selectedChat.type == 'group'" class="text-surface-0 font-semibold">
+              {{ message.name }}
+            </p>
+            <time class="text-xs opacity-50">
               {{ new Date(message.timestamp).toLocaleTimeString() }}
-            </span>
+            </time>
           </div>
-          <div class="flex message-content">
+          <div
+            class="message"
+            :class="
+              message.user_id === userStore.loggedUser._id ? 'message-sent' : 'message-received'
+            "
+          >
             {{ message.message }}
-            <!-- Indicatori di stato per i messaggi inviati -->
-            <!-- <span
+          </div>
+          <!-- Indicatori di stato per i messaggi inviati -->
+          <!-- <span
               v-if="message.user_id === userStore.loggedUser._id"
               class="message-status text-xs"
             >
@@ -92,7 +127,6 @@
               />
               <Icon v-else icon="mdi:check" />
             </span> -->
-          </div>
         </div>
       </div>
 
@@ -152,7 +186,7 @@ const privateChats = ref([])
 const selectedChat = ref({
   type: null,
   id: null,
-  dest_username: '',
+  dest: {},
   img: '',
   users: []
 })
@@ -179,8 +213,11 @@ const isTyping = ref(false)
 const typingTimeout = ref(null)
 
 const getUserById = (messageUserId) => {
-  if (!selectedChat?.users) return null
-  return selectedChat.users.find((user) => user._id === messageUserId)
+  if (!selectedChat.value?.users || !Array.isArray(selectedChat.value.users)) {
+    // Se non abbiamo users nel selectedChat, cerca negli users globali
+    return users.value.find((user) => user._id === messageUserId)
+  }
+  return selectedChat.value.users.find((user) => user._id === messageUserId)
 }
 
 const handleTyping = () => {
@@ -257,6 +294,7 @@ const sendMessage = async () => {
 
       currentMessages.value.push(tempMessage)
       newMessage.value = ''
+      await nextTick()
       scrollToBottom()
 
       // Poi emetti il messaggio via socket
@@ -286,9 +324,9 @@ const selectChat = async (type, chat) => {
     selectedChat.value = {
       type,
       id: chatId,
-      dest_username: chat.name,
+      dest: chat,
       img: chat.img,
-      users: chatUsers
+      users: chatUsers || []
     }
 
     currentMessages.value = [] // Reset messages
@@ -493,6 +531,7 @@ const startPrivateChat = (user) => {
   margin-left: 5px;
   @apply bg-primary;
 }
+
 .chat-container {
   @apply flex h-[80vh] gap-4;
 }
@@ -514,15 +553,23 @@ const startPrivateChat = (user) => {
 }
 
 .message {
-  @apply mb-4 max-w-[60%] chat-bubble;
+  @apply chat-bubble;
+}
+
+.message-sent {
+  @apply chat-bubble-primary;
+}
+
+.message-received {
+  @apply chat-bubble-secondary;
 }
 
 .sent {
-  @apply ml-auto chat chat-end chat-bubble-primary;
+  @apply chat chat-end;
 }
 
 .received {
-  @apply chat chat-start chat-bubble-secondary;
+  @apply chat chat-start;
 }
 
 .chat-item {

@@ -43,18 +43,51 @@ const UsersSchema = new mongoose.Schema({
   groups: {
     type: Object,
     default: []
+  },
+  color: {
+    type: String,
+    default: ''
   }
 })
 
 // Middleware per generare un avatar prima di salvare un nuovo utente
 UsersSchema.pre('save', function (next) {
+  const RING_COLORS = ['primary', 'secondary', 'accent', 'success', 'warning', 'error']
   if (this.isNew) {
     const avatar = createAvatar(adventurer, {
       seed: Math.random().toString(36).substring(7)
     }).toDataUri()
     this.image = avatar
+    this.color = RING_COLORS[Math.floor(Math.random() * RING_COLORS.length)]
+  }
+  if (!this.color) {
+    this.color = RING_COLORS[Math.floor(Math.random() * RING_COLORS.length)]
   }
   next()
+})
+
+// In server/users/users.js
+app.patch('/users/migrate-colors', async (req, res) => {
+  try {
+    const RING_COLORS = ['primary', 'secondary', 'accent', 'success', 'warning', 'error']
+    
+    // Trova tutti gli utenti senza color
+    const usersToUpdate = await Users.find({ color: { $exists: false } })
+    
+    // Aggiorna ogni utente con un colore casuale
+    for (const user of usersToUpdate) {
+      await Users.findByIdAndUpdate(user._id, {
+        $set: {
+          color: RING_COLORS[Math.floor(Math.random() * RING_COLORS.length)]
+        }
+      })
+    }
+
+    res.status(200).json({ message: `Updated ${usersToUpdate.length} users` })
+  } catch (err) {
+    console.error('Error migrating colors:', err)
+    res.status(500).json({ error: err.message })
+  }
 })
 
 const Users = mongoose.model('user', UsersSchema)
@@ -110,7 +143,7 @@ app.patch('/users/:id', async (req, res) => {
       }
     }
 
-    const updatedUser = await Users.findByIdAndUpdate(id, { $set: updateFields }, {new: true})
+    const updatedUser = await Users.findByIdAndUpdate(id, { $set: updateFields }, { new: true })
     res.status(200).json(updatedUser)
   } catch (err) {
     console.error(err)
