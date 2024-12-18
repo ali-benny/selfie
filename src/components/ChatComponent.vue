@@ -79,7 +79,7 @@
         >
           <div
             class="chat-image avatar"
-            v-if="selectedChat.type !== 'group' && message.user_id != userStore.loggedUser._id"
+            v-if="selectedChat.type === 'group' && message.user_id != userStore.loggedUser._id"
           >
             <div
               class="ring-offset-base-100 rounded-full ring w-10"
@@ -97,9 +97,27 @@
                 :title="getUserById(message.user_id)?.name || message.name"
               />
             </div>
+
+            <span
+              v-if="selectedChat.owner === message.user_id"
+              class="absolute top-[-1] right-1 w-3 h-3 rotate-45"
+              :class="{
+                '!text-error': getUserById(message.user_id)?.color === 'primary',
+                '!text-warning': getUserById(message.user_id)?.color === 'secondary',
+                '!text-success': getUserById(message.user_id)?.color === 'accent',
+                '!text-accent': getUserById(message.user_id)?.color === 'success',
+                '!text-secondary': getUserById(message.user_id)?.color === 'warning',
+                '!text-primary': getUserById(message.user_id)?.color === 'error'
+              }"
+            >
+              <Icon icon="fluent:crown-16-filled" />
+            </span>
           </div>
-          <div class="chat-header text-sm">
-            <p v-if="selectedChat.type == 'group'" class="text-surface-0 font-semibold">
+          <div class="chat-header text-sm flex items-center gap-2 mx-2">
+            <p
+              v-if="selectedChat.type == 'group' && message.user_id !== userStore.loggedUser._id"
+              class="font-semibold"
+            >
               {{ message.name }}
             </p>
             <time class="text-xs opacity-50">
@@ -326,7 +344,8 @@ const selectChat = async (type, chat) => {
       id: chatId,
       dest: chat,
       img: chat.img,
-      users: chatUsers || []
+      users: chatUsers || [],
+      owner: chat.owner || ''
     }
 
     currentMessages.value = [] // Reset messages

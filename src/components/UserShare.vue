@@ -126,7 +126,7 @@ async function sendshare() {
       break
     }
     case 'Group': {
-      await updateGroup(props.id, { members: props.modelValue })
+      await updateGroup({ _id: props.id, members: props.modelValue })
     }
   }
   sharewith.value = []

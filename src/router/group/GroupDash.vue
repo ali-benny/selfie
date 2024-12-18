@@ -93,7 +93,12 @@ async function saveGroup(group) {
           </div>
           <textarea class="textarea textarea-borderd w-full" v-model="selectedGroup.description" />
         </label>
-        <UserShare :id="selectedGroup._id" type="Group" msg="Invites"></UserShare>
+        <UserShare
+          :id="selectedGroup._id"
+          type="Group"
+          msg="Invites"
+          v-model="selectedGroup.members"
+        ></UserShare>
       </div>
     </Transition>
   </div>
