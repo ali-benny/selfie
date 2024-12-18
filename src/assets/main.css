@@ -37,26 +37,32 @@
   /* shadow shadow-base-300 */
 }
 
-@layer base {
-  .Vue-Toastification__toast--info.themed {
-    @apply bg-primary text-primary-content;
+/* *** NOTIVUE *** */
+/* centering on mobile */
+@media (max-width: 768px) {
+  :root {
+    --nv-root-x-align: center;
   }
+}
 
-  .Vue-Toastification__toast--success.themed {
-    @apply bg-success text-success-content;
-  }
+.Notivue__notification {
+  @apply !bg-surface-1;
+}
 
-  .Vue-Toastification__toast--warning.themed {
-    @apply bg-warning text-warning-content;
-  }
+[class^='Notivue__content'] {
+  @apply !text-base-content font-medium;
+}
 
-  .Vue-Toastification__toast--error.themed {
-    @apply bg-error text-error-content;
-  }
+[data-notivue='error'] [class^='Notivue__icon'] {
+  @apply !text-error;
+}
 
-  .Vue-Toastification__close-button.themed {
-    @apply text-primary-content;
-  }
+[data-notivue='success'] [class^='Notivue__icon'] {
+  @apply !text-success;
+}
+
+[data-notivue='warning'] [class^='Notivue__icon'] {
+  @apply !text-warning;
 }
 
 /* 
@@ -64,7 +70,6 @@
   Editor.js Styles
   =================
 */
-
 /* Editor Container */
 .codex-editor {
   --color-base: hsl(var(--b2)) !important;

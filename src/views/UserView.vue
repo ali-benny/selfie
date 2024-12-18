@@ -6,8 +6,8 @@ import UserDropdown from '../components/UserDropdown.vue'
 import { useUserStore } from '../stores/account'
 import { createAvatar } from '@dicebear/core'
 import { adventurer } from '@dicebear/collection'
-import { useToast } from 'vue-toastification'
-const toast = useToast()
+import { useNotivue } from 'notivue'
+// const toast = useNotivue()
 
 const users = ref([])
 const newUser = ref({ name: '' })
@@ -79,7 +79,7 @@ const saveNewImage = async () => {
           updatedUser.image = newImage.value
         }
         newImage.value = ''
-        toast.success('Avatar updated!')
+        push.success('Avatar updated!')
       } else {
         console.error('Failed to save new image: ', response.status)
       }
@@ -102,7 +102,7 @@ const editLoggedUser = async () => {
       })
       if (response.ok) {
         userStore.setLoggedUser({ ...userStore.loggedUser, birthday: editBirthday })
-        toast.success('Changes saved on your account!')
+        push.success('Changes saved on your account!')
       } else {
         console.error('Failed to save user info: ', response.status)
       }
