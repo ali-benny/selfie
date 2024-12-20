@@ -110,7 +110,7 @@ app.patch('/users/:id', async (req, res) => {
       }
     }
 
-    const updatedUser = await Users.findByIdAndUpdate(id, { $set: updateFields }, {new: true})
+    const updatedUser = await Users.findByIdAndUpdate(id, { $set: updateFields }, { new: true })
     res.status(200).json(updatedUser)
   } catch (err) {
     console.error(err)

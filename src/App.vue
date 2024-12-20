@@ -1,13 +1,16 @@
 <script setup>
+import PomodoroTimerWidget from './components/pomodoro/PomodoroTimerWidget.vue';
 import { useUserStore } from './stores/account'
+import { usePomodoroStore } from './stores/pomodoro';
 import { Notivue, Notification } from 'notivue'
 
 const userStore = useUserStore()
+const pomodoroStore = usePomodoroStore()
 </script>
 
 <template>
-  <div class="container min-h-screen mx-auto flex flex-col">
-    <div class="navbar bg-base-300 justify-around rounded-b-xl text-2xl !text-primary">
+  <div class="container min-h-screen mx-auto flex flex-col ">
+    <div class="navbar relative bg-base-300 justify-around rounded-b-xl text-2xl !text-primary z-20">
       <RouterLink class="hover:!text-accent" to="/">
         <Icon icon="ic:round-dashboard" />
       </RouterLink>
@@ -18,20 +21,17 @@ const userStore = useUserStore()
         <Icon icon="fluent-emoji-high-contrast:tomato" />
       </RouterLink>
       <RouterLink class="hover:!text-accent" to="/user">
-        <img
-          v-if="userStore.loggedUser.image"
-          :src="userStore.loggedUser.image"
-          alt="User Image"
-          class="mask mask-squircle !bg-primary h-9 m-0"
-        />
+        <img v-if="userStore.loggedUser?.image" :src="userStore.loggedUser.image" alt="User Image"
+          class="mask mask-squircle !bg-primary h-9 m-0" />
         <Icon v-else icon="fluent:settings-48-filled" />
       </RouterLink>
     </div>
-    <div id="app" class="w-full grow">
+    <div id="app" class="relative w-full grow px-2 mb-16 sm:!pb-0">
       <Notivue v-slot="item">
         <Notification :item="item" />
       </Notivue>
-      <RouterView class="px-2" />
+      <RouterView />
+      <PomodoroTimerWidget v-if="pomodoroStore.showPomodoroWidget()" />
     </div>
   </div>
 </template>
