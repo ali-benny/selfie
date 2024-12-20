@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { useUserStore } from './account'
 import { useAsyncState, useLocalStorage, useSessionStorage, whenever } from '@vueuse/core'
 import { defaultConfig, loadUserConfigs, loadLatestConfig } from '@/router/pomodoro/pomodoro.js'
-import { computed, toRaw } from 'vue'
+import { computed, toRaw, watch } from 'vue'
 import { useToast } from 'vue-toastification'
 import { useRoute } from 'vue-router'
 
@@ -35,7 +35,8 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
     started: false,
     running: false,
     finished: false,
-    timeoutId: 0
+    timeoutId: 0,
+    longBreakLap: 0
   })
 
   const preferredDurationFormat = useLocalStorage('pomodoro.preferredDurationFormat', 'mm')
@@ -57,6 +58,12 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
     }
   )
 
+  watch(currentConfig, () => {
+    if (!pomodoro.value.started) {
+      initNewPomodoro()
+    }
+  })
+
   function initNewPomodoro() {
     pomodoro.value.initialTimer = currentConfig.value.pomodoroTime * 60
     pomodoro.value.timer = pomodoro.value.initialTimer
@@ -66,6 +73,9 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
     pomodoro.value.running = false
     pomodoro.value.finished = false
     pomodoro.value.timeoutId = 0
+    if (currentConfig.value.longBreak) {
+      pomodoro.value.longBreakLap = 0
+    }
   }
 
   function playPomodoroTimer() {
@@ -111,7 +121,6 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
           break
         }
 
-        pomodoro.value.longBreakLap++
         if (pomodoro.value.longBreakLap == currentConfig.value.longBreak.interval) {
           pomodoro.value.initialTimer = currentConfig.value.longBreak.time * 60
           pomodoro.value.longBreakLap = 0
@@ -122,6 +131,7 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
         break
       case 'break':
         pomodoro.value.cycle++
+        pomodoro.value.longBreakLap++
         if (currentConfig.value.cycles && pomodoro.value.cycle >= currentConfig.value.cycles) {
           finishPomodoro()
         } else {
@@ -158,6 +168,12 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
 
   function setCurrentConfig(config) {
     if (currentConfig.value._id !== config._id) {
+      currentConfig.value = config
+      initNewPomodoro()
+      return
+    }
+
+    if (!pomodoro.value.started) {
       currentConfig.value = config
       initNewPomodoro()
       return

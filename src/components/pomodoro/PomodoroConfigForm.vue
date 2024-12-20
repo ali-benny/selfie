@@ -163,7 +163,7 @@ import { nextTick, ref, useTemplateRef, toRaw, reactive, computed, watch } from 
 import { usePomodoroStore } from '@/stores/pomodoro';
 import PomodoroConfigInfo from './PomodoroConfigInfo.vue';
 import { storeToRefs } from 'pinia';
-import { useDebounceFn, whenever } from '@vueuse/core';
+import { reactiveComputed, useDebounceFn, whenever } from '@vueuse/core';
 import ToggleSpin from '../ToggleSpin.vue';
 
 // const toast = useNotivue()
@@ -213,12 +213,15 @@ const firstStepDone = ref(false)
 const configName = useTemplateRef('configName')
 const form = useTemplateRef('form')
 
+
+const config = reactiveComputed(() => configId ? pomodoroStore.getUserConfig(configId) : defaultConfig)
 const editableConfig = reactive({ ...defaultConfig })
 if (configId) {
   Object.assign(editableConfig, structuredClone(pomodoroStore.getUserConfig(configId)))
 } else {
   editableConfig.durationFormat = preferredDurationFormat.value
 }
+
 
 /* Used in first step to input the desired focus duration */
 const desiredDuration = ref(0)
@@ -286,9 +289,9 @@ async function saveConfig(close) {
   try {
     if (configId) {
       userConfigs.value.set(configId, structuredClone(toRaw(editableConfig)))
-      if (pomodoroStore.isConfigSelected(configId))
-        pomodoroStore.setCurrentConfig(configId)
       await updatePomodoroConfig(toRaw(editableConfig))
+      if (pomodoroStore.isConfigSelected(config))
+        pomodoroStore.setCurrentConfig(config)
       push.success('Focus saved!')
     } else {
       const createdConfig = await createPomodoroConfig(userId, toRaw(editableConfig))
