@@ -46,7 +46,7 @@
     "mongoose": "^7.8.3",
     "notivue": "^2.4.5",
     "npm": "^10.8.2",
-    "pinia": "^2.1.7",
+    "pinia": "^2.3.0",
     "swapy": "^1.0.2",
     "tailwindcss-motion": "^1.0.0",
     "unimport": "^3.13.3",
