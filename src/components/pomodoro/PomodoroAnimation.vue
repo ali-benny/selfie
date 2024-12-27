@@ -3,8 +3,6 @@
     <svg v-if="widget" width="100%" height="100%" ref="animationElem" class="overflow-hidden stroke-[.6em]"
       viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
       <g class="fill-none stroke-none">
-        <line id="dot" x1="50" y1="0" x2="50" y2="0" vector-effect="non-scaling-stroke" :stroke="breakColor"
-          class="linecap-round" />
         <rect vector-effect="non-scaling-stroke" width="100" height="100" class="linecap-round stroke-surface-0/50" />
         <polygon ref="progress" vector-effect="non-scaling-stroke" points="50,0 0,0 0,100, 100,100 100,0 50,0"
           class="linecap-round" :stroke-dasharray="progressPathLength">
@@ -16,9 +14,6 @@
       <g class="fill-none linecap-round">
         <line id="dot" x1="50" y1="0" x2="50" y2="0" :stroke="breakColor" pathLength="1" />
         <circle cx="50" cy="50" r="50" class="stroke-surface-0/50" />
-        <!-- <circle ref="progress" class="origin-center -rotate-90" cx="50" cy="50" r="50" pathLength="1" -->
-        <!--   stroke-dasharray="1" /> -->
-
         <circle ref="progress" class="stroke-primary origin-center -rotate-90" cx="50" cy="50" r="50" pathLength="1"
           stroke-dasharray="1" />
       </g>

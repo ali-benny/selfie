@@ -5,21 +5,14 @@
     </button>
     <template #content>
       <div class="shadow-md bg-base-200 rounded-box p-2 z-3 flex flex-col w-svw md:w-max">
-        <ul
-          class="flex flex-col z-3 left-0 m-0 p-3 bg-base-200 rounded-box shadow-xl overflow-y-auto w-auto max-h-72"
-        >
-          <button
-            v-for="user in users"
-            :key="user._id"
-            :class="[
-              'flex gap-2 justify-between items-center',
-              'rounded-lg',
-              'p-1 px-3 my-1',
-              'bg-base-300',
-              { 'bg-primary/30': sharewith.includes(user) }
-            ]"
-            @click="select(user)"
-          >
+        <ul class="flex flex-col z-3 left-0 m-0 p-3 bg-base-200 rounded-box shadow-xl overflow-y-auto w-auto max-h-72">
+          <button v-for="user in users" :key="user._id" :class="[
+            'flex gap-2 justify-between items-center',
+            'rounded-lg',
+            'p-1 px-3 my-1',
+            'bg-base-300',
+            { 'bg-primary/30': sharewith.includes(user) }
+          ]" @click="select(user)">
             <div class="flex items-center gap-3">
               <div :class="['avatar', user.logged ? 'online' : '']">
                 <div class="mask mask-squircle !bg-primary w-10">
@@ -34,11 +27,10 @@
             </span>
           </button>
         </ul>
-        <button
-          class="btn btn-outline btn-primary mt-2 flex items-center justify-center rounded-lg gap-2"
-          @click="sendshare()"
-        >
-          Condividi<Icon icon="fluent:send-person-16-filled" />
+        <button class="btn btn-outline btn-primary mt-2 flex items-center justify-center rounded-lg gap-2"
+          @click="sendshare()">
+          Condividi
+          <Icon icon="fluent:send-person-16-filled" />
         </button>
       </div>
     </template>
@@ -48,10 +40,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { API_URL } from '../../const'
-import { useNotivue } from 'notivue'
 import { saveNoteMongo, getReadersIds } from '@/router/note/editor/note'
-
-// const toast = useNotivue()
 
 const users = ref()
 const sharewith = ref([])
@@ -113,7 +102,7 @@ async function sendshare() {
       break
     }
     case 'Pomodoro': {
-      //TODO: add user to pomo share
+
       break
     }
     case 'Event': {
@@ -135,7 +124,8 @@ async function sendshare() {
 .fade-enter,
 .fade-leave-to
 
-/* .fade-leave-active in <2.1.8 */ {
+/* .fade-leave-active in <2.1.8 */
+  {
   opacity: 0;
 }
 </style>
