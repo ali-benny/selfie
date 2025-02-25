@@ -3,6 +3,7 @@ import express from 'express'
 import { SERVER_URL } from '../../const.js'
 import { connect } from '../app.js'
 import mongoose from 'mongoose'
+import { Group } from '../groups/groups.js' 
 
 const app = express()
 let io = null
@@ -203,6 +204,67 @@ app.get('/messages/private/:userId/chats', async (req, res) => {
     res.status(500).json({ error: error.message })
   }
 })
+
+app.get('/messages/private/:userId/all', async (req, res) => {
+  try {
+    await ensureConnection();
+    const userId = req.params.userId;
+
+    // Trova tutte le chat dove l'utente è coinvolto
+    const chats = await Message.aggregate([
+      {
+        $match: {
+          chatType: 'private',
+          $or: [
+            { user_id: userId },
+            { chatId: { $regex: userId } }
+          ]
+        }
+      },
+      {
+        $sort: { timestamp: -1 }
+      },
+      {
+        $group: {
+          _id: {
+            $cond: [
+              { $eq: ['$user_id', userId] },
+              { $arrayElemAt: [{ $split: ['$chatId', '_'] }, 1] },
+              '$user_id'
+            ]
+          },
+          lastMessage: { $first: '$$ROOT' },
+          unreadCount: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $ne: ['$user_id', userId] },
+                    { $not: { $in: [userId, { $ifNull: ['$readBy', []] }] } }
+                  ]
+                },
+                1,
+                0
+              ]
+            }
+          }
+        }
+      },
+      {
+        $project: {
+          participantId: '$_id',
+          lastMessage: 1,
+          unreadCount: 1
+        }
+      }
+    ]);
+
+    res.json(chats);
+  } catch (error) {
+    console.error('Error fetching chats:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 const setupSocketEvents = (io) => {
   io.on('connection', (socket) => {

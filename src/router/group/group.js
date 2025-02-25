@@ -7,8 +7,16 @@
 import { API_URL } from '~/const'
 
 export async function getGroups(userId) {
-  const res = await fetch(`${API_URL}/${userId}/groups`)
-  return res.json()
+  try {
+    const res = await fetch(`${API_URL}/${userId}/groups`);
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+    return await res.json();
+  } catch (error) {
+    console.error("Error fetching groups:", error);
+    return []
+  }
 }
 
 export async function updateGroup(group) {

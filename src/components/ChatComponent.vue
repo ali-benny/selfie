@@ -9,15 +9,15 @@
           :key="group._id"
           @click="selectChat('group', group)"
           :class="[
-            'chat-item border-2',
+            'chat-item border-2  flex items-center justify-between',
             selectedChat.id === group._id ? 'active' : '',
             hasUnreadMessages(group._id) ? 'border-solid !border-secondary' : 'border-surface-0'
           ]"
         >
-          {{ group.name }}
-          <!-- <span v-if="unreadMessages.value[group._id]?" class="unread-dot">
-            {{ unreadMessages.value[group._id]? }}</span
-          > -->
+          <span>{{ group.name }}</span>
+          <span v-if="getUnreadCount(group._id)" class="badge badge-secondary ml-2">
+            {{ getUnreadCount(group._id) }}
+          </span>
         </div>
       </div>
       <div class="divider m-0"></div>
@@ -38,10 +38,10 @@
             hasUnreadMessages(chat.user._id) ? 'border-solid !border-primary' : 'border-surface-0'
           ]"
         >
-          {{ chat.user.name }}
-          <!-- <span v-if="unreadMessages?.value[chat.user._id]" class="unread-dot">
-            {{ unreadMessages?.value[chat.user._id] }}</span
-          > -->
+          <span>{{ chat.user.name }}</span>
+          <span v-if="getUnreadCount(chat.user._id)" class="badge badge-secondary ml-2">
+            {{ getUnreadCount(chat.user._id) }}
+          </span>
         </div>
       </div>
     </div>
@@ -248,6 +248,30 @@ const getUserById = (messageUserId) => {
   return selectedChat.value.users.find((user) => user._id === messageUserId)
 }
 
+const getUnreadCount = (chatId) => {
+  // For messages that are in the current array
+  const unreadInCurrent = currentMessages.value.filter(
+    msg => msg.user_id !== userStore.loggedUser._id && 
+           (!msg.readBy || !msg.readBy.includes(userStore.loggedUser._id))
+  ).length;
+  
+  // For chats in the list that we're not currently viewing
+  if (selectedChat.value.id !== chatId) {
+    if (selectedChat.value.type === 'group') {
+      const group = groups.value.find(g => g._id === chatId);
+      return group?.unreadCount || 0;
+    } else {
+      // Handle private chats
+      const privateChat = privateChats.value.find(
+        chat => [userStore.loggedUser._id, chat.user._id].sort().join('_') === chatId ||
+                chat.user._id === chatId
+      );
+      return privateChat?.unreadCount || 0;
+    }
+  }
+  return unreadInCurrent;
+}
+
 const handleTyping = () => {
   if (selectedChat.value.id) {
     socket.emit('typing', {
@@ -268,7 +292,11 @@ const handleTyping = () => {
     }, 2000)
   }
 }
+
 const hasUnreadMessages = (chatId) => {
+  // Check if privateChats.value exists before using it
+  if (!privateChats.value) return false;
+
   // For private chats, generate the correct chatId
   const fullChatId =
     selectedChat.value?.type === 'private'
@@ -298,72 +326,71 @@ const hasUnreadMessages = (chatId) => {
 }
 
 const handleNewMessage = (message) => {
-  // Se il messaggio è per la chat corrente
+  // If message is for the current chat
   if (message.chatId === selectedChat.value?.id) {
-    message.readBy = message.readBy || []
-    // Se siamo nella chat attiva, marchiamo subito come letto
-    if (!message.readBy.includes(userStore.loggedUser._id)) {
-      message.readBy.push(userStore.loggedUser._id)
-
-      // Invia subito la notifica di lettura
-      fetch(`${CHAT_URL}/messages/${message.chatId}/read`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          userId: userStore.loggedUser._id
-        })
-      })
+    message.readBy = message.readBy || [];
+    
+    // If we're in the active chat, mark as read immediately
+    if (!message.readBy.includes(userStore.loggedUser._id) && 
+        message.user_id !== userStore.loggedUser._id) {
+      // Mark as read locally
+      message.readBy.push(userStore.loggedUser._id);
+      
+      // Send read status to server
+      markMessagesAsRead(message.chatId);
     }
 
-    const existingMessageIndex = currentMessages.value.findIndex(
-      (m) =>
-        m._id === message._id ||
-        (m.message === message.message &&
-          m.user_id === message.user_id &&
-          m._id.startsWith('temp_'))
-    )
-
-    if (existingMessageIndex !== -1) {
-      currentMessages.value[existingMessageIndex] = message
+    // Replace temp message or add new one
+    const existingMsgIndex = currentMessages.value.findIndex(
+      m => m._id === message._id || 
+          (m._id.startsWith('temp_') && 
+           m.message === message.message && 
+           m.user_id === message.user_id)
+    );
+    
+    if (existingMsgIndex !== -1) {
+      currentMessages.value[existingMsgIndex] = message;
     } else {
-      currentMessages.value.push(message)
-      scrollToBottom()
+      currentMessages.value.push(message);
+      scrollToBottom();
     }
   } else {
-    // Se il messaggio è per un'altra chat
-    if (message.chatType === 'private') {
-      const chatIndex = privateChats.value.findIndex((chat) => chat.user._id === message.user_id)
-      if (chatIndex !== -1) {
-        privateChats.value[chatIndex] = {
-          ...privateChats.value[chatIndex],
-          lastMessage: {
-            ...message,
-            readBy: message.readBy || []
-          }
-        }
+    // Handle message for another chat by updating unread counts
+    if (message.chatType === 'group') {
+      const group = groups.value.find(g => g._id === message.chatId);
+      if (group) {
+        group.lastMessage = message;
+        group.unreadCount = (group.unreadCount || 0) + 1;
       }
-    } else {
-      const groupIndex = groups.value.findIndex((group) => group._id === message.chatId)
-      if (groupIndex !== -1) {
-        groups.value[groupIndex] = {
-          ...groups.value[groupIndex],
-          lastMessage: {
-            ...message,
-            readBy: message.readBy || []
-          }
-        }
+    } else if (message.chatType === 'private') {
+      const chat = privateChats.value.find(c => 
+        c.user._id === message.user_id || 
+        [userStore.loggedUser._id, c.user._id].sort().join('_') === message.chatId
+      );
+      if (chat) {
+        chat.lastMessage = message;
+        chat.unreadCount = (chat.unreadCount || 0) + 1;
       }
     }
   }
 
-  // Forza l'aggiornamento reattivo delle liste
-  nextTick(() => {
-    privateChats.value = [...privateChats.value]
-    groups.value = [...groups.value]
-  })
+  // Force reactive update
+  privateChats.value = [...privateChats.value];
+  groups.value = [...groups.value];
 }
+
+const handleUserTyping = ({ chatId, userId, name }) => {
+  if (selectedChat.value.id === chatId && userId !== userStore.loggedUser._id) {
+    isTyping.value = `${name} is typing...`;
+  }
+}
+
+const handleUserStopTyping = ({ chatId, userId }) => {
+  if (selectedChat.value.id === chatId && isTyping.value) {
+    isTyping.value = false;
+  }
+}
+
 
 const sendMessage = async () => {
   if (newMessage.value.trim() && selectedChat.value.id) {
@@ -374,7 +401,7 @@ const sendMessage = async () => {
       chatId: selectedChat.value.id,
       chatType: selectedChat.value.type,
       timestamp: new Date(),
-      status: 'sent'
+      readBy: [userStore.loggedUser._id] // Always read by sender
     }
 
     try {
@@ -382,7 +409,8 @@ const sendMessage = async () => {
       const tempId = 'temp_' + Date.now()
       const tempMessage = {
         ...messageData,
-        _id: tempId
+        _id: tempId,
+        status: 'sending'
       }
 
       currentMessages.value.push(tempMessage)
@@ -394,6 +422,12 @@ const sendMessage = async () => {
       socket.emit('chat-message', messageData)
     } catch (error) {
       console.error('Error sending message:', error)
+      // Handle failed message
+      const failedMsgIndex = currentMessages.value.findIndex(m => m._id === 'temp_' + Date.now());
+      if (failedMsgIndex !== -1) {
+        currentMessages.value[failedMsgIndex].status = 'failed';
+        currentMessages.value = [...currentMessages.value];
+      }
     }
   }
 }
@@ -404,80 +438,33 @@ const handleMessageStatus = ({ messageId, status }) => {
 const selectChat = async (type, chat) => {
   try {
     // Genera il chatId per chat private
-    let chatId =
-      type === 'private' ? [userStore.loggedUser._id, chat._id].sort().join('_') : chat._id
+    let chatId
+    if (type === 'private') {
+      chatId = [userStore.loggedUser._id, chat._id].sort().join('_')
+    } else {
+      chatId = chat._id
+    }
 
     // Raccogli gli ID degli utenti in base al tipo di chat
-    const usersIds =
-      type === 'private'
-        ? [userStore.loggedUser._id, chat._id] // Per chat private, solo i due utenti
-        : [...chat.members, chat.owner] // Per gruppi, tutti i membri più l'owner
+    const usersIds = type === 'private' ? [userStore.loggedUser._id, chat._id] : chat.members || []
+
     const chatUsers = await getUsersByIds(usersIds)
 
+    // Update selected chat
     selectedChat.value = {
       type,
       id: chatId,
       dest: chat,
-      img: chat.img,
-      users: chatUsers || [],
-      owner: chat.owner || ''
+      users: chatUsers
     }
 
-    currentMessages.value = [] // Reset messages
+    // Fetch messages for this chat
+    const response = await fetch(`${CHAT_URL}/messages/${type}/${chatId}`) // Corrected URL
+    const data = await response.json()
+    currentMessages.value = data
 
-    // Carica i messaggi precedenti dal server
-    const response = await fetch(`${CHAT_URL}/messages/${type}/${chatId}`)
-    if (!response.ok) throw new Error('Failed to fetch messages')
-    const messages = await response.json()
-    currentMessages.value = messages
-
-    // Unisciti alla stanza socket
-    socket.emit('join-chat', {
-      chatId,
-      userId: userStore.loggedUser._id,
-      type
-    })
-
-    // Marca i messaggi come letti quando si entra nella chat
-    if (currentMessages.value.length > 0) {
-      try {
-        const response = await fetch(`${CHAT_URL}/messages/${selectedChat.value.id}/read`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            userId: userStore.loggedUser._id
-          })
-        })
-
-        const { updatedMessages } = await response.json()
-
-        // Aggiorna lo stato dei messaggi localmente
-        currentMessages.value = currentMessages.value.map((msg) => {
-          const updatedMsg = updatedMessages.find((m) => m._id === msg._id)
-          if (updatedMsg) {
-            return {
-              ...msg,
-              readBy: updatedMsg.readBy,
-              status: updatedMsg.status
-            }
-          }
-          return msg
-        })
-
-        // Forza l'aggiornamento delle liste chat
-        nextTick(() => {
-          if (selectedChat.value?.type === 'private') {
-            privateChats.value = [...privateChats.value]
-          } else {
-            groups.value = [...groups.value]
-          }
-        })
-      } catch (error) {
-        console.error('Error marking messages as read:', error)
-      }
-    }
+    // Mark messages as read
+    markMessagesAsRead(chatId)
 
     scrollToBottom()
   } catch (error) {
@@ -485,7 +472,35 @@ const selectChat = async (type, chat) => {
   }
 }
 
-// Funzione helper per lo scroll
+
+// Add this function to mark messages as read
+const markMessagesAsRead = async (chatId) => {
+  try {
+    // Update UI immediately
+    currentMessages.value.forEach((msg) => {
+      if (
+        msg.user_id !== userStore.loggedUser._id &&
+        (!msg.readBy || !msg.readBy.includes(userStore.loggedUser._id))
+      ) {
+        msg.readBy = [...(msg.readBy || []), userStore.loggedUser._id]
+      }
+    })
+
+    // Send API request to mark as read
+    await fetch(`${CHAT_URL}/messages/${chatId}/read`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        userId: userStore.loggedUser._id
+      })
+    })
+  } catch (error) {
+    console.error('Error marking messages as read:', error)
+  }
+}
+
 const scrollToBottom = () => {
   nextTick(() => {
     const container = document.querySelector('.messages-container')
@@ -603,78 +618,108 @@ const setupSocketConnection = () => {
   })
 }
 
-onMounted(async () => {
-  try {
-    setupSocketConnection()
+// onMounted(async () => {
+//   try {
+//     setupSocketConnection()
 
-    const usersList = await getUsers()
-    if (Array.isArray(usersList)) {
-      users.value = usersList.filter((u) => u._id !== userStore.loggedUser._id)
-    } else {
-      console.error('getUsers did not return an array:', usersList)
-      users.value = []
-    }
+//     const usersList = await getUsers()
+//     if (Array.isArray(usersList)) {
+//       users.value = usersList.filter((u) => u._id !== userStore.loggedUser._id)
+//     } else {
+//       console.error('getUsers did not return an array:', usersList)
+//       users.value = []
+//     }
 
-    // Carica gruppi e utenti
-    const userGroups = await getGroups(userStore.loggedUser._id)
-    groups.value = userGroups || []
+//     // Carica gruppi e utenti
+//     const userGroups = await getGroups(userStore.loggedUser._id)
+//     groups.value = userGroups || []
 
-    if (!socket.connected) {
-      await new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          reject(new Error('Connection timeout'))
-        }, 5000)
+//     if (!socket.connected) {
+//       await new Promise((resolve, reject) => {
+//         const timeout = setTimeout(() => {
+//           reject(new Error('Connection timeout'))
+//         }, 5000)
 
-        socket.connect()
-        socket.once('connect', () => {
-          clearTimeout(timeout)
-          resolve()
-        })
-      })
-    }
+//         socket.connect()
+//         socket.once('connect', () => {
+//           clearTimeout(timeout)
+//           resolve()
+//         })
+//       })
+//     }
 
-    socket.on('chat-message', handleNewMessage)
-    socket.on('message-status-update', handleMessageStatus)
+//     socket.on('chat-message', handleNewMessage)
+//     socket.on('message-status-update', handleMessageStatus)
 
-    // Gestione stato dei messaggi
-    socket.on('messages-marked-read', ({ chatId }) => {
-      if (chatId === selectedChat.value.id) {
-        currentMessages.value.forEach((msg) => {
-          if (msg.user_id !== userStore.loggedUser._id) {
-            messageStatus.value.set(msg._id, 'read')
-          }
-        })
-      }
-    })
+//     // Gestione stato dei messaggi
+//     socket.on('messages-marked-read', ({ chatId }) => {
+//       if (chatId === selectedChat.value.id) {
+//         currentMessages.value.forEach((msg) => {
+//           if (msg.user_id !== userStore.loggedUser._id) {
+//             messageStatus.value.set(msg._id, 'read')
+//           }
+//         })
+//       }
+//     })
 
-    await loadExistingChats()
+//     await loadExistingChats()
 
-    // Connessione iniziale
-    socket.emit('user-connected', userStore.loggedUser._id)
+//     // Connessione iniziale
+//     socket.emit('user-connected', userStore.loggedUser._id)
 
-    socket.on('joined', ({ messages }) => {
-      console.log('Received messages on join:', messages)
-      currentMessages.value = messages
-      scrollToBottom()
-    })
+//     socket.on('joined', ({ messages }) => {
+//       console.log('Received messages on join:', messages)
+//       currentMessages.value = messages
+//       scrollToBottom()
+//     })
 
-    socket.on('typing', ({ name }) => {
-      isTyping.value = `${name} is typing...`
-    })
+//     socket.on('typing', ({ name }) => {
+//       isTyping.value = `${name} is typing...`
+//     })
 
-    socket.on('stop-typing', () => {
-      isTyping.value = false
-    })
+//     socket.on('stop-typing', () => {
+//       isTyping.value = false
+//     })
 
-    socket.on('error', (error) => {
-      console.error('Socket error:', error)
-    })
-  } catch (error) {
-    console.error('Error loading initial data:', error)
-  }
-})
+//     socket.on('error', (error) => {
+//       console.error('Socket error:', error)
+//     })
+//   } catch (error) {
+//     console.error('Error loading initial data:', error)
+//   }
+// })
 
 // Cleanup quando il componente viene distrutto
+
+onMounted(async () => {
+  try {
+    setupSocketConnection();
+    
+    // Carica tutti gli utenti tranne quello loggato
+    const usersData = await getUsers();
+    users.value = usersData.filter(u => u._id !== userStore.loggedUser._id);
+    
+    // Carica i gruppi dell'utente
+    const userGroups = await getGroups(userStore.loggedUser._id);
+    groups.value = userGroups;
+    
+    // Carica le chat private esistenti
+    const privateChatData = await loadExistingChats();
+    privateChats.value = privateChatData;
+    
+    // Unisciti alle room delle chat
+    socket.emit('join-user-rooms', {
+      userId: userStore.loggedUser._id,
+      groups: groups.value.map(g => g._id),
+      privateChats: privateChats.value.map(c => [userStore.loggedUser._id, c.user._id].sort().join('_'))
+    });
+
+  } catch (error) {
+    console.error('Error initializing chat component:', error);
+    toast.error('Failed to initialize chat');
+  }
+});
+
 onUnmounted(() => {
   socket.off('chat-message')
   socket.off('joined')
@@ -696,27 +741,26 @@ const updateUnreadMessages = (chatId) => {
 
 const loadExistingChats = async () => {
   try {
-    const response = await fetch(`${CHAT_URL}/messages/private/${userStore.loggedUser._id}/chats`)
-    if (!response.ok) throw new Error('Failed to fetch existing chats')
+    const response = await fetch(`${CHAT_URL}/messages/private/${userStore.loggedUser._id}/all`);
+    if (!response.ok) throw new Error('Failed to fetch existing chats');
 
-    const responseData = await response.text()
-    const existingChats = JSON.parse(responseData)
+    const existingChats = await response.json();
 
-    // Aggiorna la lista delle chat private
-    for (const chat of existingChats) {
-      const otherUserId = chat.participantId
-      const user = users.value.find((u) => u._id === otherUserId)
-      if (user && !privateChats.value.some((pc) => pc.user._id === user._id)) {
-        privateChats.value.push({
-          user,
-          lastMessage: chat.lastMessage
-        })
-      }
-    }
+    return existingChats.map(chat => {
+      const user = users.value.find(u => u._id === chat.participantId);
+      return user ? {
+        user: user,
+        lastMessage: chat.lastMessage,
+        unreadCount: chat.unreadCount || 0
+      } : null;
+    }).filter(chat => chat); // Filter out null values
+
   } catch (error) {
-    console.error('Error loading existing chats:', error)
+    console.error('Error loading existing chats:', error);
+    return []; // Return empty array in case of error
   }
 }
+
 const startPrivateChat = (user) => {
   // Verifica se la chat privata esiste già
   const existingChat = privateChats.value.find((chat) => chat.user._id === user._id)
