@@ -17,6 +17,9 @@ const userStore = useUserStore()
       <RouterLink class="hover:!text-accent" to="/pomodoro">
         <Icon icon="fluent-emoji-high-contrast:tomato" />
       </RouterLink>
+      <RouterLink class="hover:!text-accent" to="/chat">
+        <Icon icon="fluent:chat-28-filled" />
+      </RouterLink>
       <RouterLink class="hover:!text-accent" to="/user">
         <img
           v-if="userStore.loggedUser.image"

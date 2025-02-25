@@ -47,10 +47,6 @@ const MessageSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
-  read: {
-    type: Boolean,
-    default: false
-  },
   readBy: [
     {
       type: String,
@@ -111,6 +107,58 @@ app.get('/messages/:type/:id', async (req, res) => {
   }
 })
 
+app.post('/messages/:id/read', async (req, res) => {
+  try {
+    const chatId = req.params.id;
+    const { userId } = req.body;
+
+    // Trova i messaggi da aggiornare
+    const messagesToUpdate = await Message.find({
+      chatId,
+      user_id: { $ne: userId },
+      readBy: { $ne: userId }
+    });
+
+    for (const message of messagesToUpdate) {
+      // Aggiungi l'utente corrente a readBy
+      message.readBy = [...new Set([...message.readBy, userId])];
+      
+      // Per chat private, imposta come 'read'
+      if (message.chatType === 'private') {
+        message.status = 'read';
+      } else {
+        // Per gruppi, controlla se tutti i membri hanno letto
+        const groupMembers = await Group.findById(chatId).select('members owner');
+        const allMembers = [...groupMembers.members, groupMembers.owner];
+        const allHaveRead = allMembers.every(memberId => 
+          message.readBy.includes(memberId.toString())
+        );
+        
+        if (allHaveRead) {
+          message.status = 'read';
+        }
+      }
+
+      await message.save();
+    }
+
+    // Emetti l'evento a tutti i client nella chat
+    io.to(chatId).emit('messages-marked-read', { 
+      chatId, 
+      userId,
+      messages: messagesToUpdate 
+    });
+
+    res.status(200).json({ 
+      message: 'Messages marked as read',
+      updatedMessages: messagesToUpdate 
+    });
+  } catch (error) {
+    console.error('Error marking messages as read:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.get('/messages/private/:userId/chats', async (req, res) => {
   try {
     await ensureConnection()
@@ -168,26 +216,41 @@ const setupSocketEvents = (io) => {
     socket.on('join-chat', async ({ chatId, userId, type }) => {
       try {
         console.log(`User ${userId} joining chat ${chatId}`)
-
-        // Lascia le stanze precedenti
+    
+        // Leave previous rooms
         for (const room of socket.rooms) {
           if (room !== socket.id) {
             socket.leave(room)
           }
         }
-
-        // Unisciti alla nuova stanza
+    
+        // Join new room
         socket.join(chatId)
-
-        // Carica i messaggi esistenti
+    
+        // Mark messages as read when joining chat
+        await Message.updateMany(
+          {
+            chatId,
+            user_id: { $ne: userId },
+            readBy: { $ne: userId }
+          },
+          { 
+            $addToSet: { readBy: userId },
+            $set: { status: 'read' }
+          }
+        )
+    
+        // Emit messages-marked-read event to all clients in the room
+        io.to(chatId).emit('messages-marked-read', { chatId, userId })
+    
+        // Load and send existing messages
         const messages = await Message.find({
           chatId: chatId,
           chatType: type
         })
           .sort({ timestamp: 1 })
           .lean()
-
-        // Invia i messaggi solo al client che si è unito
+    
         socket.emit('joined', { messages })
       } catch (err) {
         console.error('Error joining chat:', err)

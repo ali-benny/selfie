@@ -8,7 +8,11 @@
           v-for="group in groups"
           :key="group._id"
           @click="selectChat('group', group)"
-          :class="['chat-item', selectedChat.id === group._id ? 'active' : '']"
+          :class="[
+            'chat-item border-2',
+            selectedChat.id === group._id ? 'active' : '',
+            hasUnreadMessages(group._id) ? 'border-solid !border-secondary' : 'border-surface-0'
+          ]"
         >
           {{ group.name }}
           <!-- <span v-if="unreadMessages.value[group._id]?" class="unread-dot">
@@ -28,7 +32,11 @@
           v-for="chat in privateChats"
           :key="chat.user._id"
           @click="selectChat('private', chat.user)"
-          :class="['chat-item', selectedChat.id === chat.user._id ? 'active' : '']"
+          :class="[
+            'chat-item border-2',
+            selectedChat.id === chat.user._id ? 'active' : '',
+            hasUnreadMessages(chat.user._id) ? 'border-solid !border-primary' : 'border-surface-0'
+          ]"
         >
           {{ chat.user.name }}
           <!-- <span v-if="unreadMessages?.value[chat.user._id]" class="unread-dot">
@@ -159,7 +167,9 @@
           placeholder="Type a message..."
           class="input input-bordered w-full"
         />
-        <button @click="sendMessage" class="btn btn-primary">Send</button>
+        <button @click="sendMessage" class="btn btn-primary text-xl">
+          <Icon icon="fluent:send-20-filled"></Icon>
+        </button>
       </div>
     </div>
 
@@ -258,15 +268,61 @@ const handleTyping = () => {
     }, 2000)
   }
 }
+const hasUnreadMessages = (chatId) => {
+  // For private chats, generate the correct chatId
+  const fullChatId =
+    selectedChat.value?.type === 'private'
+      ? [userStore.loggedUser._id, chatId].sort().join('_')
+      : chatId
+
+  return (
+    currentMessages.value.some(
+      (msg) =>
+        msg.chatId === fullChatId &&
+        msg.user_id !== userStore.loggedUser._id &&
+        (!msg.readBy || !msg.readBy.includes(userStore.loggedUser._id))
+    ) ||
+    privateChats.value.some(
+      (chat) =>
+        chat.user._id === chatId &&
+        chat.lastMessage?.user_id !== userStore.loggedUser._id &&
+        (!chat.lastMessage?.readBy || !chat.lastMessage.readBy.includes(userStore.loggedUser._id))
+    ) ||
+    groups.value.some(
+      (group) =>
+        group._id === chatId &&
+        group.lastMessage?.user_id !== userStore.loggedUser._id &&
+        (!group.lastMessage?.readBy || !group.lastMessage.readBy.includes(userStore.loggedUser._id))
+    )
+  )
+}
 
 const handleNewMessage = (message) => {
-  // Aggiorna i messaggi solo se appartengono alla chat corrente
-  if (message.chatId === selectedChat.value.id) {
+  // Se il messaggio è per la chat corrente
+  if (message.chatId === selectedChat.value?.id) {
+    message.readBy = message.readBy || []
+    // Se siamo nella chat attiva, marchiamo subito come letto
+    if (!message.readBy.includes(userStore.loggedUser._id)) {
+      message.readBy.push(userStore.loggedUser._id)
+
+      // Invia subito la notifica di lettura
+      fetch(`${CHAT_URL}/messages/${message.chatId}/read`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userId: userStore.loggedUser._id
+        })
+      })
+    }
+
     const existingMessageIndex = currentMessages.value.findIndex(
       (m) =>
-        m.message === message.message &&
-        m.user_id === message.user_id &&
-        (m._id.startsWith('temp_') || m._id === message._id)
+        m._id === message._id ||
+        (m.message === message.message &&
+          m.user_id === message.user_id &&
+          m._id.startsWith('temp_'))
     )
 
     if (existingMessageIndex !== -1) {
@@ -275,19 +331,38 @@ const handleNewMessage = (message) => {
       currentMessages.value.push(message)
       scrollToBottom()
     }
-  }
-
-  // Se è un messaggio privato ricevuto, aggiungi automaticamente la chat
-  if (message.chatType === 'private' && message.user_id !== userStore.loggedUser._id) {
-    // Cerca l'utente mittente
-    const sender = users.value.find((u) => u._id === message.user_id)
-    if (sender && !privateChats.value.some((chat) => chat.user._id === sender._id)) {
-      privateChats.value.push({
-        user: sender,
-        lastMessage: message
-      })
+  } else {
+    // Se il messaggio è per un'altra chat
+    if (message.chatType === 'private') {
+      const chatIndex = privateChats.value.findIndex((chat) => chat.user._id === message.user_id)
+      if (chatIndex !== -1) {
+        privateChats.value[chatIndex] = {
+          ...privateChats.value[chatIndex],
+          lastMessage: {
+            ...message,
+            readBy: message.readBy || []
+          }
+        }
+      }
+    } else {
+      const groupIndex = groups.value.findIndex((group) => group._id === message.chatId)
+      if (groupIndex !== -1) {
+        groups.value[groupIndex] = {
+          ...groups.value[groupIndex],
+          lastMessage: {
+            ...message,
+            readBy: message.readBy || []
+          }
+        }
+      }
     }
   }
+
+  // Forza l'aggiornamento reattivo delle liste
+  nextTick(() => {
+    privateChats.value = [...privateChats.value]
+    groups.value = [...groups.value]
+  })
 }
 
 const sendMessage = async () => {
@@ -363,6 +438,47 @@ const selectChat = async (type, chat) => {
       type
     })
 
+    // Marca i messaggi come letti quando si entra nella chat
+    if (currentMessages.value.length > 0) {
+      try {
+        const response = await fetch(`${CHAT_URL}/messages/${selectedChat.value.id}/read`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            userId: userStore.loggedUser._id
+          })
+        })
+
+        const { updatedMessages } = await response.json()
+
+        // Aggiorna lo stato dei messaggi localmente
+        currentMessages.value = currentMessages.value.map((msg) => {
+          const updatedMsg = updatedMessages.find((m) => m._id === msg._id)
+          if (updatedMsg) {
+            return {
+              ...msg,
+              readBy: updatedMsg.readBy,
+              status: updatedMsg.status
+            }
+          }
+          return msg
+        })
+
+        // Forza l'aggiornamento delle liste chat
+        nextTick(() => {
+          if (selectedChat.value?.type === 'private') {
+            privateChats.value = [...privateChats.value]
+          } else {
+            groups.value = [...groups.value]
+          }
+        })
+      } catch (error) {
+        console.error('Error marking messages as read:', error)
+      }
+    }
+
     scrollToBottom()
   } catch (error) {
     console.error('Error selecting chat:', error)
@@ -411,6 +527,79 @@ const setupSocketConnection = () => {
   socket.on('error', (error) => {
     console.error('Socket error:', error)
     toast.error(`Chat error: ${error.message}`)
+  })
+
+  socket.on('messages-marked-read', ({ chatId, userId, messages = [] }) => {
+    // Update current chat messages if we're in that chat
+    if (selectedChat.value?.id === chatId) {
+      if (Array.isArray(messages) && messages.length > 0) {
+        currentMessages.value = currentMessages.value.map((msg) => {
+          const updatedMsg = messages.find((m) => m._id === msg._id)
+          if (updatedMsg) {
+            return {
+              ...msg,
+              readBy: updatedMsg.readBy || [],
+              status: updatedMsg.status || 'sent'
+            }
+          }
+          return {
+            ...msg,
+            readBy: msg.readBy || [],
+            status: msg.status || 'sent'
+          }
+        })
+      } else {
+        currentMessages.value = currentMessages.value.map((msg) => ({
+          ...msg,
+          readBy: [...new Set([...(msg.readBy || []), userId])],
+          status: msg.user_id !== userStore.loggedUser._id ? 'read' : msg.status
+        }))
+      }
+    }
+
+    // Update private chats list
+    privateChats.value = privateChats.value.map((chat) => {
+      if (chat.lastMessage && chat.lastMessage.chatId === chatId) {
+        return {
+          ...chat,
+          lastMessage: {
+            ...chat.lastMessage,
+            readBy: [...new Set([...(chat.lastMessage.readBy || []), userId])],
+            status:
+              chat.lastMessage.user_id !== userStore.loggedUser._id
+                ? 'read'
+                : chat.lastMessage.status
+          }
+        }
+      }
+      return chat
+    })
+
+    // Update groups list
+    groups.value = groups.value.map((group) => {
+      if (group._id === chatId) {
+        return {
+          ...group,
+          lastMessage: group.lastMessage
+            ? {
+                ...group.lastMessage,
+                readBy: [...new Set([...(group.lastMessage.readBy || []), userId])],
+                status:
+                  group.lastMessage.user_id !== userStore.loggedUser._id
+                    ? 'read'
+                    : group.lastMessage.status
+              }
+            : null
+        }
+      }
+      return group
+    })
+
+    // Force reactive update
+    nextTick(() => {
+      privateChats.value = [...privateChats.value]
+      groups.value = [...groups.value]
+    })
   })
 }
 
