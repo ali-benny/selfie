@@ -5,11 +5,11 @@ import { useUserStore } from '@/stores/account.js'
 import { updateGroup } from '@/router/group/group.js'
 import GroupList from '@/components/group/GroupList.vue'
 import UserShare from '@/components/UserShare.vue'
-import ChatComponent from '@/components/ChatComponent.vue'
 
 var new_group = {}
 const selectedGroup = ref(null)
 const loggedUser = useUserStore().loggedUser
+const updateKey = ref(0)
 
 const handleSelectGroup = (group) => {
   selectedGroup.value = group
@@ -43,6 +43,24 @@ async function saveGroup(group) {
   group.value = updatedGroup
   // TODO: add toast saved!
 }
+
+async function deleteGroup(group) {
+  console.log('🔥 - deleteGroup - group:', group)
+  const response = await fetch(API_URL + '/group/' + group._id, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+
+  if (response.ok) {
+    selectedGroup.value = null
+    updateKey.value++
+    return await response.json()
+  } else {
+    console.error('ERROR: deleteGroup - ', response)
+  }
+}
 </script>
 
 <template>
@@ -72,7 +90,7 @@ async function saveGroup(group) {
           </template>
         </Popper>
       </div>
-      <GroupList @select-group="handleSelectGroup"></GroupList>
+      <GroupList :key="updateKey" @select-group="handleSelectGroup"></GroupList>
     </div>
     <div v-if="selectedGroup != null" class="divider divider-horizontal"></div>
     <Transition name="slide-fade" :duration="550">
@@ -83,9 +101,29 @@ async function saveGroup(group) {
       >
         <div class="flex items-baseline justify-between">
           <h2>{{ selectedGroup.name }}</h2>
-          <button class="btn btn-secondary rounded-box btn-sm" @click="saveGroup(selectedGroup)">
-            <Icon icon="fluent:save-edit-20-filled" />Save
-          </button>
+          <div>
+            <button class="btn btn-secondary rounded-box btn-sm" @click="saveGroup(selectedGroup)">
+              <Icon icon="fluent:save-edit-20-filled" />Save
+            </button>
+            <button class="btn btn-error btn-outline rounded-box btn-sm" onclick="my_modal_1.showModal()">Delete</button>
+            <dialog id="my_modal_1" class="modal">
+              <div class="modal-box">
+                <h3 class="py-4">Are you sure to delete {{ selectedGroup.name }}?</h3>
+                <div class="modal-action">
+                  <form method="dialog">
+                    <button
+                      class="btn btn-error btn-outline rounded-box btn-sm"
+                      @click="deleteGroup(selectedGroup)"
+                    >
+                      <Icon icon="fluent:delete-24-regular" /> Yes, delete it
+                    </button>
+                    <!-- if there is a button in form, it will close the modal -->
+                    <button class="btn btn-secondary btn-outline rounded-box btn-sm">No, go back</button>
+                  </form>
+                </div>
+              </div>
+            </dialog>
+          </div>
         </div>
         <label class="form-control">
           <div class="label">
@@ -102,5 +140,4 @@ async function saveGroup(group) {
       </div>
     </Transition>
   </div>
-  <ChatComponent></ChatComponent>
 </template>
