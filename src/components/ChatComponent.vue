@@ -9,13 +9,13 @@
           :key="group._id"
           @click="selectChat('group', group)"
           :class="[
-            'chat-item border-2  flex items-center justify-between',
-            selectedChat.id === group._id ? 'active' : '',
-            hasUnreadMessages(group._id) ? 'border-solid !border-secondary' : 'border-surface-0'
+            'chat-item flex items-center justify-between transition-all duration-200',
+            selectedChat.id === group._id ? 'bg-surface-0 shadow-md' : 'hover:bg-base-300',
+            hasUnreadMessages(group._id) ? 'border-l-4 border-l-secondary' : ''
           ]"
         >
           <span>{{ group.name }}</span>
-          <span v-if="getUnreadCount(group._id)" class="badge badge-secondary ml-2">
+          <span v-if="getUnreadCount(group._id)" class="badge badge-primary badge-sm">
             {{ getUnreadCount(group._id) }}
           </span>
         </div>
@@ -33,13 +33,13 @@
           :key="chat.user._id"
           @click="selectChat('private', chat.user)"
           :class="[
-            'chat-item border-2',
-            selectedChat.id === chat.user._id ? 'active' : '',
-            hasUnreadMessages(chat.user._id) ? 'border-solid !border-primary' : 'border-surface-0'
+            'chat-item flex items-center justify-between transition-all duration-200',
+            selectedChat.id === chat.user._id ? 'bg-surface-0 shadow-md' : 'hover:bg-base-300',
+            hasUnreadMessages(chat.user._id) ? 'border-l-4 border-l-primary' : ''
           ]"
         >
           <span>{{ chat.user.name }}</span>
-          <span v-if="getUnreadCount(chat.user._id)" class="badge badge-secondary ml-2">
+          <span v-if="getUnreadCount(chat.user._id)" class="badge font-bold badge-sm badge-primary ml-2">
             {{ getUnreadCount(chat.user._id) }}
           </span>
         </div>
@@ -207,7 +207,6 @@ import { getGroups } from '@/router/group/group'
 import { CHAT_URL } from '~/const.js'
 
 const userStore = useUserStore()
-const messages = ref([])
 const newMessage = ref('')
 const groups = ref([])
 const privateChats = ref([])
@@ -251,51 +250,32 @@ const getUserById = (messageUserId) => {
 const getUnreadCount = (chatId) => {
   // For messages that are in the current array
   const unreadInCurrent = currentMessages.value.filter(
-    msg => msg.user_id !== userStore.loggedUser._id && 
-           (!msg.readBy || !msg.readBy.includes(userStore.loggedUser._id))
-  ).length;
-  
+    (msg) =>
+      msg.user_id !== userStore.loggedUser._id &&
+      (!msg.readBy || !msg.readBy.includes(userStore.loggedUser._id))
+  ).length
+
   // For chats in the list that we're not currently viewing
   if (selectedChat.value.id !== chatId) {
     if (selectedChat.value.type === 'group') {
-      const group = groups.value.find(g => g._id === chatId);
-      return group?.unreadCount || 0;
+      const group = groups.value.find((g) => g._id === chatId)
+      return group?.unreadCount || 0
     } else {
       // Handle private chats
       const privateChat = privateChats.value.find(
-        chat => [userStore.loggedUser._id, chat.user._id].sort().join('_') === chatId ||
-                chat.user._id === chatId
-      );
-      return privateChat?.unreadCount || 0;
+        (chat) =>
+          [userStore.loggedUser._id, chat.user._id].sort().join('_') === chatId ||
+          chat.user._id === chatId
+      )
+      return privateChat?.unreadCount || 0
     }
   }
-  return unreadInCurrent;
-}
-
-const handleTyping = () => {
-  if (selectedChat.value.id) {
-    socket.emit('typing', {
-      chatId: selectedChat.value.id,
-      userId: userStore.loggedUser._id,
-      name: userStore.loggedUser.name
-    })
-
-    // Clear existing timeout
-    if (typingTimeout.value) clearTimeout(typingTimeout.value)
-
-    // Set new timeout
-    typingTimeout.value = setTimeout(() => {
-      socket.emit('stop-typing', {
-        chatId: selectedChat.value.id,
-        userId: userStore.loggedUser._id
-      })
-    }, 2000)
-  }
+  return unreadInCurrent
 }
 
 const hasUnreadMessages = (chatId) => {
   // Check if privateChats.value exists before using it
-  if (!privateChats.value) return false;
+  if (!privateChats.value) return false
 
   // For private chats, generate the correct chatId
   const fullChatId =
@@ -324,73 +304,6 @@ const hasUnreadMessages = (chatId) => {
     )
   )
 }
-
-const handleNewMessage = (message) => {
-  // If message is for the current chat
-  if (message.chatId === selectedChat.value?.id) {
-    message.readBy = message.readBy || [];
-    
-    // If we're in the active chat, mark as read immediately
-    if (!message.readBy.includes(userStore.loggedUser._id) && 
-        message.user_id !== userStore.loggedUser._id) {
-      // Mark as read locally
-      message.readBy.push(userStore.loggedUser._id);
-      
-      // Send read status to server
-      markMessagesAsRead(message.chatId);
-    }
-
-    // Replace temp message or add new one
-    const existingMsgIndex = currentMessages.value.findIndex(
-      m => m._id === message._id || 
-          (m._id.startsWith('temp_') && 
-           m.message === message.message && 
-           m.user_id === message.user_id)
-    );
-    
-    if (existingMsgIndex !== -1) {
-      currentMessages.value[existingMsgIndex] = message;
-    } else {
-      currentMessages.value.push(message);
-      scrollToBottom();
-    }
-  } else {
-    // Handle message for another chat by updating unread counts
-    if (message.chatType === 'group') {
-      const group = groups.value.find(g => g._id === message.chatId);
-      if (group) {
-        group.lastMessage = message;
-        group.unreadCount = (group.unreadCount || 0) + 1;
-      }
-    } else if (message.chatType === 'private') {
-      const chat = privateChats.value.find(c => 
-        c.user._id === message.user_id || 
-        [userStore.loggedUser._id, c.user._id].sort().join('_') === message.chatId
-      );
-      if (chat) {
-        chat.lastMessage = message;
-        chat.unreadCount = (chat.unreadCount || 0) + 1;
-      }
-    }
-  }
-
-  // Force reactive update
-  privateChats.value = [...privateChats.value];
-  groups.value = [...groups.value];
-}
-
-const handleUserTyping = ({ chatId, userId, name }) => {
-  if (selectedChat.value.id === chatId && userId !== userStore.loggedUser._id) {
-    isTyping.value = `${name} is typing...`;
-  }
-}
-
-const handleUserStopTyping = ({ chatId, userId }) => {
-  if (selectedChat.value.id === chatId && isTyping.value) {
-    isTyping.value = false;
-  }
-}
-
 
 const sendMessage = async () => {
   if (newMessage.value.trim() && selectedChat.value.id) {
@@ -423,10 +336,10 @@ const sendMessage = async () => {
     } catch (error) {
       console.error('Error sending message:', error)
       // Handle failed message
-      const failedMsgIndex = currentMessages.value.findIndex(m => m._id === 'temp_' + Date.now());
+      const failedMsgIndex = currentMessages.value.findIndex((m) => m._id === 'temp_' + Date.now())
       if (failedMsgIndex !== -1) {
-        currentMessages.value[failedMsgIndex].status = 'failed';
-        currentMessages.value = [...currentMessages.value];
+        currentMessages.value[failedMsgIndex].status = 'failed'
+        currentMessages.value = [...currentMessages.value]
       }
     }
   }
@@ -471,7 +384,6 @@ const selectChat = async (type, chat) => {
     console.error('Error selecting chat:', error)
   }
 }
-
 
 // Add this function to mark messages as read
 const markMessagesAsRead = async (chatId) => {
@@ -618,107 +530,36 @@ const setupSocketConnection = () => {
   })
 }
 
-// onMounted(async () => {
-//   try {
-//     setupSocketConnection()
-
-//     const usersList = await getUsers()
-//     if (Array.isArray(usersList)) {
-//       users.value = usersList.filter((u) => u._id !== userStore.loggedUser._id)
-//     } else {
-//       console.error('getUsers did not return an array:', usersList)
-//       users.value = []
-//     }
-
-//     // Carica gruppi e utenti
-//     const userGroups = await getGroups(userStore.loggedUser._id)
-//     groups.value = userGroups || []
-
-//     if (!socket.connected) {
-//       await new Promise((resolve, reject) => {
-//         const timeout = setTimeout(() => {
-//           reject(new Error('Connection timeout'))
-//         }, 5000)
-
-//         socket.connect()
-//         socket.once('connect', () => {
-//           clearTimeout(timeout)
-//           resolve()
-//         })
-//       })
-//     }
-
-//     socket.on('chat-message', handleNewMessage)
-//     socket.on('message-status-update', handleMessageStatus)
-
-//     // Gestione stato dei messaggi
-//     socket.on('messages-marked-read', ({ chatId }) => {
-//       if (chatId === selectedChat.value.id) {
-//         currentMessages.value.forEach((msg) => {
-//           if (msg.user_id !== userStore.loggedUser._id) {
-//             messageStatus.value.set(msg._id, 'read')
-//           }
-//         })
-//       }
-//     })
-
-//     await loadExistingChats()
-
-//     // Connessione iniziale
-//     socket.emit('user-connected', userStore.loggedUser._id)
-
-//     socket.on('joined', ({ messages }) => {
-//       console.log('Received messages on join:', messages)
-//       currentMessages.value = messages
-//       scrollToBottom()
-//     })
-
-//     socket.on('typing', ({ name }) => {
-//       isTyping.value = `${name} is typing...`
-//     })
-
-//     socket.on('stop-typing', () => {
-//       isTyping.value = false
-//     })
-
-//     socket.on('error', (error) => {
-//       console.error('Socket error:', error)
-//     })
-//   } catch (error) {
-//     console.error('Error loading initial data:', error)
-//   }
-// })
-
-// Cleanup quando il componente viene distrutto
-
 onMounted(async () => {
   try {
-    setupSocketConnection();
-    
+    setupSocketConnection()
+
     // Carica tutti gli utenti tranne quello loggato
-    const usersData = await getUsers();
-    users.value = usersData.filter(u => u._id !== userStore.loggedUser._id);
-    
+    const usersData = await getUsers()
+    users.value = usersData.filter((u) => u._id !== userStore.loggedUser._id)
+
     // Carica i gruppi dell'utente
-    const userGroups = await getGroups(userStore.loggedUser._id);
-    groups.value = userGroups;
-    
+    const userGroups = await getGroups(userStore.loggedUser._id)
+    groups.value = userGroups
+    await loadGroupChats()
+
     // Carica le chat private esistenti
-    const privateChatData = await loadExistingChats();
-    privateChats.value = privateChatData;
-    
+    const privateChatData = await loadExistingChats()
+    privateChats.value = privateChatData
+
     // Unisciti alle room delle chat
     socket.emit('join-user-rooms', {
       userId: userStore.loggedUser._id,
-      groups: groups.value.map(g => g._id),
-      privateChats: privateChats.value.map(c => [userStore.loggedUser._id, c.user._id].sort().join('_'))
-    });
-
+      groups: groups.value.map((g) => g._id),
+      privateChats: privateChats.value.map((c) =>
+        [userStore.loggedUser._id, c.user._id].sort().join('_')
+      )
+    })
   } catch (error) {
-    console.error('Error initializing chat component:', error);
-    toast.error('Failed to initialize chat');
+    console.error('Error initializing chat component:', error)
+    toast.error('Failed to initialize chat')
   }
-});
+})
 
 onUnmounted(() => {
   socket.off('chat-message')
@@ -741,23 +582,54 @@ const updateUnreadMessages = (chatId) => {
 
 const loadExistingChats = async () => {
   try {
-    const response = await fetch(`${CHAT_URL}/messages/private/${userStore.loggedUser._id}/all`);
-    if (!response.ok) throw new Error('Failed to fetch existing chats');
+    const response = await fetch(`${CHAT_URL}/messages/private/${userStore.loggedUser._id}/all`)
+    if (!response.ok) throw new Error('Failed to fetch existing chats')
 
-    const existingChats = await response.json();
+    const existingChats = await response.json()
 
-    return existingChats.map(chat => {
-      const user = users.value.find(u => u._id === chat.participantId);
-      return user ? {
-        user: user,
-        lastMessage: chat.lastMessage,
-        unreadCount: chat.unreadCount || 0
-      } : null;
-    }).filter(chat => chat); // Filter out null values
-
+    return existingChats
+      .map((chat) => {
+        const user = users.value.find((u) => u._id === chat.participantId)
+        return user
+          ? {
+              user: user,
+              lastMessage: chat.lastMessage,
+              unreadCount: chat.unreadCount || 0
+            }
+          : null
+      })
+      .filter((chat) => chat) // Filter out null values
   } catch (error) {
-    console.error('Error loading existing chats:', error);
-    return []; // Return empty array in case of error
+    console.error('Error loading existing chats:', error)
+    return [] // Return empty array in case of error
+  }
+}
+
+const loadGroupChats = async () => {
+  try {
+    // Make sure we have groups before making the request
+    if (!groups.value.length) return
+
+    const response = await fetch(`${CHAT_URL}/messages/group/${userStore.loggedUser._id}/all`)
+    if (!response.ok) throw new Error('Failed to fetch group chats')
+
+    const groupData = await response.json()
+
+    // Update groups with unread counts and last messages
+    groups.value = groups.value.map((group) => {
+      const groupInfo = groupData.find((g) => g.groupId === group._id)
+      return {
+        ...group,
+        unreadCount: groupInfo?.unreadCount || 0,
+        lastMessage: groupInfo?.lastMessage || null
+      }
+    })
+
+    // Force reactive update
+    groups.value = [...groups.value]
+  } catch (error) {
+    console.error('Error loading group chats:', error)
+    toast.error('Failed to load group chats')
   }
 }
 
@@ -783,6 +655,17 @@ const startPrivateChat = (user) => {
   margin-left: 5px;
   @apply bg-primary;
 }
+.chat-item {
+  @apply p-3 rounded-lg cursor-pointer;
+}
+
+.chat-sidebar {
+  @apply w-64 bg-base-200 p-4 rounded-lg flex flex-col gap-4 shadow-inner;
+}
+
+.chat-messages {
+  @apply flex-1 flex flex-col bg-base-200 rounded-lg shadow-inner;
+}
 
 .chat-container {
   @apply flex h-[80vh] gap-4;
@@ -790,10 +673,6 @@ const startPrivateChat = (user) => {
 
 .chat-sidebar {
   @apply w-64 bg-base-200 p-4 rounded-lg flex flex-col gap-4;
-}
-
-.chat-messages {
-  @apply flex-1 flex flex-col bg-base-200 rounded-lg;
 }
 
 .messages-container {

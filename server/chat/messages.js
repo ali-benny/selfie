@@ -266,6 +266,64 @@ app.get('/messages/private/:userId/all', async (req, res) => {
   }
 });
 
+app.get('/messages/group/:userId/all', async (req, res) => {
+  try {
+    await ensureConnection();
+    const userId = req.params.userId;
+
+    // Trova tutti i gruppi dell'utente
+    const userGroups = await Group.find({
+      $or: [{ owner: userId }, { members: userId }]
+    }).distinct('_id');
+
+    // Trova i messaggi non letti per ogni gruppo
+    const groupMessages = await Message.aggregate([
+      {
+        $match: {
+          chatType: 'group',
+          chatId: { $in: userGroups.map(id => id.toString()) }
+        }
+      },
+      {
+        $sort: { timestamp: -1 }
+      },
+      {
+        $group: {
+          _id: '$chatId',
+          lastMessage: { $first: '$$ROOT' },
+          unreadCount: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $ne: ['$user_id', userId] },
+                    { $not: { $in: [userId, { $ifNull: ['$readBy', []] }] } }
+                  ]
+                },
+                1,
+                0
+              ]
+            }
+          }
+        }
+      },
+      {
+        $project: {
+          groupId: '$_id',
+          lastMessage: 1,
+          unreadCount: 1
+        }
+      }
+    ]);
+
+    res.json(groupMessages);
+  } catch (error) {
+    console.error('Error fetching group messages:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
 const setupSocketEvents = (io) => {
   io.on('connection', (socket) => {
     console.log('A user connected:', socket.id)
