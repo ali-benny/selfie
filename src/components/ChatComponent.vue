@@ -39,7 +39,10 @@
           ]"
         >
           <span>{{ chat.user.name }}</span>
-          <span v-if="getUnreadCount(chat.user._id)" class="badge font-bold badge-sm badge-primary ml-2">
+          <span
+            v-if="getUnreadCount(chat.user._id)"
+            class="badge font-bold badge-sm badge-primary ml-2"
+          >
             {{ getUnreadCount(chat.user._id) }}
           </span>
         </div>
@@ -141,18 +144,27 @@
             {{ message.message }}
           </div>
           <!-- Indicatori di stato per i messaggi inviati -->
-          <!-- <span
-              v-if="message.user_id === userStore.loggedUser._id"
-              class="message-status text-xs"
-            >
-              <Icon v-if="messageStatus.get(message._id) === 'delivered'" icon="mdi:check-all" />
-              <Icon
-                v-else-if="messageStatus.get(message._id) === 'read'"
-                icon="mdi:check-all"
-                class="text-secondary"
-              />
-              <Icon v-else icon="mdi:check" />
-            </span> -->
+          <!-- * Una singola spunta (✓) per i messaggi inviati (sent) -->
+          <!-- * Doppia spunta (✓✓) per i messaggi consegnati (delivered) -->
+          <!-- * Doppia spunta blu (✓✓) per i messaggi letti (read) -->
+          <!-- * Un'icona di errore (⚠) per i messaggi non inviati (failed) -->
+          <span
+            v-if="message.user_id === userStore.loggedUser._id"
+            class="message-status text-xs opacity-70"
+          >
+            <Icon v-if="message.status === 'sent'" icon="mdi:check" class="text-base-content" />
+            <Icon
+              v-else-if="message.status === 'delivered'"
+              icon="mdi:check-all"
+              class="text-base-content"
+            />
+            <Icon v-else-if="message.status === 'read'" icon="mdi:check-all" class="!text-primary" />
+            <Icon
+              v-else-if="message.status === 'failed'"
+              icon="mdi:alert-circle"
+              class="text-error"
+            />
+          </span>
         </div>
       </div>
 
@@ -693,6 +705,10 @@ const startPrivateChat = (user) => {
 
 .message-received {
   @apply chat-bubble-secondary;
+}
+
+.message-status {
+  @apply flex items-center gap-1 ml-2;
 }
 
 .sent {
