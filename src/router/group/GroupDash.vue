@@ -37,6 +37,7 @@ watch(
 
 async function createGroup() {
   new_group.owner = loggedUser._id
+  console.log('-creategroup - owner:', new_group.owner)
   const response = await fetch(API_URL + '/group', {
     method: 'POST',
     body: JSON.stringify(new_group),

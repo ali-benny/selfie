@@ -23,7 +23,7 @@
       <div class="divider m-0"></div>
       <div class="chat-private">
         <div class="flex justify-between items-center prose">
-          <h3>Private Chats</h3>
+          <h3 class="mb-0">Private Chats</h3>
           <button @click="showNewChat = true" class="btn btn-ghost btn-sm">
             <Icon icon="fluent:add-16-filled" />
           </button>
@@ -54,7 +54,7 @@
       <!-- Header chat -->
       <div
         v-if="selectedChat.id"
-        class="flex items-center font-bold bg-base-100 border-solid border-8 border-base-200 rounded-lg"
+        class="flex items-center font-bold bg-base-100 border-solid border-8 border-base-200 rounded-lg h-20"
       >
         <div
           v-if="
@@ -70,6 +70,9 @@
                 : selectedChat.dest.name
             "
           />
+        </div>
+        <div v-else class="text-3xl m-3">
+          <Icon icon="mingcute:group-3-fill" />
         </div>
         {{ selectedChat.dest.name }}
       </div>
@@ -94,14 +97,7 @@
           >
             <div
               class="ring-offset-base-100 rounded-full ring w-10"
-              :class="{
-                'ring-primary': getUserById(message.user_id)?.color === 'primary',
-                'ring-secondary': getUserById(message.user_id)?.color === 'secondary',
-                'ring-accent': getUserById(message.user_id)?.color === 'accent',
-                'ring-success': getUserById(message.user_id)?.color === 'success',
-                'ring-warning': getUserById(message.user_id)?.color === 'warning',
-                'ring-error': getUserById(message.user_id)?.color === 'error'
-              }"
+              :class="getUserColor('ring', message)"
             >
               <img
                 :src="getUserById(message.user_id)?.image || ''"
@@ -407,16 +403,19 @@ const selectChat = async (type, chat) => {
     })
 
     // Raccogli gli ID degli utenti in base al tipo di chat
-    const usersIds = type === 'private' ? [userStore.loggedUser._id, chat._id] : chat.members || []
-
+    const usersIds =
+      type === 'private'
+        ? [userStore.loggedUser._id, chat._id] // Per chat private, solo i due utenti
+        : [...chat.members, chat.owner] // Per gruppi, tutti i membri più l'owner
     const chatUsers = await getUsersByIds(usersIds)
 
-    // Update selected chat
     selectedChat.value = {
       type,
       id: chatId,
       dest: chat,
-      users: chatUsers
+      img: chat.img,
+      users: chatUsers || [],
+      owner: chat.owner || ''
     }
 
     // Fetch messages for this chat
@@ -428,6 +427,8 @@ const selectChat = async (type, chat) => {
     markMessagesAsRead(chatId)
 
     scrollToBottom()
+
+    console.log('🎭Selected chat:', selectedChat.value)
   } catch (error) {
     console.error('Error selecting chat:', error)
   }
@@ -777,7 +778,6 @@ function getUserColor(prefix, message) {
 </script>
 
 <style scoped>
-/* Nel <style scoped> di ChatComponent.vue */
 .unread-dot {
   width: 8px;
   height: 8px;
