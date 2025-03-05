@@ -1,19 +1,39 @@
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { API_URL } from '~/const.js'
 import { useUserStore } from '@/stores/account.js'
 import { updateGroup } from '@/router/group/group.js'
 import GroupList from '@/components/group/GroupList.vue'
 import UserShare from '@/components/UserShare.vue'
+import { getUsersByIds } from '@/router/user/user.js'
 
 var new_group = {}
 const selectedGroup = ref(null)
 const loggedUser = useUserStore().loggedUser
 const updateKey = ref(0)
+const users = ref({})
 
-const handleSelectGroup = (group) => {
+onMounted(async () => {})
+
+async function handleSelectGroup(group) {
   selectedGroup.value = group
+  console.log('members: ' + selectedGroup.value.members)
+
+  const allUserIds = [group.owner, ...group.members]
+  users.value = await getUsersByIds(allUserIds)
+  console.log('🔥 - handleSelectGroup - users.value:', users.value)
 }
+
+watch(
+  () => selectedGroup.value?.members,
+  async (newMembers) => {
+    if (selectedGroup.value && newMembers) {
+      const allUserIds = [selectedGroup.value.owner, ...newMembers]
+      users.value = await getUsersByIds(allUserIds)
+    }
+  },
+  { deep: true }
+)
 
 async function createGroup() {
   new_group.owner = loggedUser._id
@@ -105,7 +125,12 @@ async function deleteGroup(group) {
             <button class="btn btn-secondary rounded-box btn-sm" @click="saveGroup(selectedGroup)">
               <Icon icon="fluent:save-edit-20-filled" />Save
             </button>
-            <button class="btn btn-error btn-outline rounded-box btn-sm" onclick="my_modal_1.showModal()">Delete</button>
+            <button
+              class="btn btn-error btn-outline rounded-box btn-sm"
+              onclick="my_modal_1.showModal()"
+            >
+              Delete
+            </button>
             <dialog id="my_modal_1" class="modal">
               <div class="modal-box">
                 <h3 class="py-4">Are you sure to delete {{ selectedGroup.name }}?</h3>
@@ -118,7 +143,9 @@ async function deleteGroup(group) {
                       <Icon icon="fluent:delete-24-regular" /> Yes, delete it
                     </button>
                     <!-- if there is a button in form, it will close the modal -->
-                    <button class="btn btn-secondary btn-outline rounded-box btn-sm">No, go back</button>
+                    <button class="btn btn-secondary btn-outline rounded-box btn-sm">
+                      No, go back
+                    </button>
                   </form>
                 </div>
               </div>
@@ -131,12 +158,39 @@ async function deleteGroup(group) {
           </div>
           <textarea class="textarea textarea-borderd w-full" v-model="selectedGroup.description" />
         </label>
-        <UserShare
-          :id="selectedGroup._id"
-          type="Group"
-          msg="Invites"
-          v-model="selectedGroup.members"
-        ></UserShare>
+        <!-- Actual members -->
+        <div class="flex flex-row items-center justify-start m-2">
+          <div class="flex flex-row items-center w-max mt-1">
+            <!-- owener avatar -->
+            <div class="avatar w-10 mr-2">
+              <div class="w-10 ring-primary ring-offset-base-100 rounded-full ring ring-offset-2">
+                <img
+                  class="mt-0"
+                  :src="users[selectedGroup.owner]?.image"
+                  :title="
+                    users[selectedGroup.owner]?.name + ' ' + users[selectedGroup.owner]?.surname
+                  "
+                />
+              </div>
+            </div>
+            <!-- member avatar -->
+            <div class="avatar-group w-max">
+              <div v-for="reader in selectedGroup.members" class="avatar h-10">
+                <img
+                  class="mask mask-circle !bg-secondary mt-0"
+                  :src="users[reader]?.image"
+                  :title="users[reader]?.name + ' ' + users[reader]?.surname"
+                />
+              </div>
+            </div>
+          </div>
+          <UserShare
+            :id="selectedGroup._id"
+            type="Group"
+            msg="Invites"
+            v-model="selectedGroup.members"
+          ></UserShare>
+        </div>
       </div>
     </Transition>
   </div>

@@ -51,7 +51,10 @@ import { API_URL } from '../../const'
 import { useNotivue } from 'notivue'
 import { saveNoteMongo, getReadersIds } from '@/router/note/editor/note'
 import { updateGroup } from '@/router/group/group'
+import { useUserStore } from '@/stores/account.js'
 
+
+const loggedUser = useUserStore().loggedUser
 // const toast = useNotivue()
 
 const users = ref()
@@ -76,7 +79,8 @@ onMounted(async () => {
   try {
     const response = await fetch(`${API_URL}/users`)
     const data = await response.json()
-    users.value = data
+    // users.value = data
+    users.value = data.filter(user => !props.modelValue.includes(user._id) & !loggedUser._id.includes(user._id))
   } catch (error) {
     console.error('Error fetching users:', error)
   }

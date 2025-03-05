@@ -138,7 +138,11 @@
           <div
             class="message"
             :class="
-              message.user_id === userStore.loggedUser._id ? 'message-sent' : 'message-received'
+              message.user_id === userStore.loggedUser._id
+                ? 'message-sent'
+                : selectedChat.type === 'group'
+                  ? getUserColor('chat-bubble', message)
+                  : 'message-received'
             "
           >
             {{ message.message }}
@@ -146,7 +150,7 @@
           <!-- Indicatori di stato per i messaggi inviati -->
           <!-- * Una singola spunta (✓) per i messaggi inviati (sent) -->
           <!-- * Doppia spunta (✓✓) per i messaggi consegnati (delivered) -->
-          <!-- * Doppia spunta blu (✓✓) per i messaggi letti (read) -->
+          <!-- * Doppia spunta primary (✓✓) per i messaggi letti (read) -->
           <!-- * Un'icona di errore (⚠) per i messaggi non inviati (failed) -->
           <span
             v-if="message.user_id === userStore.loggedUser._id"
@@ -158,11 +162,15 @@
               icon="mdi:check-all"
               class="text-base-content"
             />
-            <Icon v-else-if="message.status === 'read'" icon="mdi:check-all" class="!text-primary" />
+            <Icon
+              v-else-if="message.status === 'read'"
+              icon="mdi:check-all"
+              class="!text-primary"
+            />
             <Icon
               v-else-if="message.status === 'failed'"
               icon="mdi:alert-circle"
-              class="text-error"
+              class="!text-error"
             />
           </span>
         </div>
@@ -176,6 +184,7 @@
         <input
           v-model="newMessage"
           @keyup.enter="sendMessage"
+          @input="handleTyping"
           placeholder="Type a message..."
           class="input input-bordered w-full"
         />
@@ -250,6 +259,26 @@ const filteredUsers = computed(() => {
 
 const isTyping = ref(false)
 const typingTimeout = ref(null)
+
+const handleTyping = () => {
+  if (!selectedChat.value.id) return
+
+  socket.emit('typing', {
+    chatId: selectedChat.value.id,
+    userId: userStore.loggedUser._id,
+    isTyping: true
+  })
+
+  // Reset typing status after delay
+  if (typingTimeout.value) clearTimeout(typingTimeout.value)
+  typingTimeout.value = setTimeout(() => {
+    socket.emit('typing', {
+      chatId: selectedChat.value.id,
+      userId: userStore.loggedUser._id,
+      isTyping: false
+    })
+  }, 3000)
+}
 
 const getUserById = (messageUserId) => {
   if (!selectedChat.value?.users || !Array.isArray(selectedChat.value.users)) {
@@ -326,7 +355,8 @@ const sendMessage = async () => {
       chatId: selectedChat.value.id,
       chatType: selectedChat.value.type,
       timestamp: new Date(),
-      readBy: [userStore.loggedUser._id] // Always read by sender
+      readBy: [userStore.loggedUser._id], // Always read by sender
+      status: 'sending'
     }
 
     try {
@@ -334,8 +364,7 @@ const sendMessage = async () => {
       const tempId = 'temp_' + Date.now()
       const tempMessage = {
         ...messageData,
-        _id: tempId,
-        status: 'sending'
+        _id: tempId
       }
 
       currentMessages.value.push(tempMessage)
@@ -343,7 +372,7 @@ const sendMessage = async () => {
       await nextTick()
       scrollToBottom()
 
-      // Poi emetti il messaggio via socket
+      // emetti il messaggio via socket
       socket.emit('chat-message', messageData)
     } catch (error) {
       console.error('Error sending message:', error)
@@ -356,9 +385,9 @@ const sendMessage = async () => {
     }
   }
 }
-const handleMessageStatus = ({ messageId, status }) => {
-  messageStatus.value.set(messageId, status)
-}
+// const handleMessageStatus = ({ messageId, status }) => {
+//   messageStatus.value.set(messageId, status)
+// }
 
 const selectChat = async (type, chat) => {
   try {
@@ -369,6 +398,13 @@ const selectChat = async (type, chat) => {
     } else {
       chatId = chat._id
     }
+
+    // join the room
+    socket.emit('join-chat', {
+      chatId,
+      userId: userStore.loggedUser._id,
+      type
+    })
 
     // Raccogli gli ID degli utenti in base al tipo di chat
     const usersIds = type === 'private' ? [userStore.loggedUser._id, chat._id] : chat.members || []
@@ -466,6 +502,78 @@ const setupSocketConnection = () => {
   socket.on('error', (error) => {
     console.error('Socket error:', error)
     toast.error(`Chat error: ${error.message}`)
+  })
+
+  socket.on('chat-message', (message) => {
+    // Se siamo nella chat corretta, aggiungi il messaggio
+    if (selectedChat.value.id === message.chatId) {
+      currentMessages.value.push(message)
+      nextTick(() => {
+        scrollToBottom()
+      })
+    }
+
+    // Aggiorna i contatori non letti per le altre chat
+    if (selectedChat.value.id !== message.chatId) {
+      if (message.chatType === 'private') {
+        const chat = privateChats.value.find(
+          (c) => [userStore.loggedUser._id, c.user._id].sort().join('_') === message.chatId
+        )
+        if (chat) {
+          chat.unreadCount = (chat.unreadCount || 0) + 1
+          chat.lastMessage = message
+        }
+      } else {
+        const group = groups.value.find((g) => g._id === message.chatId)
+        if (group) {
+          group.unreadCount = (group.unreadCount || 0) + 1
+          group.lastMessage = message
+        }
+      }
+    }
+  })
+
+  socket.on('typing', ({ chatId, userId, isTyping: typing }) => {
+    if (selectedChat.value.id === chatId && userId !== userStore.loggedUser._id) {
+      const user = getUserById(userId)
+      isTyping.value = typing ? `${user?.name || 'Someone'} is typing...` : ''
+    }
+  })
+
+  socket.on('message-sent', ({ messageId, timestamp }) => {
+    // Trova il messaggio temporaneo e aggiornalo
+    const msgIndex = currentMessages.value.findIndex((m) => m.status === 'sending')
+    if (msgIndex !== -1) {
+      currentMessages.value[msgIndex] = {
+        ...currentMessages.value[msgIndex],
+        _id: messageId,
+        timestamp: timestamp,
+        status: 'sent'
+      }
+      // Forza l'aggiornamento reattivo
+      currentMessages.value = [...currentMessages.value]
+    }
+  })
+
+  // Quando un messaggio viene consegnato
+  socket.on('message-status-update', ({ messageId, status }) => {
+    // Aggiorna lo stato del messaggio
+    const msgIndex = currentMessages.value.findIndex((m) => m._id === messageId)
+    if (msgIndex !== -1) {
+      currentMessages.value[msgIndex].status = status
+      // Forza l'aggiornamento reattivo
+      currentMessages.value = [...currentMessages.value]
+    }
+  })
+
+  // Quando ci si unisce a una chat
+  socket.on('joined', ({ messages }) => {
+    if (messages && Array.isArray(messages)) {
+      currentMessages.value = messages
+      nextTick(() => {
+        scrollToBottom()
+      })
+    }
   })
 
   socket.on('messages-marked-read', ({ chatId, userId, messages = [] }) => {
@@ -576,12 +684,16 @@ onMounted(async () => {
 onUnmounted(() => {
   socket.off('chat-message')
   socket.off('joined')
+  socket.off('message-sent')
   socket.off('message-status-update')
   socket.off('messages-marked-read')
+  socket.off('typing')
   socket.off('user-status')
   socket.off('error')
   socket.off('connect_error')
   socket.off('reconnect')
+  socket.off('reconnect_failed')
+  if (typingTimeout.value) clearTimeout(typingTimeout.value)
 })
 
 const updateUnreadMessages = (chatId) => {
@@ -654,6 +766,13 @@ const startPrivateChat = (user) => {
   selectChat('private', user)
   showNewChat.value = false
   searchUsername.value = ''
+}
+
+function getUserColor(prefix, message) {
+  if (selectedChat.value.type === 'group') {
+    return prefix + '-' + getUserById(message.user_id)?.color
+  }
+  return prefix + '-secondary'
 }
 </script>
 
