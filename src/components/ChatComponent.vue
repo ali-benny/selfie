@@ -45,6 +45,7 @@
           >
             {{ getUnreadCount(chat.user._id) }}
           </span>
+          <!-- TODO: succedono cose strane di frontend con il badge dei messaggi da leggere: se sei sulla chat non lo mostra ma anche se cambi chat e in teoria hai letto quei messaggi rispowna -->
         </div>
       </div>
     </div>
@@ -52,6 +53,7 @@
     <!-- Area messaggi -->
     <div class="chat-messages">
       <!-- Header chat -->
+      <!-- TODO-Extra: sarebbe carino mettere come in whatsapp che se clicchi sui 3 puntini puoi avere info del gruppo -->
       <div
         v-if="selectedChat.id"
         class="flex items-center font-bold bg-base-100 border-solid border-8 border-base-200 rounded-lg h-20"
@@ -104,7 +106,7 @@
                 :title="getUserById(message.user_id)?.name || message.name"
               />
             </div>
-
+            <!-- Crown for group owner -->
             <span
               v-if="selectedChat.owner === message.user_id"
               class="absolute top-[-1] right-1 w-3 h-3 rotate-45"
@@ -137,21 +139,22 @@
               message.user_id === userStore.loggedUser._id
                 ? 'message-sent'
                 : selectedChat.type === 'group'
-                  ? getUserColor('chat-bubble', message)
+                  ? getUserColor('!chat-bubble', message)
                   : 'message-received'
             "
           >
+            <!-- TODO: non ha senso per warning error non mette il bg boh, con chat-bubble non va non capisco perchè -->
             {{ message.message }}
           </div>
-          <!-- Indicatori di stato per i messaggi inviati -->
-          <!-- * Una singola spunta (✓) per i messaggi inviati (sent) -->
-          <!-- * Doppia spunta (✓✓) per i messaggi consegnati (delivered) -->
-          <!-- * Doppia spunta primary (✓✓) per i messaggi letti (read) -->
-          <!-- * Un'icona di errore (⚠) per i messaggi non inviati (failed) -->
           <span
             v-if="message.user_id === userStore.loggedUser._id"
             class="message-status text-xs opacity-70"
           >
+            <!-- Indicatori di stato -->
+            <!-- * Una singola spunta (✓) per i messaggi inviati (sent) -->
+            <!-- * Doppia spunta (✓✓) per i messaggi consegnati (delivered) -->
+            <!-- * Doppia spunta primary (✓✓) per i messaggi letti (read) -->
+            <!-- * Un'icona di errore (⚠) per i messaggi non inviati (failed) -->
             <Icon v-if="message.status === 'sent'" icon="mdi:check" class="text-base-content" />
             <Icon
               v-else-if="message.status === 'delivered'"
@@ -356,16 +359,17 @@ const sendMessage = async () => {
     }
 
     try {
+      // NOTA: non aggiungo più il messaggio localmente perchè non serve, lo salvo in db
       // Aggiungi il messaggio localmente prima
-      const tempId = 'temp_' + Date.now()
-      const tempMessage = {
-        ...messageData,
-        _id: tempId
-      }
+      // const tempId = 'temp_' + Date.now()
+      // const tempMessage = {
+      //   ...messageData,
+      //   _id: tempId
+      // }
 
-      currentMessages.value.push(tempMessage)
+      // currentMessages.value.push(tempMessage)
       newMessage.value = ''
-      await nextTick()
+      // await nextTick()
       scrollToBottom()
 
       // emetti il messaggio via socket
@@ -381,9 +385,6 @@ const sendMessage = async () => {
     }
   }
 }
-// const handleMessageStatus = ({ messageId, status }) => {
-//   messageStatus.value.set(messageId, status)
-// }
 
 const selectChat = async (type, chat) => {
   try {
@@ -407,7 +408,9 @@ const selectChat = async (type, chat) => {
       type === 'private'
         ? [userStore.loggedUser._id, chat._id] // Per chat private, solo i due utenti
         : [...chat.members, chat.owner] // Per gruppi, tutti i membri più l'owner
+
     const chatUsers = await getUsersByIds(usersIds)
+    // console.log('Loaded users:', chatUsers) // DEBUG
 
     selectedChat.value = {
       type,
@@ -427,8 +430,6 @@ const selectChat = async (type, chat) => {
     markMessagesAsRead(chatId)
 
     scrollToBottom()
-
-    console.log('🎭Selected chat:', selectedChat.value)
   } catch (error) {
     console.error('Error selecting chat:', error)
   }
@@ -697,14 +698,6 @@ onUnmounted(() => {
   if (typingTimeout.value) clearTimeout(typingTimeout.value)
 })
 
-const updateUnreadMessages = (chatId) => {
-  if (!unreadMessages.value[chatId]) {
-    unreadMessages.value[chatId] = 1
-  } else {
-    unreadMessages.value[chatId] += 1
-  }
-}
-
 const loadExistingChats = async () => {
   try {
     const response = await fetch(`${CHAT_URL}/messages/private/${userStore.loggedUser._id}/all`)
@@ -771,9 +764,22 @@ const startPrivateChat = (user) => {
 
 function getUserColor(prefix, message) {
   if (selectedChat.value.type === 'group') {
-    return prefix + '-' + getUserById(message.user_id)?.color
+    const user = getUserById(message.user_id)
+
+    // Verifica che l'utente esista e abbia un colore
+    if (user && user.color) {
+      // Handle special case for !bg prefix
+      if (prefix === '!bg') {
+        return `!bg-${user.color} !text-${user.color}-content`
+      }
+      return `${prefix}-${user.color}`
+    }
   }
-  return prefix + '-secondary'
+  // Handle special case for !bg prefix in fallback
+  if (prefix === '!bg') {
+    return '!bg-secondary !text-secondary-content'
+  }
+  return `${prefix}-secondary` // Fallback
 }
 </script>
 
@@ -786,9 +792,6 @@ function getUserColor(prefix, message) {
   margin-left: 5px;
   @apply bg-primary;
 }
-.chat-item {
-  @apply p-3 rounded-lg cursor-pointer;
-}
 
 .chat-sidebar {
   @apply w-64 bg-base-200 p-4 rounded-lg flex flex-col gap-4 shadow-inner;
@@ -800,10 +803,6 @@ function getUserColor(prefix, message) {
 
 .chat-container {
   @apply flex h-[80vh] gap-4;
-}
-
-.chat-sidebar {
-  @apply w-64 bg-base-200 p-4 rounded-lg flex flex-col gap-4;
 }
 
 .messages-container {
@@ -830,20 +829,8 @@ function getUserColor(prefix, message) {
   @apply flex items-center gap-1 ml-2;
 }
 
-.sent {
-  @apply chat chat-end;
-}
-
-.received {
-  @apply chat chat-start;
-}
-
 .chat-item {
   @apply p-2 rounded-lg cursor-pointer hover:bg-base-300;
-}
-
-.active {
-  @apply bg-primary text-primary-content;
 }
 
 .user-item {

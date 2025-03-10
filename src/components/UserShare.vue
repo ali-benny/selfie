@@ -57,8 +57,8 @@ import { useUserStore } from '@/stores/account.js'
 const loggedUser = useUserStore().loggedUser
 // const toast = useNotivue()
 
-const users = ref()
-const sharewith = ref([])
+const users = ref() // all users
+const sharewith = ref([]) // users to share with [users selected from the popper]
 const emit = defineEmits(['update:modelValue'])
 
 const props = defineProps({
