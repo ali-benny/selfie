@@ -327,14 +327,18 @@ export default {
         const checklistBlocks = outputData.blocks.filter((block) => block.type === 'checklist')
         for (const block of checklistBlocks) {
           for (const item of block.data.items) {
-            const todo = {
-              text: item.text,
-              checked: item.checked,
-              from: { id: this.id, type: 'note' },
-              author: this.userStore.loggedUser._id,
-              readers: this.readers
+            const deadline = item.text.match(/\[(\d{4}-\d{2}-\d{2})\]/)
+            if (deadline){
+              const todo = {
+                end: deadline[1],
+                text: item.text,
+                checked: item.checked,
+                note: this.id,
+                author: this.userStore.loggedUser._id,
+                readers: this.readers
+              }
+              await saveTodoMongo(todo)
             }
-            await saveTodoMongo(todo)
           }
         }
         push.success('Note saved successfully!')

@@ -1,159 +1,142 @@
 <template>
-  <svg
-    class="w-full h-full overflow-visible"
-    viewBox="0 0 100 100"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <g class="fill-none stroke-none">
-      <circle cx="50" cy="50" r="50" class="stroke-neutral" />
-      <line
-        id="dot"
-        x1="50"
-        y1="0"
-        x2="50"
-        y2="0"
-        :stroke="breakColor"
-        class="linecap-round"
-        pathLength="1"
-      />
-      <circle
-        id="progress"
-        cx="50"
-        cy="50"
-        r="50"
-        ref="progress"
-        class="linecap-round"
-        pathLength=" 1"
-      />
+  <div class="w-full h-full">
+    <svg v-if="widget" width="100%" height="100%" ref="animationElem" class="overflow-hidden stroke-[.6em]"
+      viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <g class="fill-none stroke-none">
+        <line id="dot" x1="50" y1="0" x2="50" y2="0" vector-effect="non-scaling-stroke" :stroke="breakColor"
+          class="linecap-round" />
+        <rect vector-effect="non-scaling-stroke" width="100" height="100" class="linecap-round stroke-surface-0/50" />
+        <polygon ref="progress" vector-effect="non-scaling-stroke" points="50,0 0,0 0,100, 100,100 100,0 50,0"
+          class="linecap-round" :stroke-dasharray="progressPathLength">
+        </polygon>
+      </g>
+    </svg>
+    <svg v-else class="overflow-visible stroke-surface stroke-[.3em]" viewBox="0 0 100 100"
+      xmlns="http://www.w3.org/2000/svg">
+      <g class="fill-none linecap-round">
+        <line id="dot" x1="50" y1="0" x2="50" y2="0" :stroke="breakColor" pathLength="1" />
+        <circle cx="50" cy="50" r="50" class="stroke-surface-0/50" />
+        <!-- <circle ref="progress" class="origin-center -rotate-90" cx="50" cy="50" r="50" pathLength="1" -->
+        <!--   stroke-dasharray="1" /> -->
 
-      <circle
-        cx="50"
-        cy="50"
-        r="50"
-        :stroke="pomodoroColor"
-        :class="['fill-none', { hidden: this.phase }]"
-      />
-    </g>
-  </svg>
+        <circle ref="progress" class="stroke-primary origin-center -rotate-90" cx="50" cy="50" r="50" pathLength="1"
+          stroke-dasharray="1" />
+      </g>
+    </svg>
+  </div>
 </template>
 
-<script>
+<script setup>
 import { flavors } from '@catppuccin/palette'
+import { usePomodoroStore } from '@/stores/pomodoro';
+import { storeToRefs } from 'pinia';
+import { computed, onMounted, toRaw, useTemplateRef, watch } from 'vue';
+import { reactiveComputed, toReactive, useElementSize, useMounted } from '@vueuse/core';
 
-let animation
+const pomodoroColor = flavors.macchiato.colors.red.hex
+const breakColor = flavors.macchiato.colors.lavender.hex
 
-export default {
-  props: {
-    duration: {
-      type: Number,
-      required: true
-    },
-    timer: {
-      type: Number,
-      required: true
-    },
-    phase: {
-      type: String,
-      default: 'pomodoro'
-    },
-    pomodoroColor: {
-      type: String,
-      default: flavors.macchiato.colors.red.hex
-    },
-    breakColor: {
-      type: String,
-      default: flavors.macchiato.colors.blue.hex
-    }
-  },
-  expose: ['play', 'pause', 'restart', 'reload'],
-  mounted() {
-    this.reload()
-  },
-  methods: {
-    play() {
-      animation.currentTime = (this.duration - this.timer) * 1000
-      animation.play()
-    },
-    pause() {
-      animation.pause()
-    },
-    /* Termina l'animazione in corso (se esiste), e ne fa partire una nuova con la stessa
-     * durata e fase
-     */
-    restart() {
-      if (animation) {
-        animation.finish()
-      }
+const isMounted = useMounted()
+/*
+ * Actual animation object of WEB Animation API
+ */
+let animation = null
 
-      animation = this.progress.animate(this.animationKeyframes(), {
-        duration: this.duration * 1000,
-        fill: 'forwards'
-      })
+const pomodoroStore = usePomodoroStore()
+const pomodoro = toReactive(storeToRefs(pomodoroStore).pomodoro)
+const currentConfig = toReactive(storeToRefs(pomodoroStore).currentConfig)
 
-      return animation
-    },
-    /* Crea una nuova animazione e aggiorna il tempo della stessa basandosi sul timer.
-     * L'animazione non viene fatta partire
-     */
-    reload() {
-      animation = this.restart()
-      animation.currentTime = (this.duration - this.timer) * 1000
-      animation.pause()
-    },
-    animationKeyframes() {
-      if (this.isPomodoroPhase()) {
-        return this.pomodoroKeyframes
-      }
-      return this.breakKeyframes
-    },
-    /* true iff phase is unset or phase is pomodoro */
-    isPomodoroPhase() {
-      return !this.phase || this.phase === 'pomodoro'
-    }
-  },
-  computed: {
-    progress() {
-      return this.$refs.progress
-    },
-    pomodoroKeyframes() {
-      return {
-        stroke: [this.pomodoroColor, this.breakColor],
-        strokeDashoffset: [0, 1],
-        easing: 'linear'
-      }
-    },
-    breakKeyframes() {
-      return {
-        stroke: [this.breakColor, this.pomodoroColor],
-        strokeDashoffset: [-1, 0],
-        easing: 'linear'
-      }
-    }
-  },
-  watch: {
-    duration() {
-      this.restart()
-    },
-    timer(timer) {
-      animation.currentTime = (this.duration - timer) * 1000
-    }
+const animationElem = useTemplateRef('animationElem')
+const animationSize = toReactive(useElementSize(animationElem, { width: 0, height: 0 }))
+
+const progress = useTemplateRef('progress')
+
+/*
+ * Used when animation is widget to make the animation responsive
+ */
+const progressPathLength = computed(() => (animationSize.width + animationSize.height) * 2)
+
+const pomodoroKeyframes = reactiveComputed(() => {
+  return {
+    value:
+      [{ stroke: pomodoroColor, strokeDashoffset: 0 }, { stroke: breakColor, strokeDashoffset: widget ? -progressPathLength.value : 1 }]
   }
+})
+
+const breakKeyframes = reactiveComputed(() => {
+  return {
+    value: [{ stroke: breakColor, strokeDashoffset: widget ? progressPathLength.value : -1 }, { stroke: pomodoroColor, strokeDashoffset: 0 }]
+  }
+})
+
+const animationOptions = reactiveComputed(() => {
+  return {
+    duration: pomodoro.initialTimer * 1000,
+    fill: 'forwards',
+    easing: 'linear'
+  }
+})
+
+const currentTime = computed(() => pomodoro.initialTimer - pomodoro.timer)
+
+const { widget } = defineProps({
+  widget: {
+    type: Boolean,
+    default: false
+  }
+})
+
+onMounted(() => restart())
+
+watch([() => currentConfig._id, () => pomodoro.phase], () => restart())
+
+watch(currentTime, () => {
+  if (!animation) return
+  if (pomodoro.running) {
+    if (animation.playState !== 'running')
+      animation.play()
+  } else if (animation.playState !== 'paused') {
+    animation.pause()
+  }
+  animation.currentTime = currentTime.value * 1000
+})
+
+watch(() => pomodoro.running, () => {
+  if (!animation) return
+
+  if (pomodoro.running) {
+    animation.currentTime = currentTime.value * 1000
+    animation.play()
+  } else
+    animation.pause()
+})
+
+watch(() => animationSize.width, () => { if (widget) restart() })
+
+/* Termina l'animazione in corso (se esiste), e ne fa partire una nuova  */
+function restart() {
+  if (!isMounted.value) return
+
+  if (animation) {
+    animation.cancel()
+  }
+
+  const keyframes = new KeyframeEffect(progress.value,
+    toRaw(pomodoro.phase === 'pomodoro' ? pomodoroKeyframes.value : breakKeyframes.value),
+    animationOptions)
+
+  animation = new Animation(keyframes, document.timeline)
+
+  animation.currentTime = currentTime.value * 1000
+
+  if (pomodoro.running) animation.play()
+  else animation.pause()
 }
+
 </script>
 
 <style scoped>
 .linecap-round {
   stroke-linecap: round;
-}
-
-#progress {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  transform: rotate(-90deg);
-  transform-origin: center;
-}
-
-g > * {
-  stroke-width: 0.4rem;
 }
 </style>

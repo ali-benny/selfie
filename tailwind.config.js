@@ -5,6 +5,7 @@ import typography from '@tailwindcss/typography'
 import daisyui from 'daisyui'
 import { flavors } from '@catppuccin/palette'
 import Color from 'colorjs.io'
+import { SCREENS } from './const'
 import tailwindcss_motion from 'tailwindcss-motion'
 
 const hexToOklch_coords = (hex) => {
@@ -48,6 +49,7 @@ const fixCustomTheme = ({
 export default {
   content: ['./index.html', './src/**/*.{vue,js,ts}'],
   theme: {
+    screens: SCREENS,
     extend: {
       colors: {
         surface: {
@@ -64,7 +66,7 @@ export default {
           0: 'oklch(var(--subtext-0) / <alpha-value>)',
           1: 'oklch(var(--subtext-1) / <alpha-value>)'
         }
-      },
+      }
     }
   },
   plugins: [typography, daisyui, addDynamicIconSelectors(), tailwindcss_motion],
