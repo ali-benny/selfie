@@ -8,7 +8,7 @@
       </Transition>
 
       <div class="w-fit h-16 z-10 flex bg-base-200 rounded-l-lg shadow-md" :class="{ 'shadow-base-300': isWidgetOpen }">
-        <button @click="() => pomodoroStore.toggleWidgetOpen()"
+        <button @click="pomodoroStore.toggleWidgetOpen()"
           class="flex flex-col justify-center px-4 text-4xl cursor-pointer">
           <IconPomodoro v-if="pomodoroStore.isPomodoroPhase()" :color="config.color.hex" />
           <Icon v-else-if="pomodoroStore.isShortBreakPhase()" icon="fluent-emoji-flat:teacup-without-handle" />

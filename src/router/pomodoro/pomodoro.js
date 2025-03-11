@@ -1,7 +1,7 @@
 import { API_URL } from '../../../const.js'
 import { flavors } from '@catppuccin/palette'
 
-export const defaultConfig = {
+export const initialConfig = {
   name: 'Pomodoro',
   pomodoroTime: 25,
   shortBreakTime: 5,
@@ -10,6 +10,18 @@ export const defaultConfig = {
     interval: 3
   },
   color: flavors.macchiato.colors.maroon
+}
+
+export const initialPomodoro = {
+  initialTimer: null,
+  timer: null,
+  phase: 'pomodoro',
+  cycle: 1,
+  started: false,
+  running: false,
+  finished: false,
+  timeoutId: 0,
+  longBreakLap: 0
 }
 
 export async function loadUserConfigs(userId) {
@@ -56,6 +68,27 @@ export async function createPomodoroConfig(userId, config) {
   }
 }
 
+/*
+ * Crea la Config
+ */
+export async function createPomodoroConfigs(userIds, configId) {
+  try {
+    const response = await fetch(API_URL + `/pomodoros/configs/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        users: userIds,
+        configId: configId
+      })
+    })
+    if (!response.ok) {
+      throw new Error(`ERROR - createPomodoroConfig, response status ${response.status}`)
+    }
+  } catch (error) {
+    console.error(error.message)
+  }
+}
+
 export async function updatePomodoroConfig(config) {
   try {
     if (Object.keys(config.longBreak).length == 0) {
@@ -81,15 +114,12 @@ export async function updatePomodoroConfig(config) {
  */
 export async function loadLatestConfig(
   userId,
-  fallbackConfig = { ...defaultConfig, userId: userId }
+  fallbackConfig = { ...initialConfig, userId: userId }
 ) {
   if (!userId) return fallbackConfig
   try {
     const response = await fetch(API_URL + `/${userId}/pomodoros/configs/latest`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      method: 'GET'
     })
 
     if (!response.ok) {
@@ -104,9 +134,9 @@ export async function loadLatestConfig(
 /*
  * Elimina la Config
  */
-export async function deletePomodoroConfig(id) {
+export async function deletePomodoroConfig(configId) {
   try {
-    const response = await fetch(API_URL + '/pomodoros/configs/' + id, {
+    const response = await fetch(API_URL + '/pomodoros/configs/' + configId, {
       method: 'DELETE'
     })
     if (!response.ok) {

@@ -17,18 +17,13 @@
     <template v-else>
       <div
         class="trash-bin z-10 absolute inset-x-2/4 bottom-20 w-16 h-16 !bg-error text-base-300 justify-center items-center rounded-full hidden shadow shadow-error"
-        @dragover.prevent
-        @drop="onDrop"
-      >
+        @dragover.prevent @drop="onDrop">
         <Icon icon="fluent:delete-12-filled" class="text-3xl" />
       </div>
       <div class="flex justify-between flex-col md:flex-row *:w-full m-2 items-center">
         <div class="flex flex-row items-center">
-          <input
-            type="text"
-            class="input border !input-bordered input-primary text-2xl font-bold w-auto"
-            v-model="title"
-          />
+          <input type="text" class="input border !input-bordered input-primary text-2xl font-bold w-auto"
+            v-model="title" />
           <!-- <button
         class="btn btn-ghost text-xl"
         :class="isChecked ? '!text-success' : '!text-primary'"
@@ -40,47 +35,28 @@
         </div>
         <div class="flex justify-between flex-wrap lg:justify-end items-center">
           <div
-            class="avatar-group flex items-center -space-x-4 hover:-space-x-0 transition hover:-translate-x-1 ease-in-out duration-300 rtl:space-x-reverse"
-          >
+            class="avatar-group flex items-center -space-x-4 hover:-space-x-0 transition hover:-translate-x-1 ease-in-out duration-300 rtl:space-x-reverse">
             <!-- avatar author -->
-            <div
-              v-if="id != null"
-              class="relative space-x-2 hover:cursor-pointer transition ease-in-out duration-300 rounded-full"
-            >
+            <div v-if="id != null"
+              class="relative space-x-2 hover:cursor-pointer transition ease-in-out duration-300 rounded-full">
               <div class="avatar h-12 border !border-primary border-lg">
-                <img
-                  class="mask mask-circle !bg-surface-2"
-                  :src="author.image"
-                  :alt="author.name + ' ' + author.surname"
-                />
+                <img class="mask mask-circle !bg-surface-2" :src="author.image"
+                  :alt="author.name + ' ' + author.surname" />
               </div>
-              <span
-                v-if="author.logged"
-                class="absolute top-0 right-1 w-3 h-3 !bg-success rounded-full border-2 border-base-100 transform translate-x-1 translate-y-1"
-              ></span>
+              <span v-if="author.logged"
+                class="absolute top-0 right-1 w-3 h-3 !bg-success rounded-full border-2 border-base-100 transform translate-x-1 translate-y-1"></span>
             </div>
             <!-- avatar readers -->
-            <div
-              v-for="reader in readers_verbose"
-              :key="reader._id"
+            <div v-for="reader in readers_verbose" :key="reader._id"
               class="relative h-10 hover:cursor-pointer transition ease-in-out hover:scale-125 duration-300 rounded-full"
-              draggable="true"
-              @dragstart="onDragStart(reader)"
-              @dragend="onDragEnd"
-              @mouseover="showTrashBin"
-              @mouseleave="hideTrashBin"
-            >
+              draggable="true" @dragstart="onDragStart(reader)" @dragend="onDragEnd" @mouseover="showTrashBin"
+              @mouseleave="hideTrashBin">
               <div class="avatar h-10">
-                <img
-                  class="mask mask-circle !bg-secondary hover:!bg-error"
-                  :src="reader.image"
-                  :title="reader.name + ' ' + reader.surname"
-                />
+                <img class="mask mask-circle !bg-secondary hover:!bg-error" :src="reader.image"
+                  :title="reader.name + ' ' + reader.surname" />
               </div>
-              <span
-                v-if="reader.logged"
-                class="absolute top-0 right-1 w-3 h-3 !bg-success rounded-full border-2 border-base-100 transform translate-x-1 translate-y-1"
-              ></span>
+              <span v-if="reader.logged"
+                class="absolute top-0 right-1 w-3 h-3 !bg-success rounded-full border-2 border-base-100 transform translate-x-1 translate-y-1"></span>
             </div>
           </div>
           <div class="flex items-center">
@@ -92,23 +68,9 @@
         </div>
       </div>
       <div class="flex justify-around flex-wrap">
-        <v-autocomplete
-          bg-color="#494d64"
-          item-color="#5b6078"
-          v-model="selectedTags"
-          :items="tags"
-          item-text="name"
-          item-value="name"
-          label="Tags"
-          chips
-          clearable
-          deletable-chips
-          multiple
-          closable-chips
-          density="compact"
-          variant="solo-filled"
-          @keydown.enter.prevent="addTag"
-        ></v-autocomplete>
+        <v-autocomplete bg-color="#494d64" item-color="#5b6078" v-model="selectedTags" :items="tags" item-text="name"
+          item-value="name" label="Tags" chips clearable deletable-chips multiple closable-chips density="compact"
+          variant="solo-filled" @keydown.enter.prevent="addTag"></v-autocomplete>
 
         <div class="flex items-center mx-4 mb-5 px-2 bg-surface-1 rounded-lg">
           <div class="flex items-center gap-2">
@@ -119,10 +81,7 @@
               </option>
             </select>
           </div>
-          <button
-            class="btn btn-ghost btn-sm hover:!text-secondary"
-            @click="showNewFolderDialog = true"
-          >
+          <button class="btn btn-ghost btn-sm hover:!text-secondary" @click="showNewFolderDialog = true">
             <Icon icon="fluent:folder-add-20-regular" />
             New Folder
           </button>
@@ -155,7 +114,6 @@
 
 <script>
 import { nextTick } from 'vue'
-import { useNotivue } from 'notivue'
 import { getEditNoteTitle, getEditNoteId } from './editor.js'
 import {
   getNoteAuthor,
@@ -171,6 +129,7 @@ import UserShare from '@/components/UserShare.vue'
 import EditorComponent from '@/components/note/EditorComponent.vue'
 import { useUserStore } from '@/stores/account'
 import { getDirectoryStructure, createDirectory } from './directory.js'
+import { getUsersByIds } from '@/router/user/user.js'
 
 export default {
   computed: {
@@ -387,8 +346,8 @@ export default {
         console.error('Failed to save updated readers:', error)
         push.error('Failed to remove reader')
         // Ricarico i readers in caso di errore per mantenere la sincronizzazione
-        this.readers = await getReaders(this.id)
-        this.readers_verbose = await getReadersIds(this.readers)
+        this.readers = await getReadersIds(this.id)
+        this.readers_verbose = await getReaders(this.id)
       }
     },
 
@@ -423,6 +382,11 @@ export default {
         document.querySelector('.trash-bin').classList.add('hidden')
         document.querySelector('.trash-bin').classList.remove('flex')
       }
+    }
+  },
+  watch: {
+    async readers() {
+      this.readers_verbose = await getUsersByIds(this.readers)
     }
   },
   components: {

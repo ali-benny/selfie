@@ -1,49 +1,60 @@
 <template>
-  <Popper>
-    <button class="btn btn-ghost text-xl">
-      <Icon icon="typcn:user-add" />
-    </button>
-    <template #content>
-      <div class="shadow-md bg-base-200 rounded-box p-2 z-3 flex flex-col w-svw md:w-max">
-        <ul class="flex flex-col z-3 left-0 m-0 p-3 bg-base-200 rounded-box shadow-xl overflow-y-auto w-auto max-h-72">
-          <button v-for="user in users" :key="user._id" :class="[
-            'flex gap-2 justify-between items-center',
-            'rounded-lg',
-            'p-1 px-3 my-1',
-            'bg-base-300',
-            { 'bg-primary/30': sharewith.includes(user) }
-          ]" @click="select(user)">
-            <div class="flex items-center gap-3">
-              <div :class="['avatar', user.logged ? 'online' : '']">
-                <div class="mask mask-squircle !bg-primary w-10">
-                  <img :src="user.image" alt="User Image" class="m-0" />
+  <Popper @open:popper="reloadUsers">
+    <slot>
+      <button class="btn btn-ghost text-xl">
+        <Icon icon="typcn:user-add" />
+      </button>
+    </slot>
+    <template #content="{ close }">
+      <div v-if="users?.length > 0"
+        class="shadow-md bg-base-200 rounded-box p-2 z-3 flex overflow-hidden flex-col gap-3 w-svw md:w-max !text-base">
+        <ul class="overflow-y-auto max-h-72 flex flex-col gap-2">
+          <li v-for="user in users" :key="user._id" class="items-center p-2 rounded-box bg-base-300 hover:bg-primary/20"
+            :class="{ '!bg-primary/30': selectedUsers.includes(user._id) }" @click="selectUser(user._id)">
+            <button class="w-full flex justify-between items-center gap-3">
+              <div class="flex items-center gap-2">
+                <div class="avatar" :class="{ 'online': user.logged }">
+                  <div class="mask mask-squircle !bg-primary w-10">
+                    <img :src="user.image" alt="User Image" class="m-0" />
+                  </div>
+                </div>
+                <div>
+                  {{ user.name }} {{ user.surname ? user.surname : '' }}
                 </div>
               </div>
-              {{ user.name }} {{ user.surname ? user.surname : '' }}
-            </div>
 
-            <span v-if="sharewith.includes(user)" class="!text-primary right-0">
-              <Icon icon="fluent:checkmark-12-filled" />
-            </span>
-          </button>
+              <span class="!text-primary right-0 w-4 h-4">
+                <Icon v-if="selectedUsers.includes(user._id)" icon="fluent:checkmark-12-filled" />
+              </span>
+            </button>
+          </li>
         </ul>
-        <button class="btn btn-outline btn-primary mt-2 flex items-center justify-center rounded-lg gap-2"
-          @click="sendshare()">
+        <button class="btn btn-outline btn-primary flex items-center justify-center rounded-lg gap-2"
+          @click="sendShare(close)">
           Condividi
           <Icon icon="fluent:send-person-16-filled" />
         </button>
+      </div>
+      <div v-else class="shadow-md bg-base-200 rounded-box text-base p-2 z-3">
+        No users to share with.
       </div>
     </template>
   </Popper>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { API_URL } from '../../const'
-import { saveNoteMongo, getReadersIds } from '@/router/note/editor/note'
+import { ref } from 'vue'
+import { saveNoteMongo } from '@/router/note/editor/note'
+import { useUserStore } from '@/stores/account';
+import { getUsers } from '@/router/user/user';
+import { createPomodoroConfigs } from '@/router/pomodoro/pomodoro';
 
-const users = ref()
-const sharewith = ref([])
+/* Lista degli utenti con cui è possibile condividere la risorsa */
+const users = ref([])
+
+/* Lista degli utenti con cui condividere la risorsa */
+const selectedUsers = ref([])
+
 const emit = defineEmits(['update:modelValue'])
 
 const props = defineProps({
@@ -56,53 +67,31 @@ const props = defineProps({
   type: String
 })
 
-onMounted(async () => {
-  try {
-    const response = await fetch(`${API_URL}/users`)
-    const data = await response.json()
-    users.value = data
-  } catch (error) {
-    console.error('Error fetching users:', error)
-  }
-})
+// TODO: come stabilisco utenti con cui condividere ??? (modelValue?, users?)
 
-function select(user) {
-  if (sharewith.value.includes(user)) {
-    sharewith.value = sharewith.value.filter((u) => u !== user)
-    emit(
-      'update:modelValue',
-      props.modelValue.filter((id) => id !== user._id && id !== undefined && id !== null)
-    )
-  } else if (user._id !== undefined && user._id !== null) {
-    sharewith.value.push(user)
-    emit('update:modelValue', [
-      ...props.modelValue.filter((id) => id !== undefined && id !== null),
-      user._id
-    ])
-  } else console.error('Error selecting users')
-}
 
-async function sendshare() {
+async function sendShare(closePopper) {
   if (!props.id) {
     push.warning(`Please, save your ${props.type} before sharing`)
     return
   }
 
+  const shareWith = [
+    ...props.modelValue,
+    ...selectedUsers.value
+  ]
+  emit('update:modelValue', shareWith)
+
   switch (props.type) {
     case 'Note': {
-      const readers = await getReadersIds(props.id)
-      emit('update:modelValue', [
-        ...props.modelValue.filter((id) => id !== undefined && id !== null),
-        ...readers.map((reader) => reader._id).filter((id) => id !== undefined && id !== null)
-      ])
       await saveNoteMongo({
         id: props.id,
-        readers: props.modelValue.filter((id) => id !== undefined && id !== null)
+        readers: shareWith
       })
       break
     }
     case 'Pomodoro': {
-
+      await createPomodoroConfigs(selectedUsers.value, props.id)
       break
     }
     case 'Event': {
@@ -110,8 +99,25 @@ async function sendshare() {
       break
     }
   }
-  sharewith.value = []
+
   push.success(`${props.type} shared successfully!`)
+
+  closePopper()
+}
+
+function selectUser(userId) {
+  if (selectedUsers.value.includes(userId)) {
+    selectedUsers.value = selectedUsers.value.filter(u => u !== userId)
+  } else {
+    selectedUsers.value.push(userId)
+  }
+}
+
+async function reloadUsers() {
+  const allUsers = await getUsers()
+  users.value = allUsers.filter(u => u._id !== useUserStore().loggedUser._id && !props.modelValue.includes(u._id))
+
+  selectedUsers.value = []
 }
 </script>
 

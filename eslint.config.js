@@ -1,9 +1,17 @@
 import globals from 'globals'
-import pluginJs from '@eslint/js'
+import js from '@eslint/js'
+import stylistic from '@stylistic/eslint-plugin'
 import pluginVue from 'eslint-plugin-vue'
 
 export default [
-  { languageOptions: { globals: { ...globals.browser, ...globals.node } } },
-  pluginJs.configs.recommended,
+  {
+    languageOptions: {
+      globals: { ...globals.browser, ...globals.node }
+    },
+    plugins: {
+      '@stylistic': stylistic
+    }
+  },
+  js.configs.recommended,
   ...pluginVue.configs['flat/essential']
 ]

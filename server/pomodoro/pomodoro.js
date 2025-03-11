@@ -70,25 +70,46 @@ app.on('mount', async () => {
  */
 app.get('/:userId/pomodoros/configs', async (req, res) => {
   try {
-    // if (req.query.sort) {
-    //   const split = req.query.sort.split(',')
-    //   const sort = split[0]
-    //   const order = split[1]
-    //   if (!(sort in PomodoroConfigSchema.paths)) {
-    //     throw Error('Invalid sort param: ' + sort + ' not in PomodoroConfigSchema')
-    //   }
-    //   if (!['-1', '1'].includes(order)) {
-    //     throw Error('Invalid sort param: ' + order + ' not a valid order')
-    //   }
-
-    //   const configs = await PomodoroConfig.find({ userId: req.params.userId }).sort({
-    //     [sort]: order
-    //   })
-    //   res.status(200).json(configs)
-    // } else {
     const configs = await PomodoroConfig.find({ userId: req.params.userId })
     res.status(200).json(configs)
-    // }
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.get('/pomodoros/configs/:id', async (req, res) => {
+  try {
+    const config = await PomodoroConfig.findById(req.params.id)
+    res.status(200).json(config)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+/*
+ * Creates a configs
+ */
+app.post('/pomodoros/configs/', async (req, res) => {
+  try {
+    const baseConfig = await PomodoroConfig.findById(req.body.configId)
+    const resultConfigs = []
+    for (const user of req.body.users) {
+      const config = new PomodoroConfig({ userId: user })
+      config.name = baseConfig.name
+      config.pomodoroTime = baseConfig.pomodoroTime
+      config.shortBreakTime = baseConfig.shortBreakTime
+      config.longBreak = baseConfig.longBreak
+      config.cycles = baseConfig.cycles
+      config.color = baseConfig.color
+
+      config.lastUsed = Date.now()
+      await config.save()
+      resultConfigs.push(config)
+    }
+
+    res.status(200).json(resultConfigs)
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: err.message })
@@ -125,7 +146,7 @@ app.patch('/pomodoros/configs/:id', async (req, res) => {
     config.longBreak = req.body.longBreak
     config.color = req.body.color
     config.lastUsed = req.body.lastUsed
-    config.save()
+    config.config.save()
     res.status(200).send('Config updated successfully!')
   } catch (err) {
     console.error(err)

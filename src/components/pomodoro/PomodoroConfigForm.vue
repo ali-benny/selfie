@@ -157,27 +157,16 @@
 
 <script setup>
 import { flavors } from '@catppuccin/palette'
-import { createPomodoroConfig, deletePomodoroConfig, updatePomodoroConfig } from '@/router/pomodoro/pomodoro'
+import { createPomodoroConfig, deletePomodoroConfig, initialConfig, updatePomodoroConfig } from '@/router/pomodoro/pomodoro'
 import { useUserStore } from '@/stores/account'
-import { nextTick, ref, useTemplateRef, toRaw, reactive, computed, watch } from 'vue';
+import { nextTick, ref, useTemplateRef, toRaw, computed, watch } from 'vue';
 import { usePomodoroStore } from '@/stores/pomodoro';
 import PomodoroConfigInfo from './PomodoroConfigInfo.vue';
 import { storeToRefs } from 'pinia';
-import { reactiveComputed, useDebounceFn, whenever } from '@vueuse/core';
+import { useDebounceFn, whenever } from '@vueuse/core';
 import ToggleSpin from '../ToggleSpin.vue';
 
 // const toast = useNotivue()
-
-const defaultConfig = {
-  pomodoroTime: 25,
-  shortBreakTime: 5,
-  cycles: 4,
-  longBreak: {},
-  color: {
-    name: "Red",
-    hex: "#ed8796"
-  }
-}
 
 const colors = [
   flavors.macchiato.colors.rosewater,
@@ -213,30 +202,26 @@ const firstStepDone = ref(false)
 const configName = useTemplateRef('configName')
 const form = useTemplateRef('form')
 
+const config = configId ? pomodoroStore.getUserConfig(configId) : initialConfig
+const editableConfig = ref({ ...config })
 
-const config = reactiveComputed(() => configId ? pomodoroStore.getUserConfig(configId) : defaultConfig)
-const editableConfig = reactive({ ...defaultConfig })
-if (configId) {
-  Object.assign(editableConfig, structuredClone(pomodoroStore.getUserConfig(configId)))
-} else {
-  editableConfig.durationFormat = preferredDurationFormat.value
+if (!configId) {
+  editableConfig.value.durationFormat = preferredDurationFormat.value
 }
-
 
 /* Used in first step to input the desired focus duration */
 const desiredDuration = ref(0)
 
 /* Used in second step to display the focus duration */
 const duration = computed(() => pomodoroStore.computeConfigDuration(editableConfig))
-const formattedDuration = computed(() => pomodoroStore.formatDuration(duration.value, editableConfig.durationFormat))
+const formattedDuration = computed(() => pomodoroStore.formatDuration(duration.value, editableConfig.value.durationFormat))
 
-const pomodoroTime = computed(buildFormField({ obj: editableConfig, fieldName: 'pomodoroTime', validators: [validateMinutes] }))
-const shortBreakTime = computed(buildFormField({ obj: editableConfig, fieldName: 'shortBreakTime', validators: [validateMinutes] }))
-const cycles = computed(buildFormField({ obj: editableConfig, fieldName: 'cycles', validators: [validateNumberPositive] }))
+const pomodoroTime = computed(buildConfigField({ fieldName: 'pomodoroTime', validators: [validateMinutes] }))
+const shortBreakTime = computed(buildConfigField({ fieldName: 'shortBreakTime', validators: [validateMinutes] }))
+const cycles = computed(buildConfigField({ fieldName: 'cycles', validators: [validateNumberPositive] }))
 
 const longBreakTime = computed(buildLongBreakField('time'))
 const longBreakInterval = computed(buildLongBreakField('interval'))
-
 
 const totalMinutes = computed({
   get() {
@@ -281,16 +266,16 @@ const minutes = computed({
 whenever(() => desiredDuration.value == null, () => desiredDuration.value = 0)
 
 watch(preferredDurationFormat, () => {
-  editableConfig.durationFormat = preferredDurationFormat.value
+  editableConfig.value.durationFormat = preferredDurationFormat.value
 })
 
 
 async function saveConfig(close) {
   try {
     if (configId) {
-      userConfigs.value.set(configId, structuredClone(toRaw(editableConfig)))
+      userConfigs.value.set(configId, { ...toRaw(editableConfig) })
       await updatePomodoroConfig(toRaw(editableConfig))
-      if (pomodoroStore.isConfigSelected(config))
+      if (pomodoroStore.isConfigSelected(config._id))
         pomodoroStore.setCurrentConfig(config)
       push.success('Focus saved!')
     } else {
@@ -329,7 +314,7 @@ async function openHandler() {
   if (configId) {
     Object.assign(editableConfig, structuredClone(pomodoroStore.getUserConfig(configId)))
   } else {
-    editableConfig.durationFormat = preferredDurationFormat.value
+    editableConfig.value.durationFormat = preferredDurationFormat.value
   }
 
   await nextTick()
@@ -343,7 +328,7 @@ const updateProposedFocus = useDebounceFn(() => {
 
   if (isNaN(minutes) || minutes <= 1) {
     desiredDuration.value = null
-    Object.assign(editableConfig, defaultConfig)
+    editableConfig.value = initialConfig
     return
   }
 
@@ -428,13 +413,13 @@ function computeMinutes(minutes, config) {
 }
 
 function isLongBreakRequired() {
-  if (!editableConfig.longBreak)
+  if (!editableConfig.value.longBreak)
     return false
 
-  if (!editableConfig.longBreak.time && !editableConfig.longBreak.interval)
+  if (!editableConfig.value.longBreak.time && !editableConfig.value.longBreak.interval)
     return false
 
-  return editableConfig.longBreak.time !== '' || editableConfig.longBreak.interval !== ''
+  return editableConfig.value.longBreak.time !== '' || editableConfig.value.longBreak.interval !== ''
 }
 
 function validateNumber(n) {
@@ -449,18 +434,18 @@ function validateMinutes(n) {
   return validateNumberPositive(n) && Number(n) <= 60
 }
 
-function buildFormField({ obj, fieldName, validators = [], _default = null }) {
+function buildConfigField({ fieldName, validators = [] }) {
   return {
     get() {
-      return obj[fieldName] || _default
+      return editableConfig[fieldName]
     },
     async set(value) {
       let valid = true
       validators.forEach((validator) => valid &= validator(value))
       if (valid)
-        obj[fieldName] = value
+        editableConfig[fieldName] = value
       else
-        await invalidate({ obj: obj, fieldName: fieldName, _default: _default })
+        await invalidate({ fieldName: fieldName })
     }
   }
 }
@@ -468,43 +453,33 @@ function buildFormField({ obj, fieldName, validators = [], _default = null }) {
 function buildLongBreakField(longBreakSubField) {
   return {
     get() {
-      return editableConfig.longBreak ? editableConfig.longBreak[longBreakSubField] : undefined
+      return editableConfig.value.longBreak ? editableConfig.value.longBreak[longBreakSubField] : undefined
     },
     set(value) {
       if (validateNumberPositive(value)) {
-        if (!editableConfig.longBreak) editableConfig.longBreak = {}
-        editableConfig.longBreak[longBreakSubField] = Number(value)
+        if (!editableConfig.value.longBreak) editableConfig.value.longBreak = {}
+        editableConfig.value.longBreak[longBreakSubField] = Number(value)
       } else {
-        invalidate({ obj: editableConfig.longBreak, fieldName: longBreakSubField })
+        invalidate({ fieldName: longBreakSubField })
       }
     }
   }
 }
 
-async function invalidate({ obj, fieldName, subfieldName, _default = null }) {
+async function invalidate({ fieldName, subfieldName }) {
   if (subfieldName) {
-    if (_default) {
-      obj[fieldName] = _default
-      return
-    }
-
-    if (!obj[fieldName][subfieldName]) {
-      obj[fieldName][subfieldName] = {}
+    if (!editableConfig[fieldName][subfieldName]) {
+      editableConfig[fieldName][subfieldName] = {}
       await nextTick()
     }
-    delete obj[fieldName][subfieldName]
-    if (!obj[fieldName]) delete obj[fieldName]
+    delete editableConfig[fieldName][subfieldName]
+    if (!editableConfig[fieldName]) delete editableConfig[fieldName]
   } else {
-    if (_default) {
-      obj[fieldName] = _default
-      return
-    }
-
-    if (!obj[fieldName]) {
-      obj[fieldName] = {}
+    if (!editableConfig[fieldName]) {
+      editableConfig[fieldName] = {}
       await nextTick()
     }
-    delete obj[fieldName]
+    delete editableConfig[fieldName]
   }
 }
 

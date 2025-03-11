@@ -1,7 +1,12 @@
 import { defineStore } from 'pinia'
 import { useUserStore } from './account'
 import { useAsyncState, useLocalStorage, useSessionStorage, whenever } from '@vueuse/core'
-import { defaultConfig, loadUserConfigs, loadLatestConfig } from '@/router/pomodoro/pomodoro.js'
+import {
+  initialConfig,
+  initialPomodoro,
+  loadUserConfigs,
+  loadLatestConfig
+} from '@/router/pomodoro/pomodoro.js'
 import { computed, toRaw, watch } from 'vue'
 import { useToast } from 'vue-toastification'
 import { useRoute } from 'vue-router'
@@ -10,42 +15,39 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
   const currentRoute = useRoute()
   const toast = useToast()
 
-  const fallbackConfig = {
-    ...defaultConfig,
-    userId: useUserStore().loggedUser?._id
-  }
-
-  const { state: currentConfig, isReady: isCurrentConfigReady } = useAsyncState(
+  /*
+   * Currently selected Pomodoro Configuration.
+   */
+  const { state: config, isReady: isConfigReady } = useAsyncState(
     loadLatestConfig(useUserStore().loggedUser?._id),
-    fallbackConfig,
+    { ...initialConfig, userId: useUserStore().loggedUser?._id },
     { shallow: false }
   )
 
+  /*
+   * Map [id, config] of all Pomodoro Configurations of the user.
+   */
   const { state: userConfigs } = useAsyncState(
     loadUserConfigs(useUserStore().loggedUser?._id),
     new Map(),
     { shallow: false }
   )
 
-  const pomodoro = useSessionStorage('pomodoro', {
-    initialTimer: null,
-    timer: null,
-    phase: 'pomodoro',
-    cycle: 1,
-    started: false,
-    running: false,
-    finished: false,
-    timeoutId: 0,
-    longBreakLap: 0
-  })
+  /*
+   * Pomodoro Timer status.
+   */
+  const pomodoro = useSessionStorage('pomodoro', initialPomodoro)
 
-  const preferredDurationFormat = useLocalStorage('pomodoro.preferredDurationFormat', 'mm')
+  const userTimeFormat = useLocalStorage('pomodoro.userTimeFormat', 'mm')
 
+  /*
+   * Formatted timer to be displayed.
+   */
   const timer = computed(() => formatClockTime(pomodoro.value.timer))
 
   const isWidgetOpen = useSessionStorage('pomodoro.isWidgetOpen', false)
 
-  whenever(isCurrentConfigReady, () => {
+  whenever(isConfigReady, () => {
     if (pomodoro.value.started) {
       if (pomodoro.value.running) playPomodoroTimer()
       return
@@ -60,24 +62,17 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
     }
   )
 
-  watch(currentConfig, () => {
+  watch(config, () => {
     if (!pomodoro.value.started) {
       initNewPomodoro()
     }
   })
 
   function initNewPomodoro() {
-    pomodoro.value.initialTimer = currentConfig.value.pomodoroTime * 60
+    pomodoro.value = initialPomodoro
+
+    pomodoro.value.initialTimer = config.value.pomodoroTime * 60
     pomodoro.value.timer = pomodoro.value.initialTimer
-    pomodoro.value.phase = 'pomodoro'
-    pomodoro.value.cycle = 1
-    pomodoro.value.started = false
-    pomodoro.value.running = false
-    pomodoro.value.finished = false
-    pomodoro.value.timeoutId = 0
-    if (currentConfig.value.longBreak) {
-      pomodoro.value.longBreakLap = 0
-    }
   }
 
   function playPomodoroTimer() {
@@ -118,27 +113,24 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
       case 'pomodoro':
         pomodoro.value.phase = 'break'
 
-        if (!currentConfig.value.longBreak) {
-          pomodoro.value.initialTimer = currentConfig.value.shortBreakTime * 60
+        if (!config.value.longBreak) {
+          pomodoro.value.initialTimer = config.value.shortBreakTime * 60
           break
         }
 
-        if (pomodoro.value.longBreakLap == currentConfig.value.longBreak.interval) {
-          pomodoro.value.initialTimer = currentConfig.value.longBreak.time * 60
+        if (pomodoro.value.longBreakLap == config.value.longBreak.interval) {
+          pomodoro.value.initialTimer = config.value.longBreak.time * 60
           pomodoro.value.longBreakLap = 0
-        } else {
-          pomodoro.value.initialTimer = currentConfig.value.shortBreakTime * 60
-        }
+        } else pomodoro.value.initialTimer = config.value.shortBreakTime * 60
 
         break
       case 'break':
         pomodoro.value.cycle++
         pomodoro.value.longBreakLap++
-        if (currentConfig.value.cycles && pomodoro.value.cycle >= currentConfig.value.cycles) {
-          finishPomodoro()
-        } else {
+        if (config.value.cycles && pomodoro.value.cycle >= config.value.cycles) finishPomodoro()
+        else {
           pomodoro.value.phase = 'pomodoro'
-          pomodoro.value.initialTimer = currentConfig.value.pomodoroTime * 60
+          pomodoro.value.initialTimer = config.value.pomodoroTime * 60
         }
         break
     }
@@ -164,31 +156,31 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
       pomodoro.value.timeoutId = setTimeout(timerProgress, 1000)
   }
 
-  function isConfigSelected(config) {
-    return config._id === currentConfig.value._id
+  function isConfigSelected(id) {
+    return id === config.value._id
   }
 
-  function setCurrentConfig(config) {
-    if (currentConfig.value._id !== config._id) {
-      currentConfig.value = config
+  function setCurrentConfig(c) {
+    if (config.value._id !== c._id) {
+      config.value = c
       initNewPomodoro()
       return
     }
 
     if (!pomodoro.value.started) {
-      currentConfig.value = config
+      config.value = config
       initNewPomodoro()
       return
     }
 
     let restartNeeded = false
     if (
-      currentConfig.value.pomodoroTime != config.pomodoroTime ||
-      currentConfig.value.shortBreakTime != config.shortBreakTime ||
-      currentConfig.value.longBreak != config.longBreak
+      config.value.pomodoroTime != config.pomodoroTime ||
+      config.value.shortBreakTime != config.shortBreakTime ||
+      config.value.longBreak != config.longBreak
     )
       restartNeeded = true
-    currentConfig.value = config
+    config.value = config
     if (restartNeeded) restartPomodoroPhase()
   }
 
@@ -206,14 +198,14 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
   function isShortBreakPhase() {
     return (
       pomodoro.value.phase === 'break' &&
-      pomodoro.value.initialTimer === currentConfig.value.shortBreakTime * 60
+      pomodoro.value.initialTimer === config.value.shortBreakTime * 60
     )
   }
 
   function isLongBreakPhase() {
     return (
       pomodoro.value.phase === 'break' &&
-      pomodoro.value.initialTimer === currentConfig.value.longBreak.time * 60
+      pomodoro.value.initialTimer === config.value.longBreak.time * 60
     )
   }
 
@@ -279,11 +271,11 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
   }
 
   return {
-    currentConfig,
+    currentConfig: config,
     pomodoro,
     userConfigs,
     timer,
-    preferredDurationFormat,
+    preferredDurationFormat: userTimeFormat,
     isWidgetOpen,
     playPomodoroTimer,
     pausePomodoroTimer,
