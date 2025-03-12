@@ -92,22 +92,23 @@ async function deleteGroup(group) {
         <Popper arrow>
           <button class="btn btn-sm btn-secondary btn-outline">New Group</button>
           <template #content>
-            <div class="flex flex-col p-2 gap-2">
-              <input
-                type="text"
-                v-model="new_group.name"
-                placeholder="Group Name"
-                class="input input-sm"
-              />
-              <textarea
-                v-model="new_group.description"
-                placeholder="Description"
-                class="textarea textarea-bordered"
-              ></textarea>
-              <button class="btn btn-sm btn-block btn-primary" @click="createGroup">
-                <Icon icon="fluent:add-16-filled"></Icon>Add New Group
-              </button>
-            </div>
+              <form id="create-group-form" @submit.prevent="createGroup" class="flex flex-col p-2 gap-2">
+                <input
+                  type="text"
+                  v-model="new_group.name"
+                  placeholder="Group Name"
+                  class="input input-sm"
+                  required
+                />
+                <textarea
+                  v-model="new_group.description"
+                  placeholder="Description"
+                  class="textarea textarea-bordered"
+                ></textarea>
+                <button class="btn btn-sm btn-block btn-primary" form="create-group-form">
+                  <Icon icon="fluent:add-16-filled"></Icon>Add New Group
+                </button>
+              </form>
           </template>
         </Popper>
       </div>
