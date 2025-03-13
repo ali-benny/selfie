@@ -149,25 +149,40 @@ function toggleShowOptions(note) {
 
 <template>
   <ul class="m-2 gap-2 flex flex-col max-w-screen-xl" v-if="props.viewMode == 'list'">
-    <RouterLink :to="`/editor?edit=${note._id}`" v-for="note in filteredNotes" :key="note._id"
+    <RouterLink
+      :to="`/editor?edit=${note._id}`"
+      v-for="note in filteredNotes"
+      :key="note._id"
       class="bg-base-200 rounded-box flex flex-wrap md:flex-nowrap p-3 gap-2 justify-between hover:bg-surface-0 hover:cursor-pointer"
-      :class="props.extended ? 'md:grid md:grid-cols-6' : 'flex-row'">
-      <div class="flex flex-none"
-        :class="props.extended ? 'flex-col' : 'flex-row gap-4 w-64 items-center justify-between'">
+      :class="props.extended ? 'md:grid md:grid-cols-6' : 'flex-row'"
+    >
+      <div
+        class="flex flex-none"
+        :class="props.extended ? 'flex-col' : 'flex-row gap-4 w-64 items-center justify-between'"
+      >
         <!-- DEBUG: note _id -->
         <!-- <p>{{ note._id }}</p>  -->
         <h1 class="font-bold text-lg">{{ note.name }}</h1>
         <div class="flex flex-row items-center w-full z-2">
           <div class="avatar w-10 m-2 z-2">
             <div class="w-10 ring-primary ring-offset-base-100 rounded-full ring ring-offset-2">
-              <img :src="users[note.author]?.image"
-                :title="users[note.author]?.name + ' ' + users[note.author]?.surname" />
+              <img
+                :src="users[note.author]?.image"
+                :title="users[note.author]?.name + ' ' + users[note.author]?.surname"
+              />
             </div>
           </div>
           <div class="avatar-group w-full -space-x-6 hover:-space-x-0 rtl:space-x-reverse">
-            <div v-for="(reader, index) in note.readers.slice(0, 3)" class="avatar h-10" :key="index">
-              <img class="mask mask-circle !bg-secondary" :src="users[reader]?.image"
-                :title="users[reader]?.name + ' ' + users[reader]?.surname" />
+            <div
+              v-for="(reader, index) in note.readers.slice(0, 3)"
+              class="avatar h-10"
+              :key="index"
+            >
+              <img
+                class="mask mask-circle !bg-secondary"
+                :src="users[reader]?.image"
+                :title="users[reader]?.name + ' ' + users[reader]?.surname"
+              />
             </div>
             <div v-if="note.readers.length > 3" class="avatar h-10 placeholder">
               <div class="bg-neutral font-bold text-neutral-content">
@@ -181,20 +196,31 @@ function toggleShowOptions(note) {
         </p>
         <!-- Tags -->
         <div v-if="props.extended" class="flex flex-row gap-2 flex-wrap">
-          <p v-for="tag in note.tags" :key="tag._id" class="flex px-2 rounded-xl font-semibold bg-primary/50">
+          <p
+            v-for="tag in note.tags"
+            :key="tag._id"
+            class="flex px-2 rounded-xl font-semibold bg-primary/50"
+          >
             {{ tag }}
           </p>
         </div>
       </div>
-      <div v-if="props.extended" id="preview" class="col-span-4 p-3 flex rounded-lg bg-base-300 text-balance truncate"
-        v-html="truncate(note.data, 400)"></div>
+      <div
+        v-if="props.extended"
+        id="preview"
+        class="col-span-4 p-3 flex rounded-lg bg-base-300 text-balance truncate"
+        v-html="truncate(note.data, 400)"
+      ></div>
       <!-- <img
             v-if="note.attachment"
             :src="note.attachmentPreview"
             alt="Attachment Preview"
             class="img-fluid"
           /> -->
-      <div v-if="props.edit" class="md:grid flex md:flex-col flex-wrap justify-center gap-2 mx-auto mt-2">
+      <div
+        v-if="props.edit"
+        class="md:grid flex md:flex-col flex-wrap justify-center gap-2 mx-auto mt-2"
+      >
         <!-- <RouterLink
           :to="`/editor?edit=${note._id}`"
           role="button"
@@ -203,25 +229,48 @@ function toggleShowOptions(note) {
         >
           <Icon icon="fluent:note-edit-24-regular" /> Modifica
         </RouterLink> -->
-        <button @click.stop.prevent="duplicateNote(note._id)" role="button"
-          class="btn btn-outline btn-primary text-xl flex justify-center items-center" title="Duplicate note">
+        <button
+          @click.stop.prevent="duplicateNote(note._id)"
+          role="button"
+          class="btn btn-outline btn-primary text-xl flex justify-center items-center"
+          title="Duplicate note"
+        >
           <Icon icon="fluent:copy-24-regular" /> Duplicate
         </button>
-        <button @click.stop.prevent="removeNote(note._id)" role="button"
-          class="btn btn-error btn-outline text-xl flex justify-center items-center" title="Delete note">
+        <button
+          @click.stop.prevent="removeNote(note._id)"
+          role="button"
+          class="btn btn-error btn-outline text-xl flex justify-center items-center"
+          title="Delete note"
+        >
           <Icon icon="fluent:delete-24-regular" /> Delete
         </button>
       </div>
     </RouterLink>
   </ul>
-  <div v-if="props.viewMode == 'grid'" class="m-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-    <RouterLink :to="`/editor?edit=${note._id}`" v-for="note in filteredNotes" :key="note._id" style="position: inherit"
-      class="card flex flex-col gap-1 p-3 bg-base-200 h-full hover:bg-surface-0 hover:cursor-pointer">
-      <div class="absolute right-0 top-0" v-if="props.edit" @open.stop.prevent="toggleShowOptions(note)">
-        <button :class="[
-          'btn rounded-tr-box rounded-circle btn-xs m-1 p-1',
-          note.showOptions ? 'btn-secondary text-lg' : 'hover:text-secondary btn-ghost'
-        ]" @click.stop.prevent="toggleShowOptions(note)">
+  <div
+    v-if="props.viewMode == 'grid'"
+    class="m-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"
+  >
+    <RouterLink
+      :to="`/editor?edit=${note._id}`"
+      v-for="note in filteredNotes"
+      :key="note._id"
+      style="position: inherit"
+      class="card flex flex-col gap-1 p-3 bg-base-200 h-full hover:bg-surface-0 hover:cursor-pointer"
+    >
+      <div
+        class="absolute right-0 top-0"
+        v-if="props.edit"
+        @open.stop.prevent="toggleShowOptions(note)"
+      >
+        <button
+          :class="[
+            'btn rounded-tr-box rounded-circle btn-xs m-1 p-1',
+            note.showOptions ? 'btn-secondary text-lg' : 'hover:text-secondary btn-ghost'
+          ]"
+          @click.stop.prevent="toggleShowOptions(note)"
+        >
           <div v-if="!note.showOptions" class="text-xl">
             <Icon icon="fluent:more-vertical-24-filled" />
           </div>
@@ -230,15 +279,25 @@ function toggleShowOptions(note) {
           </div>
         </button>
 
-        <div v-if="note.showOptions"
+        <div
+          v-if="note.showOptions"
           class="flex flex-col justify-center absolute bg-surface-0 rounded-[10px] gap-2 w-32 mx-auto z-10 p-2"
-          style="right: inherit">
-          <button @click.stop.prevent="duplicateNote(note._id)" role="button"
-            class="btn btn-sm btn-outline btn-primary flex justify-center items-center" title="Duplicate note">
+          style="right: inherit"
+        >
+          <button
+            @click.stop.prevent="duplicateNote(note._id)"
+            role="button"
+            class="btn btn-sm btn-outline btn-primary flex justify-center items-center"
+            title="Duplicate note"
+          >
             <Icon icon="fluent:copy-24-regular" />Duplicate
           </button>
-          <button @click.stop.prevent="removeNote(note._id)" role="button"
-            class="btn btn-sm btn-outline btn-error flex justify-center items-center" title="Delete note">
+          <button
+            @click.stop.prevent="removeNote(note._id)"
+            role="button"
+            class="btn btn-sm btn-outline btn-error flex justify-center items-center"
+            title="Delete note"
+          >
             <Icon icon="fluent:delete-24-regular" />Delete
           </button>
         </div>
@@ -247,14 +306,19 @@ function toggleShowOptions(note) {
       <div class="flex flex-row items-center w-full">
         <div class="avatar w-10 m-2">
           <div class="ring-primary ring-offset-base-100 rounded-full ring ring-offset-2">
-            <img :src="users[note.author]?.image"
-              :title="users[note.author]?.name + ' ' + users[note.author]?.surname" />
+            <img
+              :src="users[note.author]?.image"
+              :title="users[note.author]?.name + ' ' + users[note.author]?.surname"
+            />
           </div>
         </div>
         <div class="avatar-group w-full -space-x-6 hover:-space-x-0 rtl:space-x-reverse">
           <div v-for="(reader, index) in note.readers.slice(0, 3)" class="avatar h-10" :key="index">
-            <img class="mask mask-circle !bg-secondary" :src="users[reader]?.image"
-              :title="users[reader]?.name + ' ' + users[reader]?.surname" />
+            <img
+              class="mask mask-circle !bg-secondary"
+              :src="users[reader]?.image"
+              :title="users[reader]?.name + ' ' + users[reader]?.surname"
+            />
           </div>
           <div v-if="note.readers.length > 3" class="avatar h-10 placeholder">
             <div class="bg-neutral font-bold text-neutral-content">
@@ -268,12 +332,19 @@ function toggleShowOptions(note) {
       </p>
       <!-- Tags -->
       <div class="flex flex-row flex-wrap gap-2">
-        <p v-for="tag in note.tags" :key="tag._id" class="flex px-2 rounded-xl !bg-primary/50 font-semibold">
+        <p
+          v-for="tag in note.tags"
+          :key="tag._id"
+          class="flex px-2 rounded-xl !bg-primary/50 font-semibold"
+        >
           {{ tag }}
         </p>
       </div>
-      <div id="preview" class="flex flex-col grow text-balance bg-base-300 card p-2 truncate"
-        v-html="truncate(note.data, 200)"></div>
+      <div
+        id="preview"
+        class="flex flex-col grow text-balance bg-base-300 card p-2 truncate"
+        v-html="truncate(note.data, 200)"
+      ></div>
     </RouterLink>
   </div>
 </template>
