@@ -26,6 +26,7 @@
           <h3 class="mb-0">Private Chats</h3>
           <button @click="showNewChat = true" class="btn btn-ghost btn-sm">
             <Icon icon="fluent:add-16-filled" />
+            <!-- TODO: quando ricevo un messaggio da una chat privata non aggiunta non mi viene mostrato -->
           </button>
         </div>
         <div
@@ -51,6 +52,7 @@
     </div>
 
     <!-- Area messaggi -->
+    <!-- TODO: guardare z-index in contrasto con pop-up timer attivo -->
     <div class="chat-messages">
       <!-- Header chat -->
       <!-- TODO-Extra: sarebbe carino mettere come in whatsapp che se clicchi sui 3 puntini puoi avere info del gruppo -->

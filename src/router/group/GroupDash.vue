@@ -99,6 +99,7 @@ async function deleteGroup(group) {
                 placeholder="Group Name"
                 class="input input-sm"
               />
+              <!-- TODO: fare descrizione che si aggiorna solo quando faccio "Salva", ora è reattivo -->
               <textarea
                 v-model="new_group.description"
                 placeholder="Description"
@@ -106,6 +107,7 @@ async function deleteGroup(group) {
               ></textarea>
               <button class="btn btn-sm btn-block btn-primary" @click="createGroup">
                 <Icon icon="fluent:add-16-filled"></Icon>Add New Group
+                <!-- TODO: rendere lista reattiva all'aggiunta di un nuovo gruppo -->
               </button>
             </div>
           </template>
