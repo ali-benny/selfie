@@ -1,6 +1,6 @@
 <template>
   <div v-if="isSmallScreen"
-    class="absolute relative bottom-20 left-0 w-full h-20 bg-transparent flex justify-end overflow-hidden">
+    class="absolute bottom-20 left-0 w-full h-20 bg-transparent flex justify-end overflow-hidden">
     <Transition name="pulse_appear">
       <div class="absolute top-0 right-0 w-[68px] h-16 rounded-l-xl bg-transparent shadow-md shadow-transparent"
         :class="{ 'animate-pulse': !isWidgetOpen, 'shadow-pomocolor': !isWidgetOpen }"

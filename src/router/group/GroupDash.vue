@@ -92,24 +92,25 @@ async function deleteGroup(group) {
         <Popper arrow>
           <button class="btn btn-sm btn-secondary btn-outline">New Group</button>
           <template #content>
-            <div class="flex flex-col p-2 gap-2">
-              <input
-                type="text"
-                v-model="new_group.name"
-                placeholder="Group Name"
-                class="input input-sm"
-              />
-              <!-- TODO: fare descrizione che si aggiorna solo quando faccio "Salva", ora è reattivo -->
+              <form id="create-group-form" @submit.prevent="createGroup" class="flex flex-col p-2 gap-2">
+                <input
+                  type="text"
+                  v-model="new_group.name"
+                  placeholder="Group Name"
+                  class="input input-sm"
+                  required
+                />
+                <!-- TODO: fare descrizione che si aggiorna solo quando faccio "Salva", ora è reattivo -->
               <textarea
-                v-model="new_group.description"
-                placeholder="Description"
-                class="textarea textarea-bordered"
-              ></textarea>
-              <button class="btn btn-sm btn-block btn-primary" @click="createGroup">
-                <Icon icon="fluent:add-16-filled"></Icon>Add New Group
-                <!-- TODO: rendere lista reattiva all'aggiunta di un nuovo gruppo -->
+                  v-model="new_group.description"
+                  placeholder="Description"
+                  class="textarea textarea-bordered"
+                ></textarea>
+                <button class="btn btn-sm btn-block btn-primary" form="create-group-form">
+                  <Icon icon="fluent:add-16-filled"></Icon>Add New Group
+                  <!-- TODO: rendere lista reattiva all'aggiunta di un nuovo gruppo -->
               </button>
-            </div>
+              </form>
           </template>
         </Popper>
       </div>
