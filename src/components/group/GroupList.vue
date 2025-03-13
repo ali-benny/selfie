@@ -17,15 +17,16 @@ onMounted(async () => {
   groups.value = await res.json()
 })
 
+const selected = ref('')
 const selectGroup = (group) => {
   emit('select-group', group)
+  selected.value = group._id
 }
 </script>
 
 <template>
-  <!-- TODO bg-base-200 per gruppo selezionato -->
   <div class="flex flex-col gap-2 overflow-y-auto max-h-3/4">
-    <div v-for="group in groups" :key="group._id" class="collapse collapse-plus bg-surface-0 prose">
+    <div v-for="group in groups" :key="group._id" class="collapse collapse-plus  prose" :class="group._id === selected ? 'bg-base-200' : 'bg-surface-0'">
       <input type="checkbox" class="peer" />
       <div class="collapse-title flex items-center gap-2 font-bold">
         <Icon icon="mingcute:group-3-fill"></Icon>
