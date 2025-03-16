@@ -14,11 +14,11 @@ export const API_URL = `${SERVER_URL}/api`
  * Default tailwind values from https://tailwindcss.com/docs/screens
  */
 export const SCREENS = {
-  sm: '640px',
-  md: '768px',
-  lg: '1024px',
-  xl: '1280px',
-  '2xl': '1536px'
+  sm: '40rem',
+  md: '48rem',
+  lg: '64rem',
+  xl: '80rem',
+  '2xl': '96rem'
 }
 
 // export const MONGO_URI = `mongodb://${credentials.user}:${credentials.pwd}@${credentials.site}/selfie?authSource=admin&writeConcern=majority`;

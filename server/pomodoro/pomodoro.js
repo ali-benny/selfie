@@ -146,7 +146,7 @@ app.patch('/pomodoros/configs/:id', async (req, res) => {
     config.longBreak = req.body.longBreak
     config.color = req.body.color
     config.lastUsed = req.body.lastUsed
-    config.config.save()
+    await config.save()
     res.status(200).send('Config updated successfully!')
   } catch (err) {
     console.error(err)

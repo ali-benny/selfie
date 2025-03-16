@@ -24,7 +24,7 @@
 
         <form @submit.prevent="saveConfig(close)" ref="form">
           <div class="flex flex-col items-stretch gap-y-2">
-            <!-- Nome -->
+            <!-- gnome -->
             <label class="form-control">
               <div class="label">
                 <span class="label-text">Name</span>
@@ -97,10 +97,8 @@
                     />
                     m
                   </div>
-                  <div
-                    class="absolute top-0 right-0 w-fit h-full flex justify-center items-center pr-3 gap-2 pt-1"
-                  >
-                    <ToggleSpin
+                  <div class="absolute top-0 right-1 w-fit h-full flex justify-center items-center">
+                    <TimeFormatToggle
                       v-model="preferredDurationFormat"
                       true-value="mm"
                       false-value="hhmm"
@@ -227,7 +225,7 @@
                     />
                   </div>
                   <div v-else class="flex items-center gap-2">
-                    <ToggleSpin
+                    <TimeFormatToggle
                       v-model="editableConfig.durationFormat"
                       true-value="mm"
                       false-value="hhmm"
@@ -247,7 +245,7 @@
                 </div>
               </div>
 
-              <!-- Colore -->
+              <!-- Color -->
               <div class="flex justify-between items-center">
                 <label>Color</label>
                 <select
@@ -288,14 +286,12 @@ import {
   updatePomodoroConfig
 } from '@/router/pomodoro/pomodoro'
 import { useUserStore } from '@/stores/account'
-import { nextTick, ref, useTemplateRef, toRaw, computed, watch } from 'vue'
+import { nextTick, ref, useTemplateRef, computed, watch, toRaw } from 'vue'
 import { usePomodoroStore } from '@/stores/pomodoro'
 import PomodoroConfigInfo from './PomodoroConfigInfo.vue'
 import { storeToRefs } from 'pinia'
 import { useDebounceFn, whenever } from '@vueuse/core'
-import ToggleSpin from '../ToggleSpin.vue'
-
-// const toast = useNotivue()
+import TimeFormatToggle from '@/components/TimeFormatToggle.vue'
 
 const colors = [
   flavors.macchiato.colors.rosewater,
@@ -331,8 +327,9 @@ const firstStepDone = ref(false)
 const configName = useTemplateRef('configName')
 const form = useTemplateRef('form')
 
-const config = configId ? pomodoroStore.getUserConfig(configId) : initialConfig
-const editableConfig = ref({ ...config })
+const editableConfig = ref(
+  structuredClone(configId ? toRaw(userConfigs.value.get(configId)) : initialConfig)
+)
 
 if (!configId) {
   editableConfig.value.durationFormat = preferredDurationFormat.value
@@ -342,7 +339,7 @@ if (!configId) {
 const desiredDuration = ref(0)
 
 /* Used in second step to display the focus duration */
-const duration = computed(() => pomodoroStore.computeConfigDuration(editableConfig))
+const duration = computed(() => pomodoroStore.computeConfigDuration(editableConfig.value))
 const formattedDuration = computed(() =>
   pomodoroStore.formatDuration(duration.value, editableConfig.value.durationFormat)
 )
@@ -403,30 +400,36 @@ watch(preferredDurationFormat, () => {
   editableConfig.value.durationFormat = preferredDurationFormat.value
 })
 
+watch(
+  () => duration,
+  () => {
+    console.log(duration)
+  }
+)
+
 async function saveConfig(close) {
   try {
     if (configId) {
-      userConfigs.value.set(configId, { ...toRaw(editableConfig) })
-      await updatePomodoroConfig(toRaw(editableConfig))
-      if (pomodoroStore.isConfigSelected(config._id)) pomodoroStore.setCurrentConfig(config)
+      userConfigs.value.set(configId, structuredClone(toRaw(editableConfig.value)))
+      await updatePomodoroConfig(editableConfig.value)
       push.success('Focus saved!')
     } else {
-      const createdConfig = await createPomodoroConfig(userId, toRaw(editableConfig))
-      userConfigs.value.set(createdConfig._id, createdConfig)
+      const createdConfig = await createPomodoroConfig(userId, editableConfig.value)
+      userConfigs.value.set(createdConfig._id, structuredClone(createdConfig))
       push.success('Focus created successfully!')
     }
 
     close()
   } catch (error) {
-    console.error(error.message)
+    console.error(error)
     push.error('Failed to save focus')
   }
 }
 
 async function deleteConfig(close) {
   try {
-    userConfigs.value.delete(configId)
     await deletePomodoroConfig(configId)
+    userConfigs.value.delete(configId)
     push.success('Focus deleted')
     close()
   } catch (error) {
@@ -441,11 +444,8 @@ async function openHandler() {
 
   desiredDuration.value = 0
 
-  if (configId) {
-    Object.assign(editableConfig, structuredClone(pomodoroStore.getUserConfig(configId)))
-  } else {
-    editableConfig.value.durationFormat = preferredDurationFormat.value
-  }
+  if (configId) editableConfig.value = structuredClone(toRaw(userConfigs.value.get(configId)))
+  else editableConfig.value.durationFormat = preferredDurationFormat.value
 
   await nextTick()
   configName.value.focus()
@@ -465,7 +465,7 @@ const updateProposedFocus = useDebounceFn(() => {
     resultConfig.pomodoroTime = Math.floor((minutes * 2) / 3)
     resultConfig.shortBreakTime = minutes - resultConfig.pomodoroTime
     resultConfig.cycles = 1
-    Object.assign(editableConfig, resultConfig)
+    editableConfig.value = resultConfig
     return
   }
 
@@ -521,7 +521,7 @@ const updateProposedFocus = useDebounceFn(() => {
     resultConfig.cycles = cyclesWithout
   }
 
-  Object.assign(editableConfig, resultConfig)
+  editableConfig.value = resultConfig
 }, 300)
 
 function computeMinutes(minutes, config) {
@@ -574,12 +574,12 @@ function validateMinutes(n) {
 function buildConfigField({ fieldName, validators = [] }) {
   return {
     get() {
-      return editableConfig[fieldName]
+      return editableConfig.value[fieldName]
     },
     async set(value) {
       let valid = true
       validators.forEach((validator) => (valid &= validator(value)))
-      if (valid) editableConfig[fieldName] = value
+      if (valid) editableConfig.value[fieldName] = value
       else await invalidate({ fieldName: fieldName })
     }
   }
@@ -605,18 +605,18 @@ function buildLongBreakField(longBreakSubField) {
 
 async function invalidate({ fieldName, subfieldName }) {
   if (subfieldName) {
-    if (!editableConfig[fieldName][subfieldName]) {
-      editableConfig[fieldName][subfieldName] = {}
+    if (!editableConfig.value[fieldName][subfieldName]) {
+      editableConfig.value[fieldName][subfieldName] = {}
       await nextTick()
     }
-    delete editableConfig[fieldName][subfieldName]
-    if (!editableConfig[fieldName]) delete editableConfig[fieldName]
+    delete editableConfig.value[fieldName][subfieldName]
+    if (!editableConfig.value[fieldName]) delete editableConfig.value[fieldName]
   } else {
-    if (!editableConfig[fieldName]) {
-      editableConfig[fieldName] = {}
+    if (!editableConfig.value[fieldName]) {
+      editableConfig.value[fieldName] = null
       await nextTick()
     }
-    delete editableConfig[fieldName]
+    delete editableConfig.value[fieldName]
   }
 }
 </script>
@@ -635,19 +635,5 @@ async function invalidate({ fieldName, subfieldName }) {
 
 .btn-outline {
   border-style: solid !important;
-}
-
-.spin {
-  animation: myspin 500ms ease-in-out infinite forwards;
-}
-
-@keyframes myspin {
-  0% {
-    transform: rotate(0deg);
-  }
-
-  100% {
-    transform: rotate(180deg);
-  }
 }
 </style>

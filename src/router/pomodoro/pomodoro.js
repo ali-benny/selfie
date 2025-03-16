@@ -9,7 +9,10 @@ export const initialConfig = {
     time: 10,
     interval: 3
   },
-  color: flavors.macchiato.colors.maroon
+  color: {
+    name: flavors.macchiato.colors.maroon.name,
+    hex: flavors.macchiato.colors.maroon.hex
+  }
 }
 
 export const initialPomodoro = {
@@ -40,7 +43,7 @@ export async function loadUserConfigs(userId) {
     const configs = await response.json()
     return new Map(configs.map((c) => [c._id, c]))
   } catch (error) {
-    console.error(error.message)
+    console.error(error)
   }
 }
 
@@ -49,7 +52,7 @@ export async function loadUserConfigs(userId) {
  */
 export async function createPomodoroConfig(userId, config) {
   try {
-    if (Object.keys(config.longBreak).length == 0) {
+    if (config.longBreak && Object.keys(config.longBreak).length == 0) {
       delete config.longBreak
     }
     const response = await fetch(API_URL + `/${userId}/pomodoros/configs/`, {
@@ -64,7 +67,7 @@ export async function createPomodoroConfig(userId, config) {
     }
     return response.json()
   } catch (error) {
-    console.error(error.message)
+    console.error(error)
   }
 }
 
@@ -91,7 +94,7 @@ export async function createPomodoroConfigs(userIds, configId) {
 
 export async function updatePomodoroConfig(config) {
   try {
-    if (Object.keys(config.longBreak).length == 0) {
+    if (config.longBreak && Object.keys(config.longBreak).length == 0) {
       delete config.longBreak
     }
     const response = await fetch(API_URL + '/pomodoros/configs/' + config._id, {
@@ -105,7 +108,7 @@ export async function updatePomodoroConfig(config) {
       throw new Error(`ERROR - updatePomodoroConfig, response status ${response.status}`)
     }
   } catch (error) {
-    console.error(error.message)
+    console.error(error)
   }
 }
 

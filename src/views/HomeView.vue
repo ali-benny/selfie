@@ -44,7 +44,7 @@
     </div>
     <div class="bg-base-200 rounded-xl" data-swapy-slot="4">
       <div class="h-100 p-3 bg-light rounded-xl shadow-sm bg-surface-0" data-swapy-item="pomodoro">
-        Pomodoro Timer
+        <PomodoroTimer />
       </div>
     </div>
   </div>
@@ -54,6 +54,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { createSwapy } from 'swapy'
+import PomodoroTimer from '@/components/pomodoro/PomodoroTimer.vue'
 import NoteView from '@/components/note/NoteView.vue'
 
 const container = ref(null)

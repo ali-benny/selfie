@@ -168,19 +168,19 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
     }
 
     if (!pomodoro.value.started) {
-      config.value = config
+      config.value = c
       initNewPomodoro()
       return
     }
 
     let restartNeeded = false
     if (
-      config.value.pomodoroTime != config.pomodoroTime ||
-      config.value.shortBreakTime != config.shortBreakTime ||
-      config.value.longBreak != config.longBreak
+      config.value.pomodoroTime != c.pomodoroTime ||
+      config.value.shortBreakTime != c.shortBreakTime ||
+      config.value.longBreak != c.longBreak
     )
       restartNeeded = true
-    config.value = config
+    config.value = c
     if (restartNeeded) restartPomodoroPhase()
   }
 

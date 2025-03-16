@@ -7,6 +7,7 @@ import { flavors } from '@catppuccin/palette'
 import Color from 'colorjs.io'
 import { SCREENS } from './const'
 import tailwindcss_motion from 'tailwindcss-motion'
+import tw_container_queries from '@tailwindcss/container-queries'
 
 const hexToOklch_coords = (hex) => {
   const color = new Color(hex).to('oklch')
@@ -51,6 +52,10 @@ export default {
   theme: {
     screens: SCREENS,
     extend: {
+      containers: {
+        '3xs': '16rem',
+        '2xs': '18rem'
+      },
       colors: {
         surface: {
           0: 'oklch(var(--surface-0) / <alpha-value>)',
@@ -69,7 +74,13 @@ export default {
       }
     }
   },
-  plugins: [typography, daisyui, addDynamicIconSelectors(), tailwindcss_motion],
+  plugins: [
+    typography,
+    daisyui,
+    addDynamicIconSelectors(),
+    tailwindcss_motion,
+    tw_container_queries
+  ],
   daisyui: {
     themes: [
       fixCustomTheme({
