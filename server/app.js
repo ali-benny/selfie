@@ -58,7 +58,7 @@ export async function connect(dbName) {
     console.log('MongoDB Connected to ' + dbName + ' ...')
     connected[dbName] = true
   } catch (err) {
-    console.log(err)
+    console.error(err)
     connected[dbName] = false
   }
 }

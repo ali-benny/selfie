@@ -20,6 +20,14 @@
               </div>
             </template>
           </Popper>
+
+          <YTPlayer class="absolute top-3 left-3">
+            <template #trigger>
+              <button>
+                <Icon icon="fluent:music-note-2-play-20-filled" class="text-xl" />
+              </button>
+            </template>
+          </YTPlayer>
         </div>
       </div>
     </div>
@@ -54,6 +62,7 @@ import PomodoroTimer from '@/components/pomodoro/PomodoroTimer.vue'
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { usePomodoroStore } from '@/stores/pomodoro'
+import YTPlayer from '@/components/pomodoro/YTPlayer.vue'
 
 const pomodoroStore = usePomodoroStore()
 const { pomodoro, currentConfig: config } = storeToRefs(pomodoroStore)

@@ -400,13 +400,6 @@ watch(preferredDurationFormat, () => {
   editableConfig.value.durationFormat = preferredDurationFormat.value
 })
 
-watch(
-  () => duration,
-  () => {
-    console.log(duration)
-  }
-)
-
 async function saveConfig(close) {
   try {
     if (configId) {
