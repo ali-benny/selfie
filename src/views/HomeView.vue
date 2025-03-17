@@ -47,7 +47,7 @@
         class="h-100 p-3 flex justify-center item-center bg-light rounded-xl shadow-sm bg-surface-0"
         data-swapy-item="pomodoro"
       >
-        <div class="w-full p-1">
+        <div class="w-full flex justify-center items-center p-1">
           <PomodoroTimer data-swapy-no-drag />
         </div>
       </div>
