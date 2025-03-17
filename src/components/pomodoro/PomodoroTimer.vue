@@ -25,17 +25,11 @@
           <button
             v-if="pomodoro.running"
             @click="pomodoroStore.pausePomodoroTimer()"
-            class="hover:text-primary"
             title="Pause Pomodoro"
           >
             <Icon icon="mingcute:pause-fill" />
           </button>
-          <button
-            v-else
-            @click="pomodoroStore.playPomodoroTimer()"
-            class="hover:text-primary"
-            title="Play Pomodoro"
-          >
+          <button v-else @click="pomodoroStore.playPomodoroTimer()" title="Play Pomodoro">
             <Icon icon="mingcute:play-fill" />
           </button>
         </div>

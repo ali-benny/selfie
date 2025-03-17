@@ -41,22 +41,18 @@
                 <button
                   v-if="pomodoro.running"
                   @click="pomodoroStore.pausePomodoroTimer()"
-                  class="text-2xl hover:text-accent"
+                  class="text-2xl"
                 >
                   <Icon icon="mingcute:pause-fill" inline />
                 </button>
-                <button
-                  v-else
-                  @click="pomodoroStore.playPomodoroTimer()"
-                  class="text-2xl hover:text-accent"
-                >
+                <button v-else @click="pomodoroStore.playPomodoroTimer()" class="text-2xl">
                   <Icon icon="mingcute:play-fill" inline />
                 </button>
                 <button
                   v-if="pomodoro?.started"
                   :disabled="!pomodoro.running"
                   @click="pomodoroStore.skipPomodoroPhase()"
-                  class="transition text-lg hover:text-success disabled:text-base-content/20"
+                  class="transition text-lg text-neutral hover:text-base-content disabled:text-base-content/20"
                 >
                   <Icon icon="mingcute:fast-forward-fill" inline />
                 </button>
@@ -88,22 +84,18 @@
           <button
             v-if="pomodoro.running"
             @click="pomodoroStore.pausePomodoroTimer()"
-            class="text-2xl hover:text-accent"
+            class="text-2xl"
           >
             <Icon icon="mingcute:pause-fill" inline />
           </button>
-          <button
-            v-else
-            @click="pomodoroStore.playPomodoroTimer()"
-            class="text-2xl hover:text-accent"
-          >
+          <button v-else @click="pomodoroStore.playPomodoroTimer()" class="text-2xl">
             <Icon icon="mingcute:play-fill" inline />
           </button>
           <button
             v-if="pomodoro.started"
             :disabled="!pomodoro.running"
             @click="pomodoroStore.skipPomodoroPhase()"
-            class="transition text-lg hover:text-success disabled:text-base-content/20"
+            class="transition text-lg text-neutral hover:text-base-content disabled:text-base-content/20"
           >
             <Icon icon="mingcute:fast-forward-fill" inline />
           </button>
