@@ -43,8 +43,13 @@
       </div>
     </div>
     <div class="bg-base-200 rounded-xl" data-swapy-slot="4">
-      <div class="h-100 p-3 bg-light rounded-xl shadow-sm bg-surface-0" data-swapy-item="pomodoro">
-        <PomodoroTimer />
+      <div
+        class="h-100 p-3 flex justify-center item-center bg-light rounded-xl shadow-sm bg-surface-0"
+        data-swapy-item="pomodoro"
+      >
+        <div class="w-full">
+          <PomodoroTimer data-swapy-no-drag />
+        </div>
       </div>
     </div>
   </div>

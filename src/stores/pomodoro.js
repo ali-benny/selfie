@@ -214,9 +214,11 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
   }
 
   function showPomodoroWidget() {
+    console.log(currentRoute.name)
     return (
       currentRoute.name !== 'pomodoro' &&
       currentRoute.name !== 'login' &&
+      currentRoute.name !== 'home' &&
       pomodoro.value.started &&
       !pomodoro.value.finished
     )

@@ -1,6 +1,6 @@
 <template>
   <div
-    class="max-w-56 sm:max-w-64 h-full card card-compact sm:card-normal"
+    class="max-w-full xs:max-w-56 sm:max-w-64 h-full card"
     @click="!selected && pomodoroStore.setCurrentConfig(config)"
     :class="{ selected: pomodoroStore.isConfigSelected(config._id) }"
   >

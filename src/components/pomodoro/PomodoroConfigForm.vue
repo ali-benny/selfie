@@ -620,7 +620,7 @@ async function invalidate({ fieldName, subfieldName }) {
   }
 }
 </script>
-<style scoped>
+<style lang="postcss" scoped>
 .btn-neutral {
   @apply bg-transparent border-none text-neutral;
 }

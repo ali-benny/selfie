@@ -14,6 +14,7 @@ export const API_URL = `${SERVER_URL}/api`
  * Default tailwind values from https://tailwindcss.com/docs/screens
  */
 export const SCREENS = {
+  xs: '30rem',
   sm: '40rem',
   md: '48rem',
   lg: '64rem',
