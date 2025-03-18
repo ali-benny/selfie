@@ -69,28 +69,5 @@ export default {
       }
     }
   },
-  plugins: [typography, daisyui, addDynamicIconSelectors(), tailwindcss_motion],
-  daisyui: {
-    themes: [
-      fixCustomTheme({
-        themeName: 'macchiato',
-        theme: catppuccin('macchiato', {
-          primary: 'blue',
-          secondary: 'sky',
-          accent: 'pink'
-        }),
-        base200: flavors.macchiato.colors.mantle.hex,
-        base300: flavors.macchiato.colors.crust.hex,
-        baseContent: flavors.macchiato.colors.text.hex,
-        surface0: flavors.macchiato.colors.surface0.hex,
-        surface1: flavors.macchiato.colors.surface1.hex,
-        surface2: flavors.macchiato.colors.surface2.hex,
-        overlay0: flavors.macchiato.colors.overlay0.hex,
-        overlay1: flavors.macchiato.colors.overlay1.hex,
-        overlay2: flavors.macchiato.colors.overlay2.hex,
-        subtext0: flavors.macchiato.colors.subtext0.hex,
-        subtext1: flavors.macchiato.colors.subtext1.hex
-      })
-    ]
-  }
+  plugins: [typography, addDynamicIconSelectors(), tailwindcss_motion]
 }
