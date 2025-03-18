@@ -69,5 +69,5 @@ export default {
       }
     }
   },
-  plugins: [typography, addDynamicIconSelectors(), tailwindcss_motion]
+  plugins: [typography, addDynamicIconSelectors()]
 }
