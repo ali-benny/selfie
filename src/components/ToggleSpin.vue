@@ -4,17 +4,20 @@
   </div>
 </template>
 <script setup>
-import { useTemplateRef } from 'vue';
-
+import { useTemplateRef } from 'vue'
 
 const { trueValue, falseValue } = defineProps({
   trueValue: {
     type: [Boolean, Number, String, Object, Date, null],
-    default() { return true }
+    default() {
+      return true
+    }
   },
   falseValue: {
     type: [Boolean, Number, String, Object, Date, null],
-    default() { return false }
+    default() {
+      return false
+    }
   }
 })
 
@@ -32,5 +35,4 @@ function toggle() {
   toggleElem.value.animate({ transform: 'rotate(180deg)', easing: 'ease-in' }, 300)
   emit('toggle', modelValue.value)
 }
-
 </script>

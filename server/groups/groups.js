@@ -35,7 +35,7 @@ app.post('/group', async (req, res) => {
   const group = new Group(req.body)
   try {
     await group.save()
-    res.status(201)
+    res.status(201).json(group)
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: err.message })

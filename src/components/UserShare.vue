@@ -46,16 +46,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { API_URL } from '../../const'
 import { useNotivue } from 'notivue'
 import { saveNoteMongo, getReadersIds } from '@/router/note/editor/note'
 import { updateGroup } from '@/router/group/group'
 import { useUserStore } from '@/stores/account.js'
 
-
+const push = useNotivue()
 const loggedUser = useUserStore().loggedUser
-// const toast = useNotivue()
 
 const users = ref() // all users
 const sharewith = ref([]) // users to share with [users selected from the popper]
@@ -79,12 +78,51 @@ onMounted(async () => {
   try {
     const response = await fetch(`${API_URL}/users`)
     const data = await response.json()
-    // users.value = data
-    users.value = data.filter(user => !props.modelValue.includes(user._id) & !loggedUser._id.includes(user._id))
+    // Filter out users based on current group
+    loadUserData(data)
   } catch (error) {
     console.error('Error fetching users:', error)
   }
 })
+
+function loadUserData(allUsers) {
+  if (!Array.isArray(allUsers)) {
+    console.error('loadUserData received non-array data:', allUsers)
+    allUsers = [] // Default to empty array
+  }
+
+  // Ensure props.modelValue is an array
+  const modelValue = Array.isArray(props.modelValue) ? props.modelValue : []
+
+  users.value = allUsers.filter((user) => {
+    // Make sure user and user._id are valid before comparison
+    return user && user._id && user._id !== loggedUser._id && !modelValue.includes(user._id)
+  })
+
+  // Reset sharewith whenever users are reloaded
+  sharewith.value = []
+}
+
+// watcher for modelValue changes
+watch(
+  () => props.modelValue,
+  (newVal) => {
+    if (users.value) {
+      loadUserData(users.value.concat(sharewith.value))
+    }
+  },
+  { deep: true }
+)
+
+// watcher for id changes
+watch(
+  () => props.id,
+  () => {
+    if (users.value) {
+      loadUserData(users.value.concat(sharewith.value))
+    }
+  }
+)
 
 function select(user) {
   if (sharewith.value.includes(user)) {

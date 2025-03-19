@@ -11,11 +11,13 @@
           :class="[
             'chat-item flex items-center justify-between transition-all duration-200',
             selectedChat.id === group._id ? 'bg-surface-0 shadow-md' : 'hover:bg-base-300',
-            hasUnreadMessages(group._id) ? 'border-l-4 border-l-secondary' : ''
+            hasUnreadMessages(group._id)
+              ? 'border-4 border-l-primary border-b-primary/20 border-base-100'
+              : ''
           ]"
         >
           <span>{{ group.name }}</span>
-          <span v-if="getUnreadCount(group._id)" class="badge badge-primary badge-sm">
+          <span v-if="getUnreadCount(group._id)" class="badge badge-primary badge-sm font-bold">
             {{ getUnreadCount(group._id) }}
           </span>
         </div>
@@ -36,7 +38,9 @@
           :class="[
             'chat-item flex items-center justify-between transition-all duration-200',
             selectedChat.id === chat.user._id ? 'bg-surface-0 shadow-md' : 'hover:bg-base-300',
-            hasUnreadMessages(chat.user._id) ? 'border-l-4 border-l-primary' : ''
+            hasUnreadMessages(chat.user._id)
+              ? 'border-4 border-l-primary border-b-primary/20 border-base-100'
+              : ''
           ]"
         >
           <span>{{ chat.user.name }}</span>
@@ -196,24 +200,56 @@
     </div>
 
     <!-- Modal per nuova chat privata -->
-    <dialog :open="showNewChat" class="modal">
-      <div class="modal-box">
-        <h3>Start New Chat</h3>
-        <input
-          v-model="searchUsername"
-          placeholder="Search by username"
-          class="input input-bordered w-full mt-2"
-        />
-        <div class="user-list">
-          <div
-            v-for="user in filteredUsers"
-            :key="user._id"
-            @click="startPrivateChat(user)"
-            class="user-item"
-          >
-            {{ user.name }} ({{ user.username }})
+    <dialog :open="showNewChat" class="modal-box">
+      <h3>Start New Private Chat</h3>
+      <div class="form-control">
+        <label class="label">
+          <span class="label-text">Search users by username</span>
+        </label>
+        <div class="relative">
+          <input
+            v-model="searchUsername"
+            placeholder="Type username here..."
+            class="input input-bordered w-full pr-10"
+          />
+          <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+            <Icon icon="fluent:search-20-filled" class="text-gray-400" />
           </div>
         </div>
+        <label class="label">
+          <span class="label-text-alt">Enter a username to find users</span>
+        </label>
+      </div>
+
+      <div class="user-list mt-4">
+        <!-- Show message when no results -->
+        <div
+          v-if="filteredUsers.length === 0 && searchUsername.length > 0"
+          class="text-center py-4"
+        >
+          No users found matching "{{ searchUsername }}"
+        </div>
+
+        <!-- Display filtered users -->
+        <div
+          v-for="user in filteredUsers"
+          :key="user._id"
+          @click="startPrivateChat(user)"
+          class="user-item flex items-center gap-2 p-3"
+        >
+          <div class="avatar">
+            <div class="w-8 rounded-full">
+              <img :src="user.image || ''" :alt="user.name" />
+            </div>
+          </div>
+          <div>
+            <div class="font-semibold">{{ user.name }} {{ user.surname }}</div>
+            <div class="text-xs opacity-70">@{{ user.username }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-action">
         <button @click="showNewChat = false" class="btn btn-sm">Close</button>
       </div>
     </dialog>
@@ -437,7 +473,6 @@ const selectChat = async (type, chat) => {
   }
 }
 
-// Add this function to mark messages as read
 const markMessagesAsRead = async (chatId) => {
   try {
     // Update UI immediately
@@ -449,6 +484,25 @@ const markMessagesAsRead = async (chatId) => {
         msg.readBy = [...(msg.readBy || []), userStore.loggedUser._id]
       }
     })
+
+    // Update unread count in chat list
+    if (selectedChat.value.type === 'private') {
+      const chatIndex = privateChats.value.findIndex(
+        (chat) => [userStore.loggedUser._id, chat.user._id].sort().join('_') === chatId
+      )
+      if (chatIndex !== -1) {
+        privateChats.value[chatIndex].unreadCount = 0
+      }
+    } else if (selectedChat.value.type === 'group') {
+      const groupIndex = groups.value.findIndex((group) => group._id === chatId)
+      if (groupIndex !== -1) {
+        groups.value[groupIndex].unreadCount = 0
+      }
+    }
+
+    // Force reactive update of the lists
+    privateChats.value = [...privateChats.value]
+    groups.value = [...groups.value]
 
     // Send API request to mark as read
     await fetch(`${CHAT_URL}/messages/${chatId}/read`, {
@@ -786,15 +840,6 @@ function getUserColor(prefix, message) {
 </script>
 
 <style scoped>
-.unread-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  display: inline-block;
-  margin-left: 5px;
-  @apply bg-primary;
-}
-
 .chat-sidebar {
   @apply w-64 bg-base-200 p-4 rounded-lg flex flex-col gap-4 shadow-inner;
 }
@@ -832,7 +877,7 @@ function getUserColor(prefix, message) {
 }
 
 .chat-item {
-  @apply p-2 rounded-lg cursor-pointer hover:bg-base-300;
+  @apply px-2 py-1 rounded-lg cursor-pointer hover:bg-base-300;
 }
 
 .user-item {
