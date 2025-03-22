@@ -3,6 +3,8 @@ import express from 'express'
 import mongoose from 'mongoose'
 import { connect } from '../app.js'
 
+import bodyParser from 'body-parser'
+
 const app = express()
 
 const LongBreakSchema = new mongoose.Schema(
@@ -61,6 +63,7 @@ const PomodoroConfigSchema = new mongoose.Schema({
 
 const PomodoroConfig = mongoose.model('pomodoroConfig', PomodoroConfigSchema)
 
+app.use(bodyParser.json())
 app.on('mount', async () => {
   await connect('pomodoroConfig')
 })
@@ -70,25 +73,8 @@ app.on('mount', async () => {
  */
 app.get('/:userId/pomodoros/configs', async (req, res) => {
   try {
-    // if (req.query.sort) {
-    //   const split = req.query.sort.split(',')
-    //   const sort = split[0]
-    //   const order = split[1]
-    //   if (!(sort in PomodoroConfigSchema.paths)) {
-    //     throw Error('Invalid sort param: ' + sort + ' not in PomodoroConfigSchema')
-    //   }
-    //   if (!['-1', '1'].includes(order)) {
-    //     throw Error('Invalid sort param: ' + order + ' not a valid order')
-    //   }
-
-    //   const configs = await PomodoroConfig.find({ userId: req.params.userId }).sort({
-    //     [sort]: order
-    //   })
-    //   res.status(200).json(configs)
-    // } else {
     const configs = await PomodoroConfig.find({ userId: req.params.userId })
     res.status(200).json(configs)
-    // }
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: err.message })
@@ -156,9 +142,11 @@ app.get('/:userId/pomodoros/configs/latest', async (req, res) => {
     const config = await PomodoroConfig.findOne({ userId: req.params.userId }).sort({
       lastUsed: -1
     })
+
     res.status(200).json(config)
   } catch (err) {
     console.error(err)
+    console.log('error occurred')
     res.status(500).json({ error: err.message })
   }
 })

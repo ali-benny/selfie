@@ -1,12 +1,15 @@
+import 'dotenv/config'
 import cors from 'cors'
 import express from 'express'
 import mongoose from 'mongoose'
 import { MONGO_URI, SERVER_URL, PORT } from '../const.js'
+
 import notes from './notes/notes.js'
 import users from './users/users.js'
 import upload from './notes/upload.js'
 import pomodoro from './pomodoro/pomodoro.js'
 import todo from './todo/todo.js'
+import webpush from './webpush.js'
 
 import fs from 'fs'
 import path from 'path'
@@ -20,19 +23,21 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use('/api', notes)
 app.use('/api', users)
-app.use('/api', upload)
-app.use('/uploads', express.static('uploads'))
 app.use('/api', todo)
 app.use('/api', pomodoro)
+app.use('/api', webpush)
+app.use('/api', upload)
+app.use('/uploads', express.static('uploads'))
 
 app.listen(PORT, () => {
   console.log(`Server running at ${SERVER_URL}`)
 })
 
-app.all('*', (res, req, next) => {
-  // TODO: require autentication
-  next()
-})
+// TODO: require autentication
+// app.all('/*/', (res, req, next) => {
+//   ...
+//   next()
+// })
 
 /**
  * Create a new mongodb collection
@@ -43,6 +48,7 @@ app.get(SERVER_URL + '/create', async (req, res) => {
     const result = await create(dbName)
     res.status(200).send(result)
   } catch (err) {
+    console.error(err)
     res.status(500).send(err.message)
   }
 })
@@ -58,7 +64,7 @@ export async function connect(dbName) {
     console.log('MongoDB Connected to ' + dbName + ' ...')
     connected[dbName] = true
   } catch (err) {
-    console.log(err)
+    console.error(err)
     connected[dbName] = false
   }
 }
@@ -84,6 +90,7 @@ app.post('/api/delete', async (req, res) => {
     await mongoose.model(collection).findByIdAndDelete(id)
     res.status(200).send('Document deleted from ' + collection)
   } catch (err) {
+    console.error(err)
     res.status(500).json({ error: err.message })
   }
 })
@@ -99,7 +106,7 @@ async function disconnect(dbName) {
     console.log('MongoDB Disconnected from ' + dbName + ' ...')
     connected[dbName] = false
   } catch (err) {
-    console.log(err)
+    console.error(err)
   }
 }
 

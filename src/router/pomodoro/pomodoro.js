@@ -16,10 +16,7 @@ export async function loadUserConfigs(userId) {
   if (!userId) return new Map()
   try {
     const response = await fetch(API_URL + `/${userId}/pomodoros/configs`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      method: 'GET'
     })
 
     if (!response.ok) {
@@ -86,10 +83,7 @@ export async function loadLatestConfig(
   if (!userId) return fallbackConfig
   try {
     const response = await fetch(API_URL + `/${userId}/pomodoros/configs/latest`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      method: 'GET'
     })
 
     if (!response.ok) {

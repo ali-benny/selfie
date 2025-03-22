@@ -14,6 +14,8 @@ import './assets/main.css'
 import { createNotivue } from 'notivue'
 import 'notivue/notification.css' // Only needed if using built-in notifications
 import 'notivue/animations.css' // Only needed if using built-in animations
+import { API_URL, SERVER_URL } from '../const.js'
+import { useUserStore } from './stores/account.js'
 
 const app = createApp(App)
 const notivue = createNotivue({
@@ -34,3 +36,49 @@ app.component('Popper', Popper)
 app.component('Icon', Icon)
 app.component('Transition', Transition)
 app.mount('#app')
+
+// TODO: spostare
+function urlBase64ToUint8Array(base64String) {
+  var padding = '='.repeat((4 - (base64String.length % 4)) % 4)
+  var base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/')
+
+  var rawData = window.atob(base64)
+  var outputArray = new Uint8Array(rawData.length)
+
+  for (var i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i)
+  }
+  return outputArray
+}
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker
+    .register('/service-worker.js')
+    .then(async (registration) => {
+      const response = await fetch(API_URL + '/webpush/vapidPublicKey')
+      if (!response.ok) console.error('invalid vapid public key request')
+
+      const convertedVapidKey = urlBase64ToUint8Array(await response.text())
+
+      return registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: convertedVapidKey
+      })
+    })
+    .then(async (subscription) => {
+      const response = await fetch(
+        SERVER_URL + `/api/webpush/${useUserStore().loggedUser._id}/register`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-type': 'application/json'
+          },
+          body: JSON.stringify(subscription)
+        }
+      )
+
+      if (!response.ok) {
+        throw new Error(`ERROR - service worker registration, response status ${response.status}`)
+      }
+    })
+}

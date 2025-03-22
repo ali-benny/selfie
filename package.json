@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "backend:dev": "nodemon server/app.js -w server",
+    "backend:dev": "NODE_ENV=development nodemon server/app.js -w server",
     "mongodb": "cross-env NODE_ENV='debug' node ./server/app.js",
     "build": "vite build",
     "preview": "vite preview",
@@ -37,6 +37,7 @@
     "cheerio": "^1.0.0",
     "colorjs.io": "^0.5.2",
     "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
     "editorjs-md-parser": "^0.0.3",
     "express": "^4.21.1",
     "express-fileupload": "^1.5.1",
@@ -56,7 +57,8 @@
     "vue-simple-password-meter": "^1.3.4",
     "vue-toastification": "^2.0.0-rc.5",
     "vue3-popper": "^1.5.0",
-    "vuetify": "^3.7.2"
+    "vuetify": "^3.7.2",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@catppuccin/tailwindcss": "^0.1.6",
@@ -84,6 +86,7 @@
     "prettier": "^3.4.2",
     "rollup": "^4.36.0",
     "tailwindcss": "^3.4.17",
+    "typescript": "^5.8.2",
     "vite": "^6.2.1",
     "vue-feather-icon": "^1.2.0"
   }
