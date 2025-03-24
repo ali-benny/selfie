@@ -1,11 +1,8 @@
 import { flavors } from '@catppuccin/palette'
 import express from 'express'
 import mongoose from 'mongoose'
-import { connect } from '../app.js'
-
 import bodyParser from 'body-parser'
-
-const app = express()
+import { connect } from '../app.js'
 
 const LongBreakSchema = new mongoose.Schema(
   {
@@ -63,6 +60,7 @@ const PomodoroConfigSchema = new mongoose.Schema({
 
 const PomodoroConfig = mongoose.model('pomodoroConfig', PomodoroConfigSchema)
 
+const app = express()
 app.use(bodyParser.json())
 app.on('mount', async () => {
   await connect('pomodoroConfig')

@@ -42,7 +42,7 @@ const router = createRouter({
       component: LoginView
     },
     {
-      path: '/notifications-debug',
+      path: '/notifications',
       name: 'notifications',
       component: NotificationsDebug
     }

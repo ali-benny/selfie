@@ -1,5 +1,8 @@
 <template>
-  <Suspense>
+  <div class="flex flex-col">
+    <div class="w-full flex justify-end py-2">
+      <NotificationTray />
+    </div>
     <div class="w-full flex gap-5 mt-5" v-if="isReady">
       <div class="card bg-base-200 w-96 shadow-xl" v-for="user in users" :key="user._id">
         <figure class="px-10 pt-10">
@@ -17,9 +20,10 @@
         </div>
       </div>
     </div>
-  </Suspense>
+  </div>
 </template>
 <script setup>
+import NotificationTray from '@/components/notification/NotificationTray.vue'
 import { getUsers } from '@/router/user/user'
 import { useAsyncState, whenever } from '@vueuse/core'
 import { ref } from 'vue'
@@ -34,25 +38,24 @@ const subscriptions = ref(new Map())
 whenever(isReady, async () => {
   users.value.forEach(async (user) => {
     const response = await fetch(API_URL + `/webpush/${user._id}/subscriptions`)
-    const s = await response.json()
-    console.log(s)
-    subscriptions.value.set(user._id, s)
+    if (!response.ok) throw Error(response)
+    subscriptions.value.set(user._id, await response.json())
   })
-  console.log(subscriptions.value)
 })
 
 async function sendNotification(user) {
-  const options = {
-    body: 'Test test, this is options.body.\nPossiamo mettere parecchio testo qui dentro'
-  }
   try {
-    const response = await fetch(API_URL + `/webpush/${user}/notification`, {
+    const response = await fetch(API_URL + `/${user}/notification`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ options: { ...options } })
+      body: JSON.stringify({
+        type: 'system',
+        content:
+          'Test test, this is options.body.\nPossiamo mettere parecchio testo qui dentro!!!!',
+        created: Date.now()
+      })
     })
     if (!response.ok) throw new Error()
-    console.log('ok')
   } catch (err) {
     console.error(err)
   }

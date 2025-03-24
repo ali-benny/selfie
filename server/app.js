@@ -9,7 +9,8 @@ import users from './users/users.js'
 import upload from './notes/upload.js'
 import pomodoro from './pomodoro/pomodoro.js'
 import todo from './todo/todo.js'
-import webpush from './webpush.js'
+import webpush from './notification/webpush.js'
+import notification from './notification/notification.js'
 
 import fs from 'fs'
 import path from 'path'
@@ -26,6 +27,7 @@ app.use('/api', users)
 app.use('/api', todo)
 app.use('/api', pomodoro)
 app.use('/api', webpush)
+app.use('/api', notification)
 app.use('/api', upload)
 app.use('/uploads', express.static('uploads'))
 

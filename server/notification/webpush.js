@@ -1,11 +1,11 @@
+import 'dotenv/config'
+import fs from 'fs'
 import express from 'express'
 import webPush from 'web-push'
-import { SERVER_URL } from '../const.js'
-import { sendNotification } from './notifications.js'
-
-import fs from 'fs'
-import 'dotenv/config'
 import mongoose from 'mongoose'
+import bodyParser from 'body-parser'
+import { connect } from '../app.js'
+import { SERVER_URL } from '../../const.js'
 
 // Se chiavi non presenti le genero e salvo in development, e loggo errore in prod
 if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
@@ -48,11 +48,15 @@ const WebPushSubscription = mongoose.model('webPushSubscription', WebPushSubscri
 
 const app = express()
 
+app.use(bodyParser.json())
+app.on('mount', async () => {
+  await connect('webPushSubscription')
+})
 app.get('/webpush/vapidPublicKey', (req, res) => {
   res.status(200).send(VAPID_PUBLIC_KEY)
 })
 
-app.post('/webpush/:user/register', async (req, res) => {
+app.post('/webpush/:user/subscribe', async (req, res) => {
   try {
     WebPushSubscription.findOne({ endpoint: req.body.endpoint }).then(async (doc) => {
       if (!doc) {
@@ -65,17 +69,6 @@ app.post('/webpush/:user/register', async (req, res) => {
       }
     })
 
-    res.status(200).end()
-  } catch (err) {
-    console.error(err)
-    res.status(500).json({ error: err.message })
-  }
-})
-
-app.post('/webpush/:user/notification', async (req, res) => {
-  try {
-    sendNotification(req.params.user, req.body.options)
-
     res.status(200).send()
   } catch (err) {
     console.error(err)
@@ -83,6 +76,17 @@ app.post('/webpush/:user/notification', async (req, res) => {
   }
 })
 
+app.post('/webpush/:user/unsubscribe', async (req, res) => {
+  try {
+    WebPushSubscription.deleteMany({ user: req.params.user })
+    res.status(200).send()
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// TODO: remove as debug only
 app.get('/webpush/:user/subscriptions', async (req, res) => {
   try {
     res.status(200).json(await loadWebPushSubscriptions(req.params.user))

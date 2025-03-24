@@ -14,7 +14,7 @@ import './assets/main.css'
 import { createNotivue } from 'notivue'
 import 'notivue/notification.css' // Only needed if using built-in notifications
 import 'notivue/animations.css' // Only needed if using built-in animations
-import { API_URL, SERVER_URL } from '../const.js'
+import { API_URL } from '../const.js'
 import { useUserStore } from './stores/account.js'
 
 const app = createApp(App)
@@ -37,10 +37,13 @@ app.component('Icon', Icon)
 app.component('Transition', Transition)
 app.mount('#app')
 
-// TODO: spostare
+// From https://github.com/mdn/serviceworker-cookbook
+// This function is needed because Chrome doesn't accept a base64 encoded string
+// as value for applicationServerKey in pushManager.subscribe yet
+// https://bugs.chromium.org/p/chromium/issues/detail?id=802280
 function urlBase64ToUint8Array(base64String) {
   var padding = '='.repeat((4 - (base64String.length % 4)) % 4)
-  var base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/')
+  var base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
 
   var rawData = window.atob(base64)
   var outputArray = new Uint8Array(rawData.length)
@@ -67,7 +70,7 @@ if ('serviceWorker' in navigator) {
     })
     .then(async (subscription) => {
       const response = await fetch(
-        SERVER_URL + `/api/webpush/${useUserStore().loggedUser._id}/register`,
+        API_URL + `/webpush/${useUserStore().loggedUser._id}/subscribe`,
         {
           method: 'POST',
           headers: {
