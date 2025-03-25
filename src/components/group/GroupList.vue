@@ -1,7 +1,5 @@
 <script setup>
 import { ref, watch } from 'vue'
-import { API_URL } from '~/const'
-import { useUserStore } from '@/stores/account.js'
 
 const props = defineProps({
   groups: {
@@ -48,13 +46,6 @@ const selectGroup = (group) => {
       </div>
       <div class="collapse-content">
         <p>{{ group.description }}</p>
-        <!-- <button
-          v-if="group.owner === loggedUser._id"
-          @click="selectGroup(group)"
-          class="btn btn-sm btn-primary"
-        >
-          <Icon icon="mingcute:settings-3-fill" />Settings
-        </button> -->
       </div>
     </div>
   </div>

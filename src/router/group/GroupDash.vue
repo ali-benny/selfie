@@ -165,7 +165,7 @@ async function createGroup() {
       fetchGroups()
       const createdGroup = await response.json()
       groups.value = [...groups.value, createdGroup]
-      
+
       // Reset the form
       new_group.value = { name: '', description: '', owner: '' }
 

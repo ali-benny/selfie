@@ -88,6 +88,20 @@ app.post('/messages', async (req, res) => {
   }
 })
 
+/**
+ * Get all chat
+ * 
+ */
+app.get('/messages', async (req, res) => {
+  try {
+    await ensureConnection()
+    const messages = await Message.find().sort({ timestamp: 1 })
+    res.json(messages)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
 app.get('/messages/:type/:id', async (req, res) => {
   const { type, id } = req.params
 
@@ -99,7 +113,7 @@ app.get('/messages/:type/:id', async (req, res) => {
       chatType: type
     }
 
-    const messages = await Message.find(query).sort({ timestamp: 1 }).lean() // Per migliori performance
+    const messages = await Message.find(query).sort({ timestamp: 1 }).lean() // lean: for better performance
 
     res.json(messages)
   } catch (error) {
