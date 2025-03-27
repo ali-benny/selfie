@@ -103,26 +103,6 @@ function loadUserData(allUsers) {
   sharewith.value = []
 }
 
-// watcher for modelValue changes
-watch(
-  () => props.modelValue,
-  (newVal) => {
-    if (users.value) {
-      loadUserData(users.value.concat(sharewith.value))
-    }
-  },
-  { deep: true }
-)
-
-// watcher for id changes
-watch(
-  () => props.id,
-  () => {
-    if (users.value) {
-      loadUserData(users.value.concat(sharewith.value))
-    }
-  }
-)
 
 function select(user) {
   if (sharewith.value.includes(user)) {

@@ -12,6 +12,7 @@ const push = useNotivue()
 const userStore = useUserStore()
 const loggedUser = userStore.loggedUser
 const selectedGroup = ref(null)
+const realGroupMembers = ref([])
 const editedGroup = ref(null)
 const groups = ref([])
 const users = ref({})
@@ -62,6 +63,7 @@ async function handleSelectGroup(group) {
     }
 
     selectedGroup.value = freshGroup
+    realGroupMembers.value = selectedGroup.value.members
 
     // Create a deep clone of the group to avoid reactivity issues
     editedGroup.value = JSON.parse(JSON.stringify(freshGroup))
@@ -93,8 +95,6 @@ async function handleSelectGroup(group) {
         users.value = usersData
       }
     }
-
-    console.log('🔥 - handleSelectGroup - users.value:', users.value)
   } catch (error) {
     console.error('Error selecting group:', error)
     push.error(`Could not load group details: ${error.message}`)
@@ -343,7 +343,7 @@ async function deleteGroup(group) {
             :id="selectedGroup._id"
             type="Group"
             msg="Invites"
-            v-model="selectedGroup.members"
+            v-model="realGroupMembers"
           ></UserShare>
         </div>
       </div>
