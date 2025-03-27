@@ -155,7 +155,6 @@
 
 <script>
 import { nextTick } from 'vue'
-import { useNotivue } from 'notivue'
 import { getEditNoteTitle, getEditNoteId } from './editor.js'
 import {
   getNoteAuthor,

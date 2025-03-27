@@ -48,12 +48,10 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { API_URL } from '../../const'
-import { useNotivue } from 'notivue'
 import { saveNoteMongo, getReadersIds } from '@/router/note/editor/note'
 import { updateGroup } from '@/router/group/group'
 import { useUserStore } from '@/stores/account.js'
 
-const push = useNotivue()
 const loggedUser = useUserStore().loggedUser
 
 const users = ref() // all users
@@ -102,7 +100,6 @@ function loadUserData(allUsers) {
   // Reset sharewith whenever users are reloaded
   sharewith.value = []
 }
-
 
 function select(user) {
   if (sharewith.value.includes(user)) {

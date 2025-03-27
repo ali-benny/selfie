@@ -6,8 +6,6 @@ import UserDropdown from '../components/UserDropdown.vue'
 import { useUserStore } from '../stores/account'
 import { createAvatar } from '@dicebear/core'
 import { adventurer } from '@dicebear/collection'
-import { useNotivue } from 'notivue'
-// const toast = useNotivue()
 
 const users = ref([])
 const newUser = ref({ name: '' })

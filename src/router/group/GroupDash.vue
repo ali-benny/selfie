@@ -6,9 +6,7 @@ import GroupList from '@/components/group/GroupList.vue'
 import UserShare from '@/components/UserShare.vue'
 import { getUsersByIds } from '../user/user'
 import { updateGroup, getGroupById } from './group'
-import { useNotivue } from 'notivue'
 
-const push = useNotivue()
 const userStore = useUserStore()
 const loggedUser = userStore.loggedUser
 const selectedGroup = ref(null)
@@ -95,6 +93,8 @@ async function handleSelectGroup(group) {
         users.value = usersData
       }
     }
+
+    console.log('🔥 - handleSelectGroup - users.value:', users.value)
   } catch (error) {
     console.error('Error selecting group:', error)
     push.error(`Could not load group details: ${error.message}`)
@@ -199,6 +199,7 @@ async function deleteGroup(group) {
     } else {
       console.error('ERROR: deleteGroup - ', response)
     }
+    push.success('Group deleted successfully')
   } catch (error) {
     console.error('ERROR: deleteGroup - ', error)
   }
