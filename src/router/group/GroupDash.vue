@@ -302,15 +302,13 @@ async function deleteGroup(group) {
             <span class="label-text">Description</span>
           </div>
           <textarea
+            v-if="selectedGroup.owner === userStore.loggedUser._id"
             class="textarea textarea-borderd w-full"
             v-model="editedGroup.description"
-            :disabled="selectedGroup.owner !== userStore.loggedUser._id"
-            :title="
-              selectedGroup.owner !== userStore.loggedUser._id
-                ? 'Only the owner can edit this field'
-                : ''
-            "
-          />
+          ></textarea>
+          <p v-else placeholder="Description" class="textarea">
+            {{ editedGroup.description }}
+          </p>
         </label>
         <!-- Actual members -->
         <div class="flex flex-row items-center justify-start m-2">
