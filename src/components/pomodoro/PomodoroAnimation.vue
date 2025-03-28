@@ -2,7 +2,6 @@
   <svg
     width="100%"
     height="100%"
-    ref="svgElem"
     class="overflow-visible"
     :class="[widget ? 'stroke-[.3rem] p-[.15rem]' : 'stroke-[.5rem] p-[.25rem]']"
     viewBox="0 0 100 100"
@@ -19,7 +18,7 @@
       <polygon
         ref="progress"
         vector-effect="non-scaling-stroke"
-        points="50,0 0,0 0,100, 100,100 100,0 50,0"
+        points="50,0 100,0 100,100, 0,100 0,0 50,0"
         class="linecap-round"
         :stroke-dasharray="pathLength"
       ></polygon>
@@ -60,18 +59,26 @@
 import { flavors } from '@catppuccin/palette'
 import { usePomodoroStore } from '@/stores/pomodoro'
 import { storeToRefs } from 'pinia'
-import { computed, onMounted, onUnmounted, useTemplateRef, watch } from 'vue'
-import { useElementSize, useMounted } from '@vueuse/core'
+import { computed, onMounted, useTemplateRef, watch } from 'vue'
+import { useMounted } from '@vueuse/core'
 
 const pomodoroColor = flavors.macchiato.colors.red.hex
 const breakColor = flavors.macchiato.colors.lavender.hex
 
 const isMounted = useMounted()
 
-const { widget } = defineProps({
+const { widget, width, height } = defineProps({
   widget: {
     type: Boolean,
     default: false
+  },
+  width: {
+    type: Number,
+    default: 0
+  },
+  height: {
+    type: Number,
+    default: 0
   }
 })
 
@@ -84,38 +91,24 @@ const { pomodoro, currentConfig } = storeToRefs(usePomodoroStore())
 
 const progress = useTemplateRef('progress')
 
-// devo prendere le misure dell'<svg> perché degli altri non le prende
-// const { width, height } = useElementSize(useTemplateRef('svgElem'), {
-//   width: 0,
-//   height: 0
-// })
-
-const svgElement = useTemplateRef('svgElem')
-
-const width = () => {
-  return svgElement.value?.clientWidth || 0
-}
-const height = () => {
-  return svgElement.value?.clientHeight || 0
-}
-
-// used to make the animation responsive
+/* Usato per rendere responsive l'animazione
+ */
 const pathLength = computed(() => {
-  if (width() <= 0 || height() <= 0) return 0
-
-  // devo togliere il padding dalla width
+  //  devo togliere il padding dalla width
   return Math.round(
-    widget ? (width() + height()) * 2 : (width() - 2 * convertRemToPixels(0.25)) * Math.PI
+    widget
+      ? (width + height - 4 * convertRemToPixels(0.15)) * 2
+      : (width - 2 * convertRemToPixels(0.25)) * Math.PI
   )
 })
 
 const pomodoroKeyframes = computed(() => [
   { stroke: pomodoroColor, strokeDashoffset: 0 },
-  { stroke: breakColor, strokeDashoffset: pathLength.value * (widget ? -1 : 1) }
+  { stroke: breakColor, strokeDashoffset: pathLength.value }
 ])
 
 const breakKeyframes = computed(() => [
-  { stroke: breakColor, strokeDashoffset: pathLength.value * (widget ? 1 : -1) },
+  { stroke: breakColor, strokeDashoffset: -pathLength.value },
   { stroke: pomodoroColor, strokeDashoffset: 0 }
 ])
 
@@ -131,32 +124,7 @@ onMounted(() => {
   restart()
 })
 
-const intervalId = setInterval(() => {
-  console.log(`from interval [${intervalId}]: `, width())
-}, 2000)
-
-watch(
-  () => {
-    return width()
-  },
-  () => {
-    console.log(width())
-    restart()
-  }
-)
-
-onUnmounted(() => {
-  clearInterval(intervalId)
-  console.log('goodbye')
-})
-
-watch([width, height, currentConfig], () => {
-  restart()
-})
-watch(
-  () => pomodoro.value.phase,
-  () => restart()
-)
+watch([() => pomodoro.value.phase, () => width, () => height, currentConfig], () => restart())
 
 watch(currentTime, () => {
   if (!animation) return
@@ -182,11 +150,8 @@ watch(
 
 /* Termina l'animazione in corso (se esiste), e ne fa partire una nuova  */
 function restart() {
-  if (!isMounted.value) return
-
-  if (animation) {
-    animation.cancel()
-  }
+  // if (!isMounted.value) return
+  if (animation) animation.cancel()
 
   const keyframes = new KeyframeEffect(
     progress.value,

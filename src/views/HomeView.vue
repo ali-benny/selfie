@@ -47,8 +47,8 @@
         class="h-100 p-3 flex justify-center item-center bg-light rounded-xl shadow-sm bg-surface-0"
         data-swapy-item="pomodoro"
       >
-        <div class="w-full flex justify-center items-center p-1">
-          <PomodoroTimer data-swapy-no-drag />
+        <div class="w-full max-w-56 flex jsutify-center items-center">
+          <PomodoroTimer />
         </div>
       </div>
     </div>
@@ -57,22 +57,28 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { createSwapy } from 'swapy'
 import PomodoroTimer from '@/components/pomodoro/PomodoroTimer.vue'
 import NoteView from '@/components/note/NoteView.vue'
 
 const container = ref(null)
 const lastModified = ref(3)
+const swapy = ref(null)
 
 onMounted(() => {
   if (container.value) {
-    const swapy = createSwapy(container.value, {
+    swapy.value = createSwapy(container.value, {
       animation: 'dynamic' // Può essere 'dynamic', 'spring' o 'none'
     })
-    swapy.onSwap(({ data }) => {
-      localStorage.setItem('dashboard', JSON.stringify(data.object))
+    swapy.value.onSwapEnd(async (event) => {
+      console.log(event)
+      await nextTick()
     })
   }
+})
+
+onUnmounted(() => {
+  swapy.value?.destroy()
 })
 </script>

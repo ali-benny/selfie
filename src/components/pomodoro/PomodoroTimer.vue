@@ -1,7 +1,7 @@
 <template>
   <div class="timer-container w-full max-w-64 sm:max-w-80">
     <div class="flex flex-col items-center gap-3">
-      <div class="relative w-full flex justify-center items-center">
+      <div ref="timerContainer" class="relative w-full flex justify-center items-center">
         <!-- See 'style' block for responsive font-size implementation -->
         <div
           class="timer-clock absolute w-full h-full top-0 right-0 flex justify-center items-center digital select-none"
@@ -9,7 +9,7 @@
           {{ pomodoroStore.timer }}
         </div>
 
-        <PomodoroAnimation />
+        <PomodoroAnimation :width="width" />
       </div>
       <div class="timer-controls w-full flex justify-evenly gap-2">
         <button
@@ -51,9 +51,13 @@
 import { usePomodoroStore } from '@/stores/pomodoro.js'
 import { storeToRefs } from 'pinia'
 import PomodoroAnimation from './PomodoroAnimation.vue'
+import { useElementSize } from '@vueuse/core'
+import { useTemplateRef } from 'vue'
 
 const pomodoroStore = usePomodoroStore()
 const { pomodoro } = storeToRefs(pomodoroStore)
+
+const { width } = useElementSize(useTemplateRef('timerContainer'))
 </script>
 
 <style lang="postcss" scoped>

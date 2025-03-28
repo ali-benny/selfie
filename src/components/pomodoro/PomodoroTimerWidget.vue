@@ -27,10 +27,11 @@
 
         <Transition name="pomo_widget">
           <div
+            ref="timerContainer"
             class="relative flex justify-center items-center w-52 overflow-hidden"
             v-if="isWidgetOpen"
           >
-            <PomodoroAnimation widget />
+            <PomodoroAnimation widget :width="width" :height="height" />
             <div class="absolute w-full h-full flex items-center gap-2 px-3">
               <div class="flex justify-center items-center grow">
                 <span class="pt-2 digital select-none text-5xl">
@@ -64,8 +65,8 @@
     </div>
   </div>
   <div v-else class="fixed bottom-0 left-0 w-screen h-16 z-10">
-    <div class="w-full h-full flex justify-center items-center bg-base-200">
-      <PomodoroAnimation widget />
+    <div ref="timerContainer" class="w-full h-full flex justify-center items-center bg-base-200">
+      <PomodoroAnimation widget :width="width" :height="height" />
       <div class="absolute flex justify-center items-center top-0 left-0 w-full h-full p-3">
         <div class="flex justify-center w-12 text-4xl">
           <IconPomodoro v-if="pomodoroStore.isPomodoroPhase()" :color="config.color.hex" />
@@ -109,14 +110,17 @@
 import { usePomodoroStore } from '@/stores/pomodoro.js'
 import { storeToRefs } from 'pinia'
 import PomodoroAnimation from './PomodoroAnimation.vue'
-import { useScreens } from '@/stores/screens'
 import IconPomodoro from '../icons/IconPomodoro.vue'
+import { useScreens } from '@/stores/screens'
+import { useElementSize } from '@vueuse/core'
+import { useTemplateRef } from 'vue'
 
 const pomodoroStore = usePomodoroStore()
 
 const { isSmallScreen } = storeToRefs(useScreens())
 
 const { pomodoro, currentConfig: config, isWidgetOpen } = storeToRefs(pomodoroStore)
+const { width, height } = useElementSize(useTemplateRef('timerContainer'))
 </script>
 
 <style scoped>
