@@ -1,15 +1,15 @@
 <template>
   <svg
-    v-if="widget"
     width="100%"
     height="100%"
-    ref="animationElem"
-    class="overflow-visible stroke-[.3em] p-[0.15rem]"
+    ref="svgElem"
+    class="overflow-visible"
+    :class="[widget ? 'stroke-[.3rem] p-[.15rem]' : 'stroke-[.5rem] p-[.25rem]']"
     viewBox="0 0 100 100"
     preserveAspectRatio="none"
     xmlns="http://www.w3.org/2000/svg"
   >
-    <g class="fill-none stroke-none">
+    <g v-if="widget" class="fill-none stroke-none">
       <rect
         vector-effect="non-scaling-stroke"
         width="100"
@@ -24,15 +24,8 @@
         :stroke-dasharray="pathLength"
       ></polygon>
     </g>
-  </svg>
-  <svg
-    v-else
-    ref="animationElem"
-    class="overflow-visible stroke-surface stroke-[.5em] p-[.25rem]"
-    viewBox="0 0 100 100"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <g class="fill-none linecap-round">
+
+    <g v-else class="fill-none linecap-round">
       <line
         id="dot"
         x1="50"
@@ -67,7 +60,7 @@
 import { flavors } from '@catppuccin/palette'
 import { usePomodoroStore } from '@/stores/pomodoro'
 import { storeToRefs } from 'pinia'
-import { computed, onMounted, useTemplateRef, watch } from 'vue'
+import { computed, onMounted, onUnmounted, useTemplateRef, watch } from 'vue'
 import { useElementSize, useMounted } from '@vueuse/core'
 
 const pomodoroColor = flavors.macchiato.colors.red.hex
@@ -89,32 +82,32 @@ let animation = null
 
 const { pomodoro, currentConfig } = storeToRefs(usePomodoroStore())
 
-const animationElem = useTemplateRef('animationElem')
 const progress = useTemplateRef('progress')
-const { width, height } = useElementSize(animationElem, {
-  width: 0,
-  height: 0
-})
 
-/*
- * Used when animation is widget to make the animation responsive
- */
+// devo prendere le misure dell'<svg> perché degli altri non le prende
+// const { width, height } = useElementSize(useTemplateRef('svgElem'), {
+//   width: 0,
+//   height: 0
+// })
+
+const svgElement = useTemplateRef('svgElem')
+
+const width = () => {
+  return svgElement.value?.clientWidth || 0
+}
+const height = () => {
+  return svgElement.value?.clientHeight || 0
+}
+
+// used to make the animation responsive
 const pathLength = computed(() => {
-  const pathLength = widget
-    ? (width.value + height.value) * 2
-    : (width.value - 2 * convertRemToPixels(0.25)) * Math.PI
-  return Math.round(pathLength)
+  if (width() <= 0 || height() <= 0) return 0
+
+  // devo togliere il padding dalla width
+  return Math.round(
+    widget ? (width() + height()) * 2 : (width() - 2 * convertRemToPixels(0.25)) * Math.PI
+  )
 })
-
-// const pomodoroKeyframes = computed(() => [
-//   { stroke: pomodoroColor, strokeDashoffset: 0 },
-//   { stroke: breakColor, strokeDashoffset: -pathLength.value }
-// ])
-
-// const breakKeyframes = computed(() => [
-//   { stroke: breakColor, strokeDashoffset: pathLength.value },
-//   { stroke: pomodoroColor, strokeDashoffset: 0 }
-// ])
 
 const pomodoroKeyframes = computed(() => [
   { stroke: pomodoroColor, strokeDashoffset: 0 },
@@ -138,7 +131,28 @@ onMounted(() => {
   restart()
 })
 
-watch([width, height, currentConfig], () => restart())
+const intervalId = setInterval(() => {
+  console.log(`from interval [${intervalId}]: `, width())
+}, 2000)
+
+watch(
+  () => {
+    return width()
+  },
+  () => {
+    console.log(width())
+    restart()
+  }
+)
+
+onUnmounted(() => {
+  clearInterval(intervalId)
+  console.log('goodbye')
+})
+
+watch([width, height, currentConfig], () => {
+  restart()
+})
 watch(
   () => pomodoro.value.phase,
   () => restart()
