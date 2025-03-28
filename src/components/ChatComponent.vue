@@ -27,7 +27,7 @@
         <div class="flex justify-between items-center prose">
           <h3 class="mb-0">Private Chats</h3>
           <!-- New Private Chat -->
-          <Popper>
+          <Popper @open:popper="openHandler">
             <button class="btn btn-ghost btn-sm">
               <Icon icon="fluent:add-16-filled" />
             </button>
@@ -40,6 +40,8 @@
                   </label>
                   <div class="relative">
                     <input
+                      ref="usernameFocus"
+                      type="text"
                       v-model="searchUsername"
                       placeholder="Type username here..."
                       class="input input-bordered w-full pr-10"
@@ -245,6 +247,8 @@
           {{ isTyping }}
         </div>
         <input
+          ref="chatInputFocus"
+          type="text"
           v-model="newMessage"
           @keyup.enter="sendMessage"
           @input="handleTyping"
@@ -260,7 +264,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, computed, nextTick, useTemplateRef } from 'vue'
 import { useUserStore } from '@/stores/account'
 import socket from '@/plugins/socket'
 import { getUsers, getUsersByIds } from '@/router/user/user'
@@ -471,6 +475,8 @@ async function selectChat(type, chat) {
     // Mark messages as read
     markMessagesAsRead(chatId)
 
+    await nextTick()
+    chatInputFocus.value.focus()
     scrollToBottom()
   } catch (error) {
     console.error('Error selecting chat:', error)
@@ -857,6 +863,14 @@ function getUserColor(prefix, message) {
     return '!bg-secondary !text-secondary-content'
   }
   return `${prefix}-secondary` // Fallback
+}
+
+// AUTOFOCUS things
+const usernameFocus = useTemplateRef('usernameFocus')
+const chatInputFocus = useTemplateRef('chatInputFocus')
+async function openHandler() {
+  await nextTick()
+  usernameFocus.value.focus()
 }
 </script>
 
