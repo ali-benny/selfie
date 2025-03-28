@@ -60,13 +60,20 @@ import { flavors } from '@catppuccin/palette'
 import { usePomodoroStore } from '@/stores/pomodoro'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, useTemplateRef, watch } from 'vue'
-import { useMounted } from '@vueuse/core'
 
 const pomodoroColor = flavors.macchiato.colors.red.hex
 const breakColor = flavors.macchiato.colors.lavender.hex
 
-const isMounted = useMounted()
-
+/*
+ * NOTE: (Leo) devo passare width e height come props perché se le prendo usando
+ * useElementSize sull'svg (o qualsias elemento che lo contiene), queste si
+ * non si aggiornano quando il timer è dentro a swapy.
+ * È un bug strano, si aggiornano allow swap successivo, ho fatto mille prova, ma
+ * non ho capito se è un bug di swapy (perché in altre pagine l'animazione è responsive),
+ * useElementSize (ho provato anche a prendere le dimensioni in vanilla js, ma niente),
+ * o altro.
+ * Questa soluzione non mi fa impazzire ma al memento non intendo spenderci ulteriore tempo.
+ */
 const { widget, width, height } = defineProps({
   widget: {
     type: Boolean,
