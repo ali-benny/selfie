@@ -26,11 +26,69 @@
       <div class="chat-private">
         <div class="flex justify-between items-center prose">
           <h3 class="mb-0">Private Chats</h3>
-          <button @click="showNewChat = true" class="btn btn-ghost btn-sm">
-            <Icon icon="fluent:add-16-filled" />
-            <!-- TODO: quando ricevo un messaggio da una chat privata non aggiunta non mi viene mostrato -->
-          </button>
+          <!-- New Private Chat -->
+          <Popper>
+            <button class="btn btn-ghost btn-sm">
+              <Icon icon="fluent:add-16-filled" />
+            </button>
+            <template #content="{ close }">
+              <div class="p-2 w-96">
+                <h3 class="m-0">Start New Private Chat</h3>
+                <div>
+                  <label class="label">
+                    <span class="label-text">Search users by username</span>
+                  </label>
+                  <div class="relative">
+                    <input
+                      v-model="searchUsername"
+                      placeholder="Type username here..."
+                      class="input input-bordered w-full pr-10"
+                    />
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                      <Icon icon="fluent:search-20-filled" class="text-base-content/30" />
+                    </div>
+                  </div>
+                  <label class="label">
+                    <span class="label-text-alt">Enter a username to find users</span>
+                  </label>
+                </div>
+
+                <div>
+                  <!-- Show message when no results -->
+                  <div
+                    v-if="filteredUsers.length === 0 && searchUsername.length > 0"
+                    class="text-center py-4"
+                  >
+                    No users found matching "{{ searchUsername }}"
+                  </div>
+
+                  <!-- Display filtered users -->
+                  <div
+                    v-for="user in filteredUsers"
+                    :key="user._id"
+                    @click="startPrivateChat(user)"
+                    class="user-item flex items-center gap-2 p-3"
+                  >
+                    <div class="avatar">
+                      <div class="rounded-full mask mask-squircle !bg-primary w-10">
+                        <img :src="user.image" :alt="user.name" class="m-0" />
+                      </div>
+                    </div>
+                    <div>
+                      <div class="font-semibold">{{ user.name }} {{ user.surname }}</div>
+                      <div class="text-xs opacity-70">@{{ user.username }}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex flex-row-reverse">
+                  <button @click="close" class="btn btn-sm">Close</button>
+                </div>
+              </div>
+            </template>
+          </Popper>
         </div>
+        <!-- TODO: quando ricevo un messaggio da una chat privata non aggiunta non mi viene mostrato -->
         <div
           v-for="chat in privateChats"
           :key="chat.user._id"
@@ -198,61 +256,6 @@
         </button>
       </div>
     </div>
-
-    <!-- Modal per nuova chat privata -->
-    <dialog :open="showNewChat" class="modal-box">
-      <h3>Start New Private Chat</h3>
-      <div class="form-control">
-        <label class="label">
-          <span class="label-text">Search users by username</span>
-        </label>
-        <div class="relative">
-          <input
-            v-model="searchUsername"
-            placeholder="Type username here..."
-            class="input input-bordered w-full pr-10"
-          />
-          <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-            <Icon icon="fluent:search-20-filled" class="text-gray-400" />
-          </div>
-        </div>
-        <label class="label">
-          <span class="label-text-alt">Enter a username to find users</span>
-        </label>
-      </div>
-
-      <div class="user-list mt-4">
-        <!-- Show message when no results -->
-        <div
-          v-if="filteredUsers.length === 0 && searchUsername.length > 0"
-          class="text-center py-4"
-        >
-          No users found matching "{{ searchUsername }}"
-        </div>
-
-        <!-- Display filtered users -->
-        <div
-          v-for="user in filteredUsers"
-          :key="user._id"
-          @click="startPrivateChat(user)"
-          class="user-item flex items-center gap-2 p-3"
-        >
-          <div class="avatar">
-            <div class="w-8 rounded-full">
-              <img :src="user.image || ''" :alt="user.name" />
-            </div>
-          </div>
-          <div>
-            <div class="font-semibold">{{ user.name }} {{ user.surname }}</div>
-            <div class="text-xs opacity-70">@{{ user.username }}</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="modal-action">
-        <button @click="showNewChat = false" class="btn btn-sm">Close</button>
-      </div>
-    </dialog>
   </div>
 </template>
 
@@ -275,7 +278,6 @@ const selectedChat = ref({
   img: '',
   users: []
 })
-const showNewChat = ref(false)
 const searchUsername = ref('')
 const currentMessages = ref([]) // messages in the selectedChat
 const users = ref([])
@@ -834,7 +836,6 @@ const startPrivateChat = (user) => {
     privateChats.value.push({ user })
   }
   selectChat('private', user)
-  showNewChat.value = false
   searchUsername.value = ''
 }
 
