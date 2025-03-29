@@ -3,6 +3,7 @@ import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import Unimport from 'unimport/unplugin'
+import { SERVER_URL } from './const.js'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -29,7 +30,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: SERVER_URL,
         changeOrigin: true
       }
     }

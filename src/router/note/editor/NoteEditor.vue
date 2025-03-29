@@ -155,7 +155,6 @@
 
 <script>
 import { nextTick } from 'vue'
-import { useNotivue } from 'notivue'
 import { getEditNoteTitle, getEditNoteId } from './editor.js'
 import {
   getNoteAuthor,
@@ -328,7 +327,7 @@ export default {
         for (const block of checklistBlocks) {
           for (const item of block.data.items) {
             const deadline = item.text.match(/\[(\d{4}-\d{2}-\d{2})\]/)
-            if (deadline){
+            if (deadline) {
               const todo = {
                 end: deadline[1],
                 text: item.text,
