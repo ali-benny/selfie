@@ -4,7 +4,6 @@ import { Icon } from '@iconify/vue'
 import edjsHTML from 'editorjs-html'
 import { API_URL } from '~/const.js'
 import { getNotes, saveNoteMongo, deleteNote } from '@/router/note/editor/note.js'
-import { useNotivue } from 'notivue'
 import { useUserStore } from '@/stores/account'
 import { getUsersByIds } from '@/router/user/user.js'
 
@@ -22,7 +21,6 @@ const props = defineProps({
 defineEmits(['noteDeleted', 'noteAdded'])
 
 const notes = ref([])
-// const toast = useNotivue()
 const users = ref({})
 
 const checklistParser = (block) => {

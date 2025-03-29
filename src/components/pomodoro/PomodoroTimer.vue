@@ -2,7 +2,7 @@
   <div class="timer-container w-full max-w-64 sm:max-w-80">
     <div class="flex flex-col items-center gap-3">
       <div ref="timerContainer" class="relative w-full flex justify-center items-center">
-        <!-- See 'style' block for responsive font-size implementation -->
+        <!-- See style block for responsive font-size implementation -->
         <div
           class="timer-clock absolute w-full h-full top-0 right-0 flex justify-center items-center digital select-none"
         >

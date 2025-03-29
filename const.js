@@ -9,6 +9,7 @@ export const SERVER_URL = `http://localhost:${PORT}`
 export const MONGO_URI = 'mongodb://127.0.0.1:27017/selfie'
 
 export const API_URL = `${SERVER_URL}/api`
+export const CHAT_URL = `${SERVER_URL}/chat`
 
 /*
  * Default tailwind values from https://tailwindcss.com/docs/screens

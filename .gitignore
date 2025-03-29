@@ -14,7 +14,7 @@ lerna-debug.log*
 node_modules
 
 # Build output
-dist
+# dist
 dist-ssr
 coverage
 *.tsbuildinfo
@@ -75,6 +75,7 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+pnpm-lock.yaml
 
 # Environment files
 .env
