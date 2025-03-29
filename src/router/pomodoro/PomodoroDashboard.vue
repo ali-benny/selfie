@@ -4,8 +4,11 @@
     <div class="grow" :class="{ 'flex-animation': !showConfigList }">
       <div class="flex justify-center items-center">
         <div
-          class="timer-container relative w-3/4 sm:w-2/3 flex justify-center bg-transparent transition-colors duration-1000 rounded-box border-4 border-transparent shadow-xl shadow-transparent p-8"
-          :class="{ running: pomodoro.running }"
+          class="timer-container relative w-3/4 sm:w-2/3 flex justify-center bg-transparent transition-colors duration-100 rounded-box border-4 border-transparent shadow-xl shadow-transparent p-8"
+          :class="[
+            { running: pomodoro.running },
+            pomodoro.phase === 'pomodoro' ? 'pomodoroPhase' : 'breakPhase'
+          ]"
         >
           <PomodoroTimer />
 
@@ -59,10 +62,11 @@ import PomodoroConfigForm from '@/components/pomodoro/PomodoroConfigForm.vue'
 import PomodoroConfigInfo from '@/components/pomodoro/PomodoroConfigInfo.vue'
 import PomodoroConfigList from '@/components/pomodoro/PomodoroConfigList.vue'
 import PomodoroTimer from '@/components/pomodoro/PomodoroTimer.vue'
+import YTPlayer from '@/components/pomodoro/YTPlayer.vue'
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { usePomodoroStore } from '@/stores/pomodoro'
-import YTPlayer from '@/components/pomodoro/YTPlayer.vue'
+import { flavors } from '@catppuccin/palette'
 
 const pomodoroStore = usePomodoroStore()
 const { pomodoro, currentConfig: config } = storeToRefs(pomodoroStore)
@@ -106,7 +110,15 @@ const showConfigList = computed(() => !usePomodoroStore().pomodoro.running)
   transition-timing-function: ease-in-out;
 
   @apply !bg-base-200;
+}
+
+.timer-container.running.pomodoroPhase {
   border-color: v-bind('config?.color.hex') !important;
   --tw-shadow-color: v-bind('config?.color.hex') !important;
+}
+
+.timer-container.running.breakPhase {
+  border-color: v-bind('flavors.macchiato.colors.lavender.hex') !important;
+  --tw-shadow-color: v-bind('flavors.macchiato.colors.lavender.hex') !important;
 }
 </style>

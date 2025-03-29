@@ -4,7 +4,11 @@
       <Transition name="pulse_appear">
         <div
           class="absolute top-0 right-0 w-[68px] h-16 rounded-l-xl bg-transparent shadow-md shadow-transparent"
-          :class="{ 'animate-pulse': !isWidgetOpen, 'shadow-pomocolor': !isWidgetOpen }"
+          :class="[
+            { 'animate-pulse': !isWidgetOpen },
+            { running: pomodoro.running },
+            pomodoro.phase === 'pomodoro' ? 'pomodoroPhase' : 'breakPhase'
+          ]"
           v-if="!isWidgetOpen && pomodoro.running"
         ></div>
       </Transition>
@@ -107,13 +111,14 @@
 </template>
 
 <script setup>
-import { usePomodoroStore } from '@/stores/pomodoro.js'
-import { storeToRefs } from 'pinia'
 import PomodoroAnimation from './PomodoroAnimation.vue'
 import IconPomodoro from '../icons/IconPomodoro.vue'
+import { usePomodoroStore } from '@/stores/pomodoro.js'
+import { storeToRefs } from 'pinia'
 import { useScreens } from '@/stores/screens'
 import { useElementSize } from '@vueuse/core'
 import { useTemplateRef } from 'vue'
+import { flavors } from '@catppuccin/palette'
 
 const pomodoroStore = usePomodoroStore()
 
@@ -163,7 +168,19 @@ const { width, height } = useElementSize(useTemplateRef('timerContainer'))
   }
 }
 
+.running.pomodoroPhase {
+  --tw-shadow-color: v-bind('config?.color.hex') !important;
+}
+
+.running.breakPhase {
+  --tw-shadow-color: v-bind('flavors.macchiato.colors.lavender.hex') !important;
+}
+
 .shadow-pomocolor {
+  --tw-shadow-color: v-bind('config.color.hex');
+}
+
+.shadow-breakcolor {
   --tw-shadow-color: v-bind('config.color.hex');
 }
 </style>

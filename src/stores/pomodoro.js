@@ -54,7 +54,6 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
   const isWidgetOpen = useSessionStorage('pomodoro.isWidgetOpen', false)
 
   whenever(isConfigReady, () => {
-    console.log(config.value)
     if (!config.value) {
       console.log('pppp')
     }
@@ -120,7 +119,7 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
     pomodoro.value.phase = null
   }
 
-  function skipPomodoroPhase() {
+  async function skipPomodoroPhase() {
     if (!pomodoro.value.started || pomodoro.value.finished) return
 
     switch (pomodoro.value.phase) {
