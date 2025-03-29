@@ -1,5 +1,5 @@
 <template>
-  <Popper @open:popper="openHandler">
+  <Popper @open:popper="openHandler" arrow>
     <slot name="trigger"></slot>
     <template #content>
       <div class="w-72 sm:w-80 flex flex-col gap-1 text-sm p-2">
