@@ -1,3 +1,4 @@
+import { push } from 'notivue'
 import { API_URL } from '../../../const.js'
 import { flavors } from '@catppuccin/palette'
 
@@ -30,7 +31,7 @@ export const initialPomodoro = {
 export async function loadUserConfigs(userId) {
   if (!userId) return new Map()
   try {
-    const response = await fetch(API_URL + `/${userId}/pomodoros/configs`, {
+    const response = await fetch(`${API_URL}/${userId}/pomodoros/configs`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -55,16 +56,16 @@ export async function createPomodoroConfig(userId, config) {
     if (config.longBreak && Object.keys(config.longBreak).length == 0) {
       delete config.longBreak
     }
-    const response = await fetch(API_URL + `/${userId}/pomodoros/configs/`, {
+    const response = await fetch(`${API_URL}/${userId}/pomodoros/configs/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         ...config
       })
     })
-    if (!response.ok) {
+    if (!response.ok)
       throw new Error(`ERROR - createPomodoroConfig, response status ${response.status}`)
-    }
+
     return response.json()
   } catch (error) {
     console.error(error)
@@ -147,5 +148,23 @@ export async function deletePomodoroConfig(configId) {
     }
   } catch (error) {
     console.error(error.message)
+  }
+}
+
+/*
+ * Tells the server that the config has been selected so it can update the lastUsed field
+ */
+export async function selectPomodoroConfig(config) {
+  try {
+    const response = await fetch(
+      `${API_URL}/${config.userId}/pomodoros/configs/${config._id}/select`
+    )
+    if (!response.ok) {
+      throw new Error(`ERROR - selectPomodoroConfig, response status ${response.status}`)
+    }
+    return true
+  } catch (error) {
+    console.error(error.message)
+    return false
   }
 }

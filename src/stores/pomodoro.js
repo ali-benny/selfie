@@ -5,7 +5,8 @@ import {
   initialConfig,
   initialPomodoro,
   loadUserConfigs,
-  loadLatestConfig
+  loadLatestConfig,
+  selectPomodoroConfig
 } from '@/router/pomodoro/pomodoro.js'
 import { computed, toRaw, watch } from 'vue'
 import { useToast } from 'vue-toastification'
@@ -15,14 +16,10 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
   const currentRoute = useRoute()
   const toast = useToast()
 
-  /*
-   * Currently selected Pomodoro Configuration.
-   */
-  const { state: config, isReady: isConfigReady } = useAsyncState(
-    loadLatestConfig(useUserStore().loggedUser?._id),
-    { ...initialConfig, userId: useUserStore().loggedUser?._id },
-    { shallow: false }
-  )
+  const defaultConfig = {
+    ...initialConfig,
+    userId: useUserStore().loggedUser?._id
+  }
 
   /*
    * Map [id, config] of all Pomodoro Configurations of the user.
@@ -38,6 +35,15 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
    */
   const pomodoro = useSessionStorage('pomodoro', initialPomodoro)
 
+  /*
+   * Currently selected Pomodoro Configuration.
+   */
+  const { state: config, isReady: isConfigReady } = useAsyncState(
+    loadLatestConfig(useUserStore().loggedUser?._id),
+    defaultConfig,
+    { shallow: false }
+  )
+
   const userTimeFormat = useLocalStorage('pomodoro.userTimeFormat', 'mm')
 
   /*
@@ -48,6 +54,13 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
   const isWidgetOpen = useSessionStorage('pomodoro.isWidgetOpen', false)
 
   whenever(isConfigReady, () => {
+    console.log(config.value)
+    if (!config.value) {
+      console.log('pppp')
+    }
+
+    if (pomodoro.value?.configId !== config.value._id) pomodoro.value = initNewPomodoro
+
     if (pomodoro.value.started) {
       if (pomodoro.value.running) playPomodoroTimer()
       return
@@ -71,6 +84,7 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
   function initNewPomodoro() {
     pomodoro.value = initialPomodoro
 
+    pomodoro.value.configId = config.value._id
     pomodoro.value.initialTimer = config.value.pomodoroTime * 60
     pomodoro.value.timer = pomodoro.value.initialTimer
   }
@@ -161,13 +175,9 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
   }
 
   function setCurrentConfig(c) {
-    if (config.value._id !== c._id) {
-      config.value = c
-      initNewPomodoro()
-      return
-    }
+    if (!selectPomodoroConfig(c)) return
 
-    if (!pomodoro.value.started) {
+    if (config.value._id !== c._id) {
       config.value = c
       initNewPomodoro()
       return

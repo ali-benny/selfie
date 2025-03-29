@@ -47,8 +47,7 @@ const PomodoroConfigSchema = new mongoose.Schema({
     type: Number
   },
   lastUsed: {
-    type: Date,
-    default: null
+    type: Date
   },
   color: {
     type: Object,
@@ -89,40 +88,11 @@ app.get('/pomodoros/configs/:id', async (req, res) => {
 })
 
 /*
- * Creates a configs
- */
-app.post('/pomodoros/configs/', async (req, res) => {
-  try {
-    const baseConfig = await PomodoroConfig.findById(req.body.configId)
-    const resultConfigs = []
-    for (const user of req.body.users) {
-      const config = new PomodoroConfig({ userId: user })
-      config.name = baseConfig.name
-      config.pomodoroTime = baseConfig.pomodoroTime
-      config.shortBreakTime = baseConfig.shortBreakTime
-      config.longBreak = baseConfig.longBreak
-      config.cycles = baseConfig.cycles
-      config.color = baseConfig.color
-
-      config.lastUsed = Date.now()
-      await config.save()
-      resultConfigs.push(config)
-    }
-
-    res.status(200).json(resultConfigs)
-  } catch (err) {
-    console.error(err)
-    res.status(500).json({ error: err.message })
-  }
-})
-
-/*
  * Creates a new config
  */
 app.post('/:userId/pomodoros/configs/', async (req, res) => {
   try {
     const config = new PomodoroConfig({ userId: req.params.userId, ...req.body })
-    config.lastUsed = Date.now()
     await config.save()
 
     res.status(200).json(config)
@@ -174,10 +144,29 @@ app.delete('/pomodoros/configs/:id', async (req, res) => {
  */
 app.get('/:userId/pomodoros/configs/latest', async (req, res) => {
   try {
-    const config = await PomodoroConfig.findOne({ userId: req.params.userId }).sort({
+    const config = await PomodoroConfig.findOne({
+      userId: req.params.userId,
+      lastUsed: { $exists: true }
+    }).sort({
       lastUsed: -1
     })
     res.status(200).json(config)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+/*
+ * Updates the field 'lastUsed' as a config gets selected by the user
+ */
+app.get('/:userId/pomodoros/configs/:configId/select', async (req, res) => {
+  try {
+    await PomodoroConfig.findOne({ _id: req.params.configId })
+      .updateOne({ lastUsed: Date.now() })
+      .then(() => {
+        res.status(200).send('Config updated successfully!')
+      })
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: err.message })
