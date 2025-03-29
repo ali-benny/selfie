@@ -1,7 +1,11 @@
 import { io } from 'socket.io-client'
 import { SERVER_URL } from '~/const.js'
 
-const socket = io(SERVER_URL, {
+const socket = io(
+  process.env.NODE_ENV === 'production' 
+    ? 'https://your-deployed-backend-url.com' 
+    : SERVER_URL, 
+  {
   reconnectionAttempts: 5,
   reconnectionDelay: 1000,
   autoConnect: true,
