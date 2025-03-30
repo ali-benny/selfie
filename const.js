@@ -1,12 +1,21 @@
-const credentials = {
-  user: 'site232433',
-  pwd: 'ahB4ha7j',
-  site: 'mongo_site232433'
-}
+import dotenv from 'dotenv'
 
-export const PORT = 8000
-export const SERVER_URL = `http://localhost:${PORT}`
-export const MONGO_URI = 'mongodb://127.0.0.1:27017/selfie'
+dotenv.config({ path: ['.env', `.env.${process.env.NODE_ENV}`] })
+
+console.log(process.env.NODE_ENV)
+
+export const BACKEND_PORT = 8000
+
+export const SERVER_URL =
+  process.env.SERVER_URL ||
+  (process.env.NODE_ENV === 'development' ? `http://locahost:${BACKEND_PORT}` : null)
+console.log(SERVER_URL)
+if (!SERVER_URL) throw Error('const.js - No SERVER_URL configured')
+
+export const MONGO_URI =
+  process.env.MONGO_URI ||
+  (process.env.NODE_ENV === 'development' ? 'mongodb://127.0.0.1:27017/selfie' : null)
+if (!MONGO_URI) throw Error('const.js - No MONGO_URI configured')
 
 export const API_URL = `${SERVER_URL}/api`
 export const CHAT_URL = `${SERVER_URL}/chat`
@@ -21,5 +30,3 @@ export const SCREENS = {
   xl: '1280px',
   '2xl': '1536px'
 }
-
-// export const MONGO_URI = `mongodb://${credentials.user}:${credentials.pwd}@${credentials.site}/selfie?authSource=admin&writeConcern=majority`;

@@ -2,7 +2,7 @@ import cors from 'cors'
 import express from 'express'
 import mongoose from 'mongoose'
 import { createServer } from 'http'
-import { MONGO_URI, SERVER_URL, PORT } from '../const.js'
+import { MONGO_URI, SERVER_URL, BACKEND_PORT } from '../const.js'
 import notes from './notes/notes.js'
 import users from './users/users.js'
 import upload from './notes/upload.js'
@@ -34,7 +34,7 @@ app.use('/chat', chat)
 
 initializeSocket(server)
 
-server.listen(PORT, () => {
+server.listen(BACKEND_PORT, () => {
   console.log(`Server running at ${SERVER_URL}`)
 })
 
