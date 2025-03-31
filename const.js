@@ -1,6 +1,7 @@
 import dotenv from 'dotenv'
 
-dotenv.config({ path: ['.env', `.env.${process.env.NODE_ENV}`] })
+const ENV_PREFIX = process.env.NODE_ENV === 'development' ? '' : 'webapp/'
+dotenv.config({ path: [`${ENV_PREFIX}.env`, `${ENV_PREFIX}.env.${process.env.NODE_ENV}`] })
 
 console.log(process.env.NODE_ENV)
 
