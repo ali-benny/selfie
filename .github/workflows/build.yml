@@ -31,4 +31,4 @@ jobs:
           SERVER_USER: ${{ secrets.SERVER_USER }}
           SERVER_KEY: ${{ secrets.SERVER_KEY }}
         run: |
-          scp -i "$SERVER_KEY" -r dist $SERVER_USER@$SERVER_HOST:/home/web/site232433/html
+          scp -i "$SERVER_KEY" -r dist/* $SERVER_USER@$SERVER_HOST:/home/web/site232433/html
