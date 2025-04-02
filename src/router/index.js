@@ -7,6 +7,7 @@ import UserView from '../views/UserView.vue'
 import PomodoroDashboard from './pomodoro/PomodoroDashboard.vue'
 import GroupDash from './group/GroupDash.vue'
 import Chat from '../components/ChatComponent.vue'
+import ProjectDash from './project/ProjectDash.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -51,6 +52,11 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: LoginView
+    },
+    {
+      path: '/projects',
+      name: 'projects',
+      component: ProjectDash
     }
   ]
 })
