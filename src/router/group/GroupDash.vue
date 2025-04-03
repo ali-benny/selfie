@@ -1,6 +1,6 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
-import { API_URL } from '../../../const'
+import { API_URL } from '@/const.js'
 import { useUserStore } from '@/stores/account'
 import GroupList from '@/components/group/GroupList.vue'
 import UserShare from '@/components/UserShare.vue'

@@ -2,7 +2,7 @@ import cors from 'cors'
 import express from 'express'
 import mongoose from 'mongoose'
 import { createServer } from 'http'
-import { APP_PREFIX, MONGO_URI, SERVER_URL, BACKEND_PORT } from '../const.js'
+import { APP_PREFIX, MONGO_URI, SERVER_URL, BACKEND_PORT } from './const.js'
 import notes from './notes/notes.js'
 import users from './users/users.js'
 import upload from './notes/upload.js'
@@ -41,7 +41,7 @@ server.listen(BACKEND_PORT, () => {
 })
 
 app.all('*', (req, res) => {
- fs.readFile(path.join(__dirname, `${APP_PREFIX}/dist/index.html`), function (err, data) {
+  fs.readFile(path.join(__dirname, `${APP_PREFIX}/dist/index.html`), function (err, data) {
     if (err) {
       console.error(err)
       res.redirect('/')

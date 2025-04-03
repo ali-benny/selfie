@@ -269,7 +269,7 @@ import { useUserStore } from '@/stores/account'
 import socket from '@/plugins/socket'
 import { getUsers, getUsersByIds } from '@/router/user/user'
 import { getGroups } from '@/router/group/group'
-import { CHAT_URL } from '~/const.js'
+import { CHAT_URL } from '@/const.js'
 
 const userStore = useUserStore()
 const newMessage = ref('') // message input

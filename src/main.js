@@ -1,5 +1,5 @@
 import 'jquery'
-import '../const.js'
+import '@/const.js'
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import vuetify from './plugins/vuetify'

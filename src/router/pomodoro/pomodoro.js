@@ -1,5 +1,4 @@
-import { push } from 'notivue'
-import { API_URL } from '../../../const.js'
+import { API_URL } from '@/const.js'
 import { flavors } from '@catppuccin/palette'
 
 export const initialConfig = {

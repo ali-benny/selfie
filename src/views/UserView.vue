@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { getUsers, createUser } from '../router/user/user'
-import { API_URL } from '../../const'
+import { API_URL } from '@/const.js'
 import UserDropdown from '../components/UserDropdown.vue'
 import { useUserStore } from '../stores/account'
 import { createAvatar } from '@dicebear/core'

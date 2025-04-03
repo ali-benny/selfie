@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "NODE_ENV=development vite",
     "backend:dev": "NODE_ENV=development nodemon server/app.js -w server",
-    "build": "NODE_ENV=production vite build",
+    "build": "NODE_ENV=production vite build --mode development",
     "preview": "NODE_ENV=development vite preview & npm run dev",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore",
     "format": "prettier --write src/",

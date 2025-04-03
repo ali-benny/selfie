@@ -3,7 +3,7 @@ import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import Unimport from 'unimport/unplugin'
-import { SERVER_URL } from './const.js'
+import { SERVER_URL } from './src/const.js'
 
 import vueDevTools from 'vite-plugin-vue-devtools'
 

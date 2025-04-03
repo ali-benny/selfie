@@ -4,7 +4,7 @@
     <div class="grow" :class="{ 'flex-animation': !showConfigList }">
       <div class="flex justify-center items-center">
         <div
-          class="timer-container relative w-3/4 sm:w-2/3 flex justify-center bg-transparent transition-colors duration-100 rounded-box border-4 border-transparent shadow-xl shadow-transparent p-8"
+          class="timer-container relative max-w-[36rem] w-3/4 sm:w-2/3 flex justify-center bg-transparent transition-colors duration-100 rounded-box border-4 border-transparent shadow-xl shadow-transparent p-8"
           :class="[
             { running: pomodoro.running },
             pomodoro.phase === 'pomodoro' ? 'pomodoroPhase' : 'breakPhase'

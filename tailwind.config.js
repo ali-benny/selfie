@@ -5,7 +5,7 @@ import typography from '@tailwindcss/typography'
 import daisyui from 'daisyui'
 import { flavors } from '@catppuccin/palette'
 import Color from 'colorjs.io'
-import { SCREENS } from './const'
+import { SCREENS } from './src/const.js'
 import tailwindcss_motion from 'tailwindcss-motion'
 import tw_container_queries from '@tailwindcss/container-queries'
 
