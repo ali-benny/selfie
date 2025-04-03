@@ -4,7 +4,7 @@
 // - description
 // - members
 
-import { API_URL } from '~/const'
+import { API_URL } from '@/const.js'
 
 export async function getGroups(userId) {
   try {

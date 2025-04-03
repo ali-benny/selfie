@@ -46,8 +46,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
-import { API_URL } from '../../const'
+import { ref, onMounted } from 'vue'
+import { API_URL } from '@/const.js'
 import { saveNoteMongo, getReadersIds } from '@/router/note/editor/note'
 import { updateGroup } from '@/router/group/group'
 import { useUserStore } from '@/stores/account.js'

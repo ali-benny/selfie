@@ -47,8 +47,8 @@
 import { createDirectory, getDirectoryStructure, moveNote } from '@/router/note/editor/directory'
 import { getNotes } from '@/router/note/editor/note'
 import { useUserStore } from '@/stores/account'
-import { onMounted, ref, watch } from 'vue'
-import { API_URL } from '~/const'
+import { onMounted, ref } from 'vue'
+import { API_URL } from '@/const.js'
 import TreeNode from './TreeNode.vue'
 
 const userStore = useUserStore()

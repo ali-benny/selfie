@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { SCREENS } from '../../const'
+import { SCREENS } from '@/const.js'
 import { useMediaQuery } from '@vueuse/core'
 
 const mediaQueryString = (value) => `(min-width: ${value})`

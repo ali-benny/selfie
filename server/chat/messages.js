@@ -1,9 +1,9 @@
 import { Server as SocketIOServer } from 'socket.io'
 import express from 'express'
-import { SERVER_URL } from '../../const.js'
-import { connect } from '../app.js'
 import mongoose from 'mongoose'
-import { Group } from '../groups/groups.js' 
+import { SERVER_URL } from '../const.js'
+import { connect } from '../app.js'
+import { Group } from '../groups/groups.js'
 
 const app = express()
 let io = null
@@ -90,7 +90,7 @@ app.post('/messages', async (req, res) => {
 
 /**
  * Get all chat
- * 
+ *
  */
 app.get('/messages', async (req, res) => {
   try {
@@ -124,55 +124,55 @@ app.get('/messages/:type/:id', async (req, res) => {
 
 app.post('/messages/:id/read', async (req, res) => {
   try {
-    const chatId = req.params.id;
-    const { userId } = req.body;
+    const chatId = req.params.id
+    const { userId } = req.body
 
     // Trova i messaggi da aggiornare
     const messagesToUpdate = await Message.find({
       chatId,
       user_id: { $ne: userId },
       readBy: { $ne: userId }
-    });
+    })
 
     for (const message of messagesToUpdate) {
       // Aggiungi l'utente corrente a readBy
-      message.readBy = [...new Set([...message.readBy, userId])];
-      
+      message.readBy = [...new Set([...message.readBy, userId])]
+
       // Per chat private, imposta come 'read'
       if (message.chatType === 'private') {
-        message.status = 'read';
+        message.status = 'read'
       } else {
         // Per gruppi, controlla se tutti i membri hanno letto
-        const groupMembers = await Group.findById(chatId).select('members owner');
-        const allMembers = [...groupMembers.members, groupMembers.owner];
-        const allHaveRead = allMembers.every(memberId => 
+        const groupMembers = await Group.findById(chatId).select('members owner')
+        const allMembers = [...groupMembers.members, groupMembers.owner]
+        const allHaveRead = allMembers.every((memberId) =>
           message.readBy.includes(memberId.toString())
-        );
-        
+        )
+
         if (allHaveRead) {
-          message.status = 'read';
+          message.status = 'read'
         }
       }
 
-      await message.save();
+      await message.save()
     }
 
     // Emetti l'evento a tutti i client nella chat
-    io.to(chatId).emit('messages-marked-read', { 
-      chatId, 
+    io.to(chatId).emit('messages-marked-read', {
+      chatId,
       userId,
-      messages: messagesToUpdate 
-    });
+      messages: messagesToUpdate
+    })
 
-    res.status(200).json({ 
+    res.status(200).json({
       message: 'Messages marked as read',
-      updatedMessages: messagesToUpdate 
-    });
+      updatedMessages: messagesToUpdate
+    })
   } catch (error) {
-    console.error('Error marking messages as read:', error);
-    res.status(500).json({ error: error.message });
+    console.error('Error marking messages as read:', error)
+    res.status(500).json({ error: error.message })
   }
-});
+})
 
 app.get('/messages/private/:userId/chats', async (req, res) => {
   try {
@@ -183,10 +183,7 @@ app.get('/messages/private/:userId/chats', async (req, res) => {
       {
         $match: {
           chatType: 'private',
-          $or: [
-            { user_id: req.params.userId },
-            { chatId: { $regex: req.params.userId } }
-          ]
+          $or: [{ user_id: req.params.userId }, { chatId: { $regex: req.params.userId } }]
         }
       },
       {
@@ -221,18 +218,15 @@ app.get('/messages/private/:userId/chats', async (req, res) => {
 
 app.get('/messages/private/:userId/all', async (req, res) => {
   try {
-    await ensureConnection();
-    const userId = req.params.userId;
+    await ensureConnection()
+    const userId = req.params.userId
 
     // Trova tutte le chat dove l'utente è coinvolto
     const chats = await Message.aggregate([
       {
         $match: {
           chatType: 'private',
-          $or: [
-            { user_id: userId },
-            { chatId: { $regex: userId } }
-          ]
+          $or: [{ user_id: userId }, { chatId: { $regex: userId } }]
         }
       },
       {
@@ -271,31 +265,31 @@ app.get('/messages/private/:userId/all', async (req, res) => {
           unreadCount: 1
         }
       }
-    ]);
+    ])
 
-    res.json(chats);
+    res.json(chats)
   } catch (error) {
-    console.error('Error fetching chats:', error);
-    res.status(500).json({ error: error.message });
+    console.error('Error fetching chats:', error)
+    res.status(500).json({ error: error.message })
   }
-});
+})
 
 app.get('/messages/group/:userId/all', async (req, res) => {
   try {
-    await ensureConnection();
-    const userId = req.params.userId;
+    await ensureConnection()
+    const userId = req.params.userId
 
     // Trova tutti i gruppi dell'utente
     const userGroups = await Group.find({
       $or: [{ owner: userId }, { members: userId }]
-    }).distinct('_id');
+    }).distinct('_id')
 
     // Trova i messaggi non letti per ogni gruppo
     const groupMessages = await Message.aggregate([
       {
         $match: {
           chatType: 'group',
-          chatId: { $in: userGroups.map(id => id.toString()) }
+          chatId: { $in: userGroups.map((id) => id.toString()) }
         }
       },
       {
@@ -328,15 +322,14 @@ app.get('/messages/group/:userId/all', async (req, res) => {
           unreadCount: 1
         }
       }
-    ]);
+    ])
 
-    res.json(groupMessages);
+    res.json(groupMessages)
   } catch (error) {
-    console.error('Error fetching group messages:', error);
-    res.status(500).json({ error: error.message });
+    console.error('Error fetching group messages:', error)
+    res.status(500).json({ error: error.message })
   }
-});
-
+})
 
 const setupSocketEvents = (io) => {
   io.on('connection', (socket) => {
@@ -350,17 +343,17 @@ const setupSocketEvents = (io) => {
     socket.on('join-chat', async ({ chatId, userId, type }) => {
       try {
         console.log(`User ${userId} joining chat ${chatId}`)
-    
+
         // Leave previous rooms
         for (const room of socket.rooms) {
           if (room !== socket.id) {
             socket.leave(room)
           }
         }
-    
+
         // Join new room
         socket.join(chatId)
-    
+
         // Mark messages as read when joining chat
         await Message.updateMany(
           {
@@ -368,15 +361,15 @@ const setupSocketEvents = (io) => {
             user_id: { $ne: userId },
             readBy: { $ne: userId }
           },
-          { 
+          {
             $addToSet: { readBy: userId },
             $set: { status: 'read' }
           }
         )
-    
+
         // Emit messages-marked-read event to all clients in the room
         io.to(chatId).emit('messages-marked-read', { chatId, userId })
-    
+
         // Load and send existing messages
         const messages = await Message.find({
           chatId: chatId,
@@ -384,7 +377,7 @@ const setupSocketEvents = (io) => {
         })
           .sort({ timestamp: 1 })
           .lean()
-    
+
         socket.emit('joined', { messages })
       } catch (err) {
         console.error('Error joining chat:', err)

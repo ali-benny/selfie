@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { Icon } from '@iconify/vue'
 import edjsHTML from 'editorjs-html'
-import { API_URL } from '~/const.js'
+import { API_URL } from '@/const.js'
 import { getNotes, saveNoteMongo, deleteNote } from '@/router/note/editor/note.js'
 import { useUserStore } from '@/stores/account'
 import { getUsersByIds } from '@/router/user/user.js'
