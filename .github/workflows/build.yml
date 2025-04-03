@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - build
 
 jobs:
   build:
@@ -25,7 +24,7 @@ jobs:
       - name: Build project
         run: npm run build && ls -la
 
-      - name: Create SSH key
+      - name: Deploy to remote server
         run: |
           install -m 600 -D /dev/null ~/.ssh/selfie_rsa
           echo "${{ secrets.SSH_KEY }}" > ~/.ssh/selfie_rsa
