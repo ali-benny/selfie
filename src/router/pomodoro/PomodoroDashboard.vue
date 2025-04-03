@@ -1,7 +1,6 @@
 <template>
   <div>
     <div class="w-full h-full flex flex-col items-stretch gap-10">
-
       <!--- Pomodoro Timer -->
       <div id="timer-container" class="grow pt-10" :class="{ 'flex-animation': !showConfigList }">
         <PomodoroTimer />
@@ -11,9 +10,7 @@
       <Transition :duration="2000" name="config-fade">
         <div class="flex flex-col items-stretch gap-2 pb-4" v-if="showConfigList">
           <div class="flex justify-between items-center">
-            <h2 class="font-bold text-lg">
-              Your saved focuses
-            </h2>
+            <h2 class="font-bold text-lg">Your saved focuses</h2>
 
             <PomodoroConfigForm>
               <template #trigger>
@@ -30,18 +27,16 @@
       </Transition>
     </div>
   </div>
-
 </template>
 
 <script setup>
-import PomodoroConfigForm from '@/components/pomodoro/PomodoroConfigForm.vue';
-import PomodoroConfigList from '@/components/pomodoro/PomodoroConfigList.vue';
-import PomodoroTimer from '@/components/pomodoro/PomodoroTimer.vue';
-import { usePomodoroStore } from '@/stores/pomodoro';
-import { computed } from 'vue';
+import PomodoroConfigForm from '@/components/pomodoro/PomodoroConfigForm.vue'
+import PomodoroConfigList from '@/components/pomodoro/PomodoroConfigList.vue'
+import PomodoroTimer from '@/components/pomodoro/PomodoroTimer.vue'
+import { usePomodoroStore } from '@/stores/pomodoro'
+import { computed } from 'vue'
 
 const showConfigList = computed(() => !usePomodoroStore().pomodoro.running)
-
 </script>
 
 <style scoped>
@@ -69,7 +64,7 @@ const showConfigList = computed(() => !usePomodoroStore().pomodoro.running)
 
 @keyframes flex-grow {
   100% {
-    grow: 1
+    grow: 1;
   }
 }
 </style>

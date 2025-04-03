@@ -52,7 +52,11 @@ try:
     print(output)
 
     # Esegui "npm run build" con gestione continua dell'output
-    print_colored("\nEseguo: npm run build")
+    print_colored("\nInstallo le dipendenze...")
+    channel.send("/usr/local/node/bin/npm install\n")
+    time.sleep(10)
+
+    print_colored("\nBuildo il progetto...")
     channel.send("/usr/local/node/bin/npm run build\n")
     time.sleep(10)
 

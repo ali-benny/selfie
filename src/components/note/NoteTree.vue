@@ -48,12 +48,10 @@ import { createDirectory, getDirectoryStructure, moveNote } from '@/router/note/
 import { getNotes } from '@/router/note/editor/note'
 import { useUserStore } from '@/stores/account'
 import { onMounted, ref, watch } from 'vue'
-import { useNotivue } from 'notivue'
 import { API_URL } from '~/const'
 import TreeNode from './TreeNode.vue'
 
 const userStore = useUserStore()
-// const toast = useNotivue()
 const directories = ref([])
 const notes = ref([])
 const isOpen = ref(false) // Stato della sidebar

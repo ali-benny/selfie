@@ -1,6 +1,9 @@
 <template>
-  <div class="max-w-56 sm:max-w-64 h-full card card-compact sm:card-normal"
-    @click="pomodoroStore.setCurrentConfig(config)" :class="{ selected: pomodoroStore.isConfigSelected(config) }">
+  <div
+    class="max-w-56 sm:max-w-64 h-full card card-compact sm:card-normal"
+    @click="pomodoroStore.setCurrentConfig(config)"
+    :class="{ selected: pomodoroStore.isConfigSelected(config) }"
+  >
     <div class="card-body relative">
       <!-- Form edit -->
       <div @click.stop class="absolute top-4 right-4 flex justify-center align-center">
@@ -32,9 +35,9 @@
 <script setup>
 import PomodoroConfigForm from './PomodoroConfigForm.vue'
 import IconPomodoro from '../icons/IconPomodoro.vue'
-import { usePomodoroStore } from '@/stores/pomodoro';
-import { computed } from 'vue';
-import PomodoroConfigInfo from './PomodoroConfigInfo.vue';
+import { usePomodoroStore } from '@/stores/pomodoro'
+import { computed } from 'vue'
+import PomodoroConfigInfo from './PomodoroConfigInfo.vue'
 
 const { configId } = defineProps({
   configId: {
