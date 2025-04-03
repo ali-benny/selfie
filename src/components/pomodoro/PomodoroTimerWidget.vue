@@ -38,7 +38,7 @@
             <PomodoroAnimation widget :width="width" :height="height" />
             <div class="absolute w-full h-full flex items-center gap-2 px-3">
               <div class="flex justify-center items-center grow">
-                <span class="pt-2 digital select-none text-5xl">
+                <span class="digital select-none text-5xl">
                   {{ pomodoroStore.timer }}
                 </span>
               </div>

@@ -15,7 +15,7 @@
           <button
             class="btn btn-outline btn-error btn-sm"
             @click="deleteConfig(close)"
-            :disabled="pomodoroStore.isConfigSelected(configId)"
+            :disabled="!pomodoroStore.isConfigDeletable(configId)"
             v-if="configId"
           >
             <Icon icon="fluent:delete-32-regular" />
@@ -231,14 +231,8 @@
                       false-value="hhmm"
                     />
                     <div class="input input-sm px-2">
-                      <div class="w-20 flex justify-end items-center gap-1">
+                      <div class="w-16 flex justify-center items-center">
                         {{ formattedDuration }}
-                        <Icon
-                          icon="fluent-emoji-flat:three-oclock"
-                          inline
-                          class="text-lg"
-                          title="Total focus duration."
-                        />
                       </div>
                     </div>
                   </div>
