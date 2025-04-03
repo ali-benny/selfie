@@ -4,14 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "backend:dev": "nodemon server/app.js -w server",
-    "mongodb": "cross-env NODE_ENV='debug' node ./server/app.js",
-    "build": "vite build",
-    "preview": "vite preview",
+    "dev": "NODE_ENV=development vite",
+    "backend:dev": "NODE_ENV=development nodemon server/app.js -w server",
+    "build": "NODE_ENV=production vite build",
+    "preview": "NODE_ENV=development vite preview & npm run dev",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore",
     "format": "prettier --write src/",
-    "start": "npm-run-all --parallel mongodb dev"
+    "start": "npm-run-all --parallel dev backend:dev"
   },
   "resolutions": {
     "dicer": "^0.3.0",
@@ -39,6 +38,7 @@
     "cheerio": "^1.0.0",
     "colorjs.io": "^0.5.2",
     "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
     "editorjs-md-parser": "^0.0.3",
     "express": "^4.21.2",
     "express-fileupload": "^1.5.1",
