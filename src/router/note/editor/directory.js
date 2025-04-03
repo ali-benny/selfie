@@ -1,4 +1,4 @@
-import { API_URL } from '~/const'
+import { API_URL } from '@/const.js'
 import { saveNoteMongo } from './note'
 
 // Get directory structure

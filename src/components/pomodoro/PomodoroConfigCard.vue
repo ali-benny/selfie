@@ -1,8 +1,8 @@
 <template>
   <div
-    class="max-w-56 sm:max-w-64 h-full card card-compact sm:card-normal"
-    @click="pomodoroStore.setCurrentConfig(config)"
-    :class="{ selected: pomodoroStore.isConfigSelected(config) }"
+    class="max-w-full xs:max-w-56 sm:max-w-64 h-full card"
+    @click="!selected && pomodoroStore.setCurrentConfig(config)"
+    :class="{ selected: pomodoroStore.isConfigSelected(config._id) }"
   >
     <div class="card-body relative">
       <!-- Form edit -->
@@ -21,9 +21,11 @@
         <IconPomodoro :color="config.color.hex" class="text-5xl" />
         <div class="flex items-center gap-2">
           <h3 class="grow text-center m-0">{{ config.name }}</h3>
-          <button @click.stop class="flex items-center mt-1">
-            <Icon icon="fluent:share-48-regular" class="!text-neutral hover:!text-accent" />
-          </button>
+          <UserShare type="Pomodoro" :id="config._id">
+            <button class="flex items-center mt-1">
+              <Icon icon="fluent:share-48-regular" class="!text-neutral hover:!text-accent" />
+            </button>
+          </UserShare>
         </div>
       </div>
 
@@ -38,6 +40,7 @@ import IconPomodoro from '../icons/IconPomodoro.vue'
 import { usePomodoroStore } from '@/stores/pomodoro'
 import { computed } from 'vue'
 import PomodoroConfigInfo from './PomodoroConfigInfo.vue'
+import UserShare from '../UserShare.vue'
 
 const { configId } = defineProps({
   configId: {

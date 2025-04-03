@@ -170,6 +170,7 @@ import UserShare from '@/components/UserShare.vue'
 import EditorComponent from '@/components/note/EditorComponent.vue'
 import { useUserStore } from '@/stores/account'
 import { getDirectoryStructure, createDirectory } from './directory.js'
+import { getUsersByIds } from '@/router/user/user.js'
 
 export default {
   computed: {
@@ -390,8 +391,8 @@ export default {
         console.error('Failed to save updated readers:', error)
         push.error('Failed to remove reader')
         // Ricarico i readers in caso di errore per mantenere la sincronizzazione
-        this.readers = await getReaders(this.id)
-        this.readers_verbose = await getReadersIds(this.readers)
+        this.readers = await getReadersIds(this.id)
+        this.readers_verbose = await getReaders(this.id)
       }
     },
 
@@ -426,6 +427,11 @@ export default {
         document.querySelector('.trash-bin').classList.add('hidden')
         document.querySelector('.trash-bin').classList.remove('flex')
       }
+    }
+  },
+  watch: {
+    async readers() {
+      this.readers_verbose = await getUsersByIds(this.readers)
     }
   },
   components: {
