@@ -31,5 +31,6 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_KEY }}
-          source: './dist/*'
+          source: 'dist/'
           target: '/home/web/site232433/html/'
+          debug: true
