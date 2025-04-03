@@ -1,7 +1,7 @@
 const isNode = typeof process === 'undefined'
 const NODE_ENV = isNode ? process.env.NODE_ENV : import.meta.env?.MODE
 
-const ENV_PREFIX = NODE_ENV === 'development' ? '' : 'webapp'
+export const APP_PREFIX = NODE_ENV === 'development' ? '' : 'webapp'
 
 export const BACKEND_PORT = 8000
 
