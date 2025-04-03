@@ -1,29 +1,25 @@
-import dotenv from 'dotenv'
+const isNode = typeof process === 'undefined'
+const NODE_ENV = isNode ? process.env.NODE_ENV : import.meta.env?.MODE
 
-const ENV_PREFIX = process.env.NODE_ENV === 'development' ? '' : 'webapp/'
-dotenv.config({ path: [`${ENV_PREFIX}.env`, `${ENV_PREFIX}.env.${process.env.NODE_ENV}`] })
-
-console.log(process.env.NODE_ENV)
+const ENV_PREFIX = NODE_ENV === 'development' ? '' : 'webapp'
 
 export const BACKEND_PORT = 8000
 
 export const SERVER_URL =
-  process.env.SERVER_URL ||
-  (process.env.NODE_ENV === 'development' ? `http://locahost:${BACKEND_PORT}` : null)
-console.log(SERVER_URL)
+  NODE_ENV === 'development'
+    ? `http://localhost:${BACKEND_PORT}`
+    : 'https://site232433.tw.cs.unibo.it'
+
 if (!SERVER_URL) throw Error('const.js - No SERVER_URL configured')
 
 export const MONGO_URI =
-  process.env.MONGO_URI ||
-  (process.env.NODE_ENV === 'development' ? 'mongodb://127.0.0.1:27017/selfie' : null)
-if (!MONGO_URI) throw Error('const.js - No MONGO_URI configured')
+  NODE_ENV === 'development'
+    ? 'mongodb://127.0.0.1:27017/selfie'
+    : 'mongodb://site232433:ahB4ha7j@mongo_site232433/selfie?authSource=admin&writeConcern=majority'
 
 export const API_URL = `${SERVER_URL}/api`
 export const CHAT_URL = `${SERVER_URL}/chat`
 
-/*
- * Default tailwind values from https://tailwindcss.com/docs/screens
- */
 export const SCREENS = {
   sm: '640px',
   md: '768px',
