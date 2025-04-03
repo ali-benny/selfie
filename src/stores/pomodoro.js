@@ -173,6 +173,12 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
     return id === config.value._id
   }
 
+  function isConfigDeletable(id) {
+    if (!pomodoro.value.started) return true
+
+    return !isConfigSelected(id)
+  }
+
   function setCurrentConfig(c) {
     if (!selectPomodoroConfig(c)) return
 
@@ -300,6 +306,7 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
     showPomodoroWidget,
     computeConfigDuration,
     formatDuration,
-    toggleWidgetOpen
+    toggleWidgetOpen,
+    isConfigDeletable
   }
 })
