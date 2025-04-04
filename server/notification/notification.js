@@ -90,7 +90,13 @@ app.post('/:user/notification', async (req, res) => {
     }
     await notification.save()
 
-    await sendPushNotification(notification.user, { title: 'selfie', body: notification.content })
+    await sendPushNotification(notification.user, {
+      title: 'selfie',
+      body: notification.content,
+      data: {
+        notification: notification
+      }
+    })
 
     res.status(200).json(notification)
   } catch (err) {
@@ -99,6 +105,16 @@ app.post('/:user/notification', async (req, res) => {
   }
 })
 
-export async function createNotification(user, type, content, entityType = null, entity = null) {}
+app.delete('/notification/:id', async (req, res) => {
+  const id = req.params.id
+  try {
+    await Notification.deleteOne({ _id: id }).then(() => {
+      res.status(200).send('Notification deleted successfully!')
+    })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: err.message })
+  }
+})
 
 export default app

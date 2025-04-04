@@ -7,14 +7,14 @@
     </div>
     <template #content>
       <div
-        class="w-64 min-h-64 min-h-80 max-h-96 flex justify-stretch rounded-lg overflow-hidden m-1"
+        class="w-72 min-h-64 min-h-80 max-h-96 flex justify-stretch rounded-lg overflow-hidden m-1"
       >
-        <div class="overflow-y-auto">
-          <div class="flex flex-col grow gap-3" v-if="notifications.length > 0">
+        <div class="overflow-y-auto" v-if="notifications.size > 0">
+          <div class="flex flex-col grow gap-3">
             <div
               class="w-full relative flex flex-col items-stretch rounded-lg bg-base-200 pt-4 pb-1 px-2"
-              v-for="notification in notifications"
-              :key="notification._id"
+              v-for="[key, notification] in notifications.entries()"
+              :key="key"
             >
               <!-- Notification time -->
               <div class="absolute top-1 right-1 text-xs text-neutral">
@@ -41,15 +41,16 @@
                 <button
                   class="text-xs text-neutral font-bold cursor-pointer px-2 py-1"
                   v-if="notification.type === 'system'"
+                  @click="deleteNotification(notification)"
                 >
                   Mark as read
                 </button>
               </div>
             </div>
           </div>
-          <div class="flex justify-center items-center grow text-neutral" v-else>
-            No notifications to show.
-          </div>
+        </div>
+        <div class="flex justify-center items-center grow text-neutral" v-else>
+          No notifications to show.
         </div>
       </div>
     </template>
@@ -60,8 +61,23 @@
 import { useNotificationStore } from '@/stores/notification'
 import { storeToRefs } from 'pinia'
 import dateFormat from 'dateformat'
+import { API_URL } from '~/const'
 
 const { notifications } = storeToRefs(useNotificationStore())
+
+async function deleteNotification(notification) {
+  try {
+    const response = await fetch(API_URL + `/notification/${notification._id}`, {
+      method: 'DELETE'
+    })
+    if (!response.ok)
+      throw new Error(`ERROR - deleteNotification, response status ${response.status}`)
+
+    notifications.value.delete(notification._id)
+  } catch (err) {
+    console.error(err)
+  }
+}
 
 // TODO: come posso usare roba dichiarata in backend???
 function notificationIcon(notification) {
@@ -95,7 +111,7 @@ function printNotificationTime(created) {
   let hours = Math.round(diff / 1000 / 60 / 60)
   let days = Math.round(diff / 1000 / 60 / 60 / 24)
 
-  if (days > 0) return dateFormat(new Date(created), 'dd %mmm %MM:%ss')
+  if (days > 0) return dateFormat(new Date(created), 'dd mmm M:ss')
 
   if (hours > 0)
     if (hours > 3) return dateFormat(new Date(created), 'MM:ss')

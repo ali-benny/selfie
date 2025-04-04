@@ -2,10 +2,12 @@ import { useAsyncState } from '@vueuse/core'
 import { defineStore } from 'pinia'
 import { API_URL } from '~/const'
 import { useUserStore } from './account'
+
+// TODO: keep notifications sorted
 export const useNotificationStore = defineStore('notification', () => {
   const userId = useUserStore().loggedUser._id
 
-  const { state: notifications, isReady } = useAsyncState(loadUserNotifications(), [], {
+  const { state: notifications, isReady } = useAsyncState(loadUserNotifications(), new Map(), {
     shallow: false
   })
 
@@ -18,13 +20,19 @@ export const useNotificationStore = defineStore('notification', () => {
           method: 'GET'
         })
 
-      return await response.json()
+      return new Map((await response.json()).map((n) => [n._id, n]))
     } catch (e) {
       console.error(e)
     }
   }
+
+  function appendNotification(notification) {
+    notifications.value.set(notification._id, notification)
+  }
+
   return {
     notifications,
-    isReady
+    isReady,
+    appendNotification
   }
 })

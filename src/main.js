@@ -16,6 +16,7 @@ import 'notivue/notification.css' // Only needed if using built-in notifications
 import 'notivue/animations.css' // Only needed if using built-in animations
 import { API_URL } from '../const.js'
 import { useUserStore } from './stores/account.js'
+import { useNotificationStore } from './stores/notification.js'
 
 const app = createApp(App)
 const notivue = createNotivue({
@@ -84,4 +85,12 @@ if ('serviceWorker' in navigator) {
         throw new Error(`ERROR - service worker registration, response status ${response.status}`)
       }
     })
+
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    switch (event.data.type) {
+      case 'newNotification':
+        useNotificationStore().appendNotification(event.data.notification)
+        break
+    }
+  })
 }

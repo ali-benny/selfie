@@ -27,7 +27,7 @@ export async function sendNotification(user, options) {
           } catch (error) {
             console.error(`ERROR for ${subscription.endpoint}:`, error.message)
             // TODO: decidere se eliminare la subscription
-            // await s.deleteOne()
+            await s.deleteOne()
           }
         })
       )
