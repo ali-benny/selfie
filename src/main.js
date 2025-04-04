@@ -15,7 +15,7 @@ import './assets/main.css'
 import { createNotivue } from 'notivue'
 import 'notivue/notification.css' // Only needed if using built-in notifications
 import 'notivue/animations.css' // Only needed if using built-in animations
-import { API_URL } from '../const.js'
+import { API_URL } from '@/const.js'
 import { useUserStore } from './stores/account.js'
 import { useNotificationStore } from './stores/notification.js'
 

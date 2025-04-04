@@ -1,6 +1,6 @@
 import { useAsyncState } from '@vueuse/core'
 import { defineStore } from 'pinia'
-import { API_URL } from '~/const'
+import { API_URL } from '@/const.js'
 import { useUserStore } from './account'
 
 // TODO: keep notifications sorted

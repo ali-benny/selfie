@@ -61,13 +61,13 @@
 import { useNotificationStore } from '@/stores/notification'
 import { storeToRefs } from 'pinia'
 import dateFormat from 'dateformat'
-import { API_URL } from '~/const'
+import { API_URL } from '@/const'
 
 const { notifications } = storeToRefs(useNotificationStore())
 
 async function deleteNotification(notification) {
   try {
-    const response = await fetch(API_URL + `/notification/${notification._id}`, {
+    const response = await fetch(`${API_URL}/notification/${notification._id}`, {
       method: 'DELETE'
     })
     if (!response.ok)

@@ -27,7 +27,7 @@ import NotificationTray from '@/components/notification/NotificationTray.vue'
 import { getUsers } from '@/router/user/user'
 import { useAsyncState, whenever } from '@vueuse/core'
 import { ref } from 'vue'
-import { API_URL } from '~/const'
+import { API_URL } from '@/const.js'
 
 const { state: users, isReady } = useAsyncState(async () => {
   return await getUsers()
@@ -37,7 +37,7 @@ const subscriptions = ref(new Map())
 
 whenever(isReady, async () => {
   users.value.forEach(async (user) => {
-    const response = await fetch(API_URL + `/webpush/${user._id}/subscriptions`)
+    const response = await fetch(`${API_URL}/webpush/${user._id}/subscriptions`)
     if (!response.ok) throw Error(response)
     subscriptions.value.set(user._id, await response.json())
   })

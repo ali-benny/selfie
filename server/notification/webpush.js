@@ -5,7 +5,7 @@ import webPush from 'web-push'
 import mongoose from 'mongoose'
 import bodyParser from 'body-parser'
 import { connect } from '../app.js'
-import { SERVER_URL } from '../../const.js'
+import { SERVER_URL } from '../const.js'
 
 // Se chiavi non presenti le genero e salvo in development, e loggo errore in prod
 if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
