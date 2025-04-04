@@ -3,11 +3,15 @@ import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import Unimport from 'unimport/unplugin'
+import { SERVER_URL } from './src/const.js'
+
+import vueDevTools from 'vite-plugin-vue-devtools'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     vue(),
+    vueDevTools(),
     Unimport.vite({
       addons: {
         vueTemplate: true
@@ -29,7 +33,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: SERVER_URL,
         changeOrigin: true
       }
     }

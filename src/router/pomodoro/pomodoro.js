@@ -1,7 +1,7 @@
-import { API_URL } from '../../../const.js'
+import { API_URL } from '@/const.js'
 import { flavors } from '@catppuccin/palette'
 
-export const defaultConfig = {
+export const initialConfig = {
   name: 'Pomodoro',
   pomodoroTime: 25,
   shortBreakTime: 5,
@@ -9,14 +9,32 @@ export const defaultConfig = {
     time: 10,
     interval: 3
   },
-  color: flavors.macchiato.colors.maroon
+  color: {
+    name: flavors.macchiato.colors.maroon.name,
+    hex: flavors.macchiato.colors.maroon.hex
+  }
+}
+
+export const initialPomodoro = {
+  initialTimer: null,
+  timer: null,
+  phase: 'pomodoro',
+  cycle: 1,
+  started: false,
+  running: false,
+  finished: false,
+  timeoutId: 0,
+  longBreakLap: 0
 }
 
 export async function loadUserConfigs(userId) {
   if (!userId) return new Map()
   try {
-    const response = await fetch(API_URL + `/${userId}/pomodoros/configs`, {
-      method: 'GET'
+    const response = await fetch(`${API_URL}/${userId}/pomodoros/configs`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
     })
 
     if (!response.ok) {
@@ -25,7 +43,7 @@ export async function loadUserConfigs(userId) {
     const configs = await response.json()
     return new Map(configs.map((c) => [c._id, c]))
   } catch (error) {
-    console.error(error.message)
+    console.error(error)
   }
 }
 
@@ -34,20 +52,41 @@ export async function loadUserConfigs(userId) {
  */
 export async function createPomodoroConfig(userId, config) {
   try {
-    if (Object.keys(config.longBreak).length == 0) {
+    if (config.longBreak && Object.keys(config.longBreak).length == 0) {
       delete config.longBreak
     }
-    const response = await fetch(API_URL + `/${userId}/pomodoros/configs/`, {
+    const response = await fetch(`${API_URL}/${userId}/pomodoros/configs/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         ...config
       })
     })
+    if (!response.ok)
+      throw new Error(`ERROR - createPomodoroConfig, response status ${response.status}`)
+
+    return response.json()
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+/*
+ * Crea la Config
+ */
+export async function createPomodoroConfigs(userIds, configId) {
+  try {
+    const response = await fetch(API_URL + `/pomodoros/configs/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        users: userIds,
+        configId: configId
+      })
+    })
     if (!response.ok) {
       throw new Error(`ERROR - createPomodoroConfig, response status ${response.status}`)
     }
-    return response.json()
   } catch (error) {
     console.error(error.message)
   }
@@ -55,7 +94,7 @@ export async function createPomodoroConfig(userId, config) {
 
 export async function updatePomodoroConfig(config) {
   try {
-    if (Object.keys(config.longBreak).length == 0) {
+    if (config.longBreak && Object.keys(config.longBreak).length == 0) {
       delete config.longBreak
     }
     const response = await fetch(API_URL + '/pomodoros/configs/' + config._id, {
@@ -69,7 +108,7 @@ export async function updatePomodoroConfig(config) {
       throw new Error(`ERROR - updatePomodoroConfig, response status ${response.status}`)
     }
   } catch (error) {
-    console.error(error.message)
+    console.error(error)
   }
 }
 
@@ -78,7 +117,7 @@ export async function updatePomodoroConfig(config) {
  */
 export async function loadLatestConfig(
   userId,
-  fallbackConfig = { ...defaultConfig, userId: userId }
+  fallbackConfig = { ...initialConfig, userId: userId }
 ) {
   if (!userId) return fallbackConfig
   try {
@@ -98,9 +137,9 @@ export async function loadLatestConfig(
 /*
  * Elimina la Config
  */
-export async function deletePomodoroConfig(id) {
+export async function deletePomodoroConfig(configId) {
   try {
-    const response = await fetch(API_URL + '/pomodoros/configs/' + id, {
+    const response = await fetch(API_URL + '/pomodoros/configs/' + configId, {
       method: 'DELETE'
     })
     if (!response.ok) {
@@ -108,5 +147,23 @@ export async function deletePomodoroConfig(id) {
     }
   } catch (error) {
     console.error(error.message)
+  }
+}
+
+/*
+ * Tells the server that the config has been selected so it can update the lastUsed field
+ */
+export async function selectPomodoroConfig(config) {
+  try {
+    const response = await fetch(
+      `${API_URL}/${config.userId}/pomodoros/configs/${config._id}/select`
+    )
+    if (!response.ok) {
+      throw new Error(`ERROR - selectPomodoroConfig, response status ${response.status}`)
+    }
+    return true
+  } catch (error) {
+    console.error(error.message)
+    return false
   }
 }

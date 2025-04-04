@@ -113,12 +113,10 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { createUser, getUsers, updateUser } from '@/router/user/user'
-import { API_URL } from '~/const'
+import { API_URL } from '@/const.js'
 import passwordMeter from 'vue-simple-password-meter'
 import bcrypt from 'bcryptjs'
-import { useNotivue } from 'notivue'
 import { useUserStore } from '@/stores/account'
-// const toast = useNotivue()
 
 const focus = ref('')
 const status = ref('')

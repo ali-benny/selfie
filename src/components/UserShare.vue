@@ -38,7 +38,7 @@
           class="btn btn-outline btn-primary mt-2 flex items-center justify-center rounded-lg gap-2"
           @click="sendshare()"
         >
-          Condividi<Icon icon="fluent:send-person-16-filled" />
+          {{ props.msg }}<Icon icon="fluent:send-person-16-filled" />
         </button>
       </div>
     </template>
@@ -47,14 +47,15 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { API_URL } from '../../const'
-import { useNotivue } from 'notivue'
+import { API_URL } from '@/const.js'
 import { saveNoteMongo, getReadersIds } from '@/router/note/editor/note'
+import { updateGroup } from '@/router/group/group'
+import { useUserStore } from '@/stores/account.js'
 
-// const toast = useNotivue()
+const loggedUser = useUserStore().loggedUser
 
-const users = ref()
-const sharewith = ref([])
+const users = ref() // all users
+const sharewith = ref([]) // users to share with [users selected from the popper]
 const emit = defineEmits(['update:modelValue'])
 
 const props = defineProps({
@@ -64,18 +65,41 @@ const props = defineProps({
     validator: (value) => value.every((item) => typeof item === 'string')
   },
   id: String,
-  type: String
+  type: String,
+  msg: {
+    type: String,
+    default: 'Share'
+  }
 })
 
 onMounted(async () => {
   try {
     const response = await fetch(`${API_URL}/users`)
     const data = await response.json()
-    users.value = data
+    // Filter out users based on current group
+    loadUserData(data)
   } catch (error) {
     console.error('Error fetching users:', error)
   }
 })
+
+function loadUserData(allUsers) {
+  if (!Array.isArray(allUsers)) {
+    console.error('loadUserData received non-array data:', allUsers)
+    allUsers = [] // Default to empty array
+  }
+
+  // Ensure props.modelValue is an array
+  const modelValue = Array.isArray(props.modelValue) ? props.modelValue : []
+
+  users.value = allUsers.filter((user) => {
+    // Make sure user and user._id are valid before comparison
+    return user && user._id && user._id !== loggedUser._id && !modelValue.includes(user._id)
+  })
+
+  // Reset sharewith whenever users are reloaded
+  sharewith.value = []
+}
 
 function select(user) {
   if (sharewith.value.includes(user)) {
@@ -119,6 +143,9 @@ async function sendshare() {
     case 'Event': {
       //TODO: add user to event share
       break
+    }
+    case 'Group': {
+      await updateGroup({ _id: props.id, members: props.modelValue })
     }
   }
   sharewith.value = []

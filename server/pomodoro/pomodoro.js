@@ -1,8 +1,9 @@
 import { flavors } from '@catppuccin/palette'
 import express from 'express'
 import mongoose from 'mongoose'
-import bodyParser from 'body-parser'
 import { connect } from '../app.js'
+
+const app = express()
 
 const LongBreakSchema = new mongoose.Schema(
   {
@@ -46,8 +47,7 @@ const PomodoroConfigSchema = new mongoose.Schema({
     type: Number
   },
   lastUsed: {
-    type: Date,
-    default: null
+    type: Date
   },
   color: {
     type: Object,
@@ -60,8 +60,6 @@ const PomodoroConfigSchema = new mongoose.Schema({
 
 const PomodoroConfig = mongoose.model('pomodoroConfig', PomodoroConfigSchema)
 
-const app = express()
-app.use(bodyParser.json())
 app.on('mount', async () => {
   await connect('pomodoroConfig')
 })
@@ -79,13 +77,22 @@ app.get('/:userId/pomodoros/configs', async (req, res) => {
   }
 })
 
+app.get('/pomodoros/configs/:id', async (req, res) => {
+  try {
+    const config = await PomodoroConfig.findById(req.params.id)
+    res.status(200).json(config)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
 /*
  * Creates a new config
  */
 app.post('/:userId/pomodoros/configs/', async (req, res) => {
   try {
     const config = new PomodoroConfig({ userId: req.params.userId, ...req.body })
-    config.lastUsed = Date.now()
     await config.save()
 
     res.status(200).json(config)
@@ -104,12 +111,12 @@ app.patch('/pomodoros/configs/:id', async (req, res) => {
     const config = await PomodoroConfig.findById(id)
     config.name = req.body.name
     config.pomodoroTime = req.body.pomodoroTime
-    config.breakTime = req.body.breakTime
+    config.shortBreakTime = req.body.shortBreakTime
     config.cycles = req.body.cycles
     config.longBreak = req.body.longBreak
     config.color = req.body.color
     config.lastUsed = req.body.lastUsed
-    config.save()
+    await config.save()
     res.status(200).send('Config updated successfully!')
   } catch (err) {
     console.error(err)
@@ -137,14 +144,31 @@ app.delete('/pomodoros/configs/:id', async (req, res) => {
  */
 app.get('/:userId/pomodoros/configs/latest', async (req, res) => {
   try {
-    const config = await PomodoroConfig.findOne({ userId: req.params.userId }).sort({
+    const config = await PomodoroConfig.findOne({
+      userId: req.params.userId,
+      lastUsed: { $exists: true }
+    }).sort({
       lastUsed: -1
     })
-
     res.status(200).json(config)
   } catch (err) {
     console.error(err)
-    console.log('error occurred')
+    res.status(500).json({ error: err.message })
+  }
+})
+
+/*
+ * Updates the field 'lastUsed' as a config gets selected by the user
+ */
+app.get('/:userId/pomodoros/configs/:configId/select', async (req, res) => {
+  try {
+    await PomodoroConfig.findOne({ _id: req.params.configId })
+      .updateOne({ lastUsed: Date.now() })
+      .then(() => {
+        res.status(200).send('Config updated successfully!')
+      })
+  } catch (err) {
+    console.error(err)
     res.status(500).json({ error: err.message })
   }
 })

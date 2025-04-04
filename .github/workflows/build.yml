@@ -1,0 +1,36 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build project
+        run: npm run build && ls -la
+
+      - name: Deploy to remote server
+        run: |
+          install -m 600 -D /dev/null ~/.ssh/selfie_rsa
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/selfie_rsa
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} > ~/.ssh/known_hosts
+          scp -i ~/.ssh/selfie_rsa -r dist ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/home/web/site232433/html 
+        shell: bash
+        env:
+          SSH_KEY_PATH: ~/.ssh/id_rsa
+        
