@@ -1,37 +1,45 @@
-<script>
-let tasks = [
-  {
-    id: '1',
-    name: 'Redesign website',
-    start: '2016-12-28',
-    end: '2016-12-31',
-    progress: 20
-  },
-  {
-	id: '2',
-	name: 'Develop website',
-	start: '2017-01-01',
-	end: '2017-01-15',
-	progress: 0
-  },
-  {
-	id: '3',
-	name: 'Test website',
-	start: '2017-01-16',
-	end: '2017-01-20',
-	progress: 0
-  },
-  {
-	id: '4',
-	name: 'Launch website',
-	start: '2017-01-21',
-	end: '2017-01-25',
-	progress: 0
-  }
-]
-let gantt = new Gantt("#gantt", tasks);
-</script>
-
 <template>
-  <div id="gantt"></div>
+  <g-gantt-chart
+    chart-start="2021-07-12 12:00"
+    chart-end="2021-07-14 12:00"
+    precision="hour"
+    bar-start="myBeginDate"
+    bar-end="myEndDate"
+  >
+    <g-gantt-row label="My row 1" :bars="row1BarList" />
+    <g-gantt-row label="My row 2" :bars="row2BarList" />
+  </g-gantt-chart>
 </template>
+
+<script setup>
+import { ref } from 'vue'
+
+const row1BarList = ref([
+  {
+    myBeginDate: '2021-07-13 13:00',
+    myEndDate: '2021-07-13 19:00',
+    ganttBarConfig: {
+      // each bar must have a nested ganttBarConfig object ...
+      id: 'unique-id-1', // ... and a unique "id" property
+      label: 'Lorem ipsum dolor'
+    }
+  }
+])
+const row2BarList = ref([
+  {
+    myBeginDate: '2021-07-13 00:00',
+    myEndDate: '2021-07-14 02:00',
+    ganttBarConfig: {
+      id: 'another-unique-id-2',
+      hasHandles: true,
+      label: 'Hey, look at me',
+      style: {
+        // arbitrary CSS styling for your bar
+        background: '#e09b69',
+        borderRadius: '20px',
+        color: 'black'
+      }
+    }
+  }
+])
+</script>

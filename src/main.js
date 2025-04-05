@@ -6,6 +6,7 @@ import vuetify from './plugins/vuetify'
 import Popper from 'vue3-popper'
 import { Icon } from '@iconify/vue'
 import { Transition } from 'vue'
+import ganttastic from '@infectoone/vue-ganttastic'
 
 import App from './App.vue'
 import router from './router'
@@ -30,6 +31,7 @@ app.use(notivue)
 app.use(createPinia())
 app.use(vuetify)
 app.use(router)
+app.use(ganttastic)
 app.component('Popper', Popper)
 app.component('Icon', Icon)
 app.component('Transition', Transition)
