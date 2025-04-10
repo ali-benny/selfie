@@ -215,7 +215,7 @@ async function deleteGroup(group) {
           <button class="btn btn-sm btn-secondary !btn-outline rounded-full">
             <Icon icon="mingcute:add-fill" />New Group
           </button>
-          <template>
+          <template #content>
             <form
               id="create-group-form"
               @submit.prevent="createGroup"
