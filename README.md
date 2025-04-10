@@ -74,3 +74,8 @@ Per usarlo nello `<script>`: `push.<type>('<msg>')`
 dove `type` può essere: success/warining/error
 
 Per realizzare cose particolari consiglio di consultare https://docs.notivue.smastrom.io/push-usage/methods.html
+
+## Vue3-Popper
+
+Documentazione davvero completa su: https://github.com/valgeirb/vue3-popper
+

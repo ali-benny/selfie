@@ -23,7 +23,8 @@
             <div class="flex items-center gap-3">
               <div :class="['avatar', user.logged ? 'online' : '']">
                 <div class="mask mask-squircle !bg-primary w-10">
-                  <img :src="user.image" alt="User Image" class="m-0" />
+                  <Icon v-if="user.group" icon="mingcute:group-3-fill" class="text-base-100 text-3xl m-1"></Icon>
+                  <img v-else :src="user.image" alt="User Image" class="m-0" />
                 </div>
               </div>
               {{ user.name }} {{ user.surname ? user.surname : '' }}
@@ -54,7 +55,7 @@ import { useUserStore } from '@/stores/account.js'
 
 const loggedUser = useUserStore().loggedUser
 
-const users = ref() // all users
+const users = ref() // all users and groups to share with
 const sharewith = ref([]) // users to share with [users selected from the popper]
 const emit = defineEmits(['update:modelValue'])
 
@@ -76,8 +77,8 @@ onMounted(async () => {
   try {
     const response = await fetch(`${API_URL}/users`)
     const data = await response.json()
-    // Filter out users based on current group
     loadUserData(data)
+    if (props.type !== 'Group') loadUserGroups()
   } catch (error) {
     console.error('Error fetching users:', error)
   }
@@ -99,6 +100,23 @@ function loadUserData(allUsers) {
 
   // Reset sharewith whenever users are reloaded
   sharewith.value = []
+}
+
+async function loadUserGroups() {
+  // get all groups of the logged user
+  const groups = await fetch(`${API_URL}/${loggedUser._id}/groups`)
+  const data = await groups.json()
+
+  // add groups as users to the list of users
+  data.forEach((group) => {
+    users.value.push({
+      _id: group._id,
+      name: group.name,
+      surname: '',
+      logged: false,
+      group: true // add group property to identify groups
+    })
+  })
 }
 
 function select(user) {
