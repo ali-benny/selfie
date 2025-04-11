@@ -12,7 +12,7 @@ import App from './App.vue'
 import router from './router'
 import './assets/main.css'
 
-import { createNotivue } from 'notivue'
+import { createNotivue, push } from 'notivue'
 import 'notivue/notification.css' // Only needed if using built-in notifications
 import 'notivue/animations.css' // Only needed if using built-in animations
 import { API_URL } from '@/const.js'
@@ -98,6 +98,10 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('message', (event) => {
     switch (event.data.type) {
       case 'newNotification':
+        if (event.data.isFocused) {
+          push.info(event.data.notification.content)
+        }
+
         useNotificationStore().appendNotification(event.data.notification)
         break
     }
