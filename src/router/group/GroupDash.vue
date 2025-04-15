@@ -93,8 +93,6 @@ async function handleSelectGroup(group) {
         users.value = usersData
       }
     }
-
-    console.log('🔥 - handleSelectGroup - users.value:', users.value)
   } catch (error) {
     console.error('Error selecting group:', error)
     push.error(`Could not load group details: ${error.message}`)
@@ -104,7 +102,6 @@ async function handleSelectGroup(group) {
 async function saveGroup() {
   if (!editedGroup.value) return
 
-  console.log('🔥 - saveGroup - group:', editedGroup.value)
   try {
     const updatedGroup = await updateGroup(editedGroup.value)
     // Only update the selectedGroup after successful save
@@ -183,7 +180,6 @@ async function createGroup() {
 }
 
 async function deleteGroup(group) {
-  console.log('🔥 - deleteGroup - group:', group)
   try {
     const response = await fetch(API_URL + '/group/' + group._id, {
       method: 'DELETE',

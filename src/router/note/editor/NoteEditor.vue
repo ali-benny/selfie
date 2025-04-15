@@ -170,7 +170,8 @@ import UserShare from '@/components/UserShare.vue'
 import EditorComponent from '@/components/note/EditorComponent.vue'
 import { useUserStore } from '@/stores/account'
 import { getDirectoryStructure, createDirectory } from './directory.js'
-import { getUsersByIds } from '@/router/user/user.js'
+import { getUserById } from '@/router/user/user.js'
+import { getGroupById } from '@/router/group/group.js'
 
 export default {
   computed: {
@@ -192,7 +193,6 @@ export default {
         this.readers = await getReadersIds(this.id)
         const tmp = await getNoteById(this.id)
         this.selectedFolder = tmp.directory
-        console.log('🔥 - mounted - tmp.directory:', tmp.directory)
       }
       // Mostra l'editor se è una nuova nota o se l'utente ha i permessi
       this.showEditor = !this.id || this.hasPermission
@@ -304,7 +304,6 @@ export default {
       try {
         const outputData = await this.editor.save()
         let newnote = false
-        console.log('🔥 - saveNote - this.selectedFolder:', this.selectedFolder)
         if (this.id == null) newnote = true
         this.id = await saveNoteMongo({
           id: this.id,
@@ -431,7 +430,12 @@ export default {
   },
   watch: {
     async readers() {
-      this.readers_verbose = await getUsersByIds(this.readers)
+      this.readers.forEach(async (reader) => {
+        this.readers_verbose = await getUserById(this.readers)
+        if (this.readers_verbose == null) {
+          this.readers_verbose = await getGroupById(this.readers)
+        }
+      })
     }
   },
   components: {
