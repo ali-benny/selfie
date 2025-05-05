@@ -93,9 +93,7 @@ app.post('/:user/notification', async (req, res) => {
     await sendPushNotification(notification.user, {
       title: 'selfie',
       body: notification.content,
-      data: {
-        notification: notification
-      }
+      data: notification
     })
 
     res.status(200).json(notification)

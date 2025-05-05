@@ -3,11 +3,12 @@
     <div class="w-full flex justify-end py-2">
       <NotificationTray />
     </div>
-    <div class="w-full flex gap-5 mt-5" v-if="isReady">
+    <div class="w-full flex gap-5 mt-5 flex-wrap" v-if="isReady">
       <div class="card bg-base-200 w-96 shadow-xl" v-for="user in users" :key="user._id">
-        <figure class="px-10 pt-10">
-          <img :src="user.image" class="rounded-xl" />
-        </figure>
+        <!-- TODO: ripristina -->
+        <!-- <figure class="px-10 pt-10"> -->
+        <!--   <img :src="user.image" class="rounded-xl" /> -->
+        <!-- </figure> -->
         <div class="card-body">
           <h2 class="card-title">{{ user.name }} {{ user.surname }}</h2>
           <p>Username: {{ user.username }}</p>

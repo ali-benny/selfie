@@ -1,27 +1,50 @@
-self.addEventListener('push', async (e) => {
-  /* se trova una pagina di 'Selfie' focused, allora inoltra la notifica
-   * all'app che la mostra come toast, altrimenti manda proprio la notifica browser
-   */
-  const deliverPushNotification = async () => {
-    const options = e.data.json().options
-    const isFocused = await self.clients
-      .matchAll({ includeUncontrolled: true })
-      .then((windows) => windows.some((w) => w.focused))
+self.addEventListener('push', (event) => {
+  let options
+  try {
+    options = event.data.json().options
+    if (!options) {
+      console.error('Push data has no options.')
+      return
+    }
+  } catch (error) {
+    console.error('Failed to parse push data as JSON:', error)
+    return
+  }
 
-    await self.clients.matchAll({ includeUncontrolled: true }).then((windows) => {
-      const focused_window = windows.find((w) => w.focused)
-      const window = focused_window || windows[0]
-      window?.postMessage({
-        type: 'newNotification',
-        notification: options.data.notification,
-        isFocused: isFocused
-      })
+  const deliverPushNotification = async () => {
+    const clientWindows = await self.clients.matchAll({ includeUncontrolled: true, type: 'window' })
+    const focused = clientWindows.find((w) => w.focused)
+    const targetClient = focused || clientWindows[0]
+
+    targetClient?.postMessage({
+      type: 'newNotification',
+      notification: options.data,
+      isFocused: focused !== undefined
     })
 
-    if (Notification.permission === 'granted' && !isFocused) {
+    if (Notification.permission === 'granted' && !focused) {
       self.registration.showNotification('Selfie', options)
     }
   }
 
-  e.waitUntil(deliverPushNotification())
+  event.waitUntil(deliverPushNotification())
+})
+
+self.addEventListener('notificationclick', (event) => {
+  const notification = event.notification
+  notification.close()
+
+  const openNotificationWindow = async () => {
+    await self.clients
+      .matchAll({ includeUncontrolled: true, type: 'window' })
+      .then((clientList) => {
+        for (const client of clientList) {
+          if ('focus' in client) return client.focus()
+        }
+
+        if (self.clients.openWindow) return self.clients.openWindow('/')
+      })
+  }
+
+  event.waitUntil(openNotificationWindow())
 })
