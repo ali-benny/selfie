@@ -36,16 +36,17 @@ if (process.env.NODE_ENV !== 'development') app.use(express.static(`${APP_PREFIX
 
 initializeSocket(server)
 
-server.listen(BACKEND_PORT, () => {
+server.listen(BACKEND_PORT, (error) => {
+  if (error) throw error
+
   console.log(`Server running at ${SERVER_URL}`)
 })
 
-app.all('*', (req, res) => {
+app.all('/{*splat}', (req, res) => {
   fs.readFile(path.join(__dirname, `${APP_PREFIX}/dist/index.html`), function (err, data) {
     if (err) {
       console.error(err)
-      res.redirect('/')
-      res.status(500).send()
+      res.redirect(500, '/')
       return
     }
 
@@ -57,7 +58,7 @@ app.all('*', (req, res) => {
 /**
  * Create a new mongodb collection
  */
-app.get(SERVER_URL + '/create', async (req, res) => {
+app.get('/create', async (req, res) => {
   const { dbName } = req.body
   try {
     const result = await create(dbName)
