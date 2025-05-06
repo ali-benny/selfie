@@ -1,13 +1,11 @@
 self.addEventListener('push', (event) => {
-  let options
+  let notification
+
   try {
-    options = event.data.json().options
-    if (!options) {
-      console.error('Push data has no options.')
-      return
-    }
+    notification = event.data.json().notification
+    if (!notification) throw new Error('Push data has no payload.')
   } catch (error) {
-    console.error('Failed to parse push data as JSON:', error)
+    console.error(error)
     return
   }
 
@@ -17,13 +15,17 @@ self.addEventListener('push', (event) => {
     const targetClient = focused || clientWindows[0]
 
     targetClient?.postMessage({
-      type: 'newNotification',
-      notification: options.data,
-      isFocused: focused !== undefined
+      type: 'pushNotification',
+      notification: notification,
+      isFocused: focused !== undefined,
+      title: notificationTitle(notification),
+      body: notificationBody(notification)
     })
 
     if (Notification.permission === 'granted' && !focused) {
-      self.registration.showNotification('Selfie', options)
+      self.registration.showNotification(notificationTitle(notification), {
+        body: notificationBody(notification)
+      })
     }
   }
 
@@ -48,3 +50,37 @@ self.addEventListener('notificationclick', (event) => {
 
   event.waitUntil(openNotificationWindow())
 })
+
+function notificationTitle(notification) {
+  switch (notification.kind) {
+    case 'alert':
+      return 'Alert'
+    case 'chat':
+      return `Message from ${notification.sender.username}`
+    case 'invitation': {
+      switch (notification.invitation.kind) {
+        case 'pomodoro':
+          return 'A Pomodoro invitation for you!'
+        default:
+          throw new Error('invalid invitation kind')
+      }
+    }
+  }
+}
+
+function notificationBody(notification) {
+  switch (notification.kind) {
+    case 'alert':
+      return notification.content
+    case 'chat':
+      return notification.message
+    case 'invitation': {
+      switch (notification.invitation.kind) {
+        case 'pomodoro':
+          return `${notification.sender.username} shared their pomodoro with you!`
+        default:
+          throw new Error('invalid invitation kind')
+      }
+    }
+  }
+}

@@ -97,9 +97,9 @@ if ('serviceWorker' in navigator) {
 
   navigator.serviceWorker.addEventListener('message', (event) => {
     switch (event.data.type) {
-      case 'newNotification':
+      case 'pushNotification':
         if (event.data.isFocused) {
-          push.info(event.data.notification.content)
+          push.info(event.data.body)
         }
 
         useNotificationStore().appendNotification(event.data.notification)

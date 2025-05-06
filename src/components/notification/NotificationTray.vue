@@ -9,42 +9,60 @@
       <div
         class="w-72 min-h-64 min-h-80 max-h-96 flex justify-stretch rounded-lg overflow-hidden m-1"
       >
-        <div class="overflow-y-auto" v-if="sortedNotifications.size > 0">
+        <div class="w-full overflow-y-auto" v-if="sortedNotifications.size > 0">
           <div class="flex flex-col grow gap-3">
             <div
-              class="w-full relative flex flex-col items-stretch rounded-lg bg-base-200 pt-4 pb-1 px-2"
+              class="w-full relative flex items-stretch gap-2 rounded-lg bg-base-200 py-1 px-2"
               v-for="[key, notification] in sortedNotifications.entries()"
               :key="key"
             >
-              <!-- Notification time -->
-              <div class="absolute top-1 right-1 text-xs text-neutral">
-                {{ printNotificationTime(notification.created) }}
+              <div class="flex flex-col justify-center">
+                <Icon :icon="notificationIcon(notification)" width="28" />
               </div>
 
-              <!-- Icon, title and content -->
-              <div class="flex items-center gap-3">
-                <Icon :icon="notificationIcon(notification)" class="min-w-6 sm:min-w-8 text-6xl" />
+              <div class="flex flex-col gap-1 grow">
+                <!-- Notification time -->
+                <div class="flex justify-end text-xs text-neutral">
+                  {{ printNotificationTime(notification.created) }}
+                </div>
+
+                <!-- Icon, title and content -->
                 <div class="text-pretty text-sm flex flex-col items-stretch">
-                  <div class="font-bold capitalize">
-                    {{ notification.type }}
+                  <div class="font-semibold capitalize">
+                    {{ notificationTitle(notification) }}
                   </div>
                   <div
-                    class="max-h-[2rem] leading-[1rem] text-ellipsis overflow-hidden text-wrap text-xs font-light"
+                    class="min-h-[1rem] max-h-[2rem] leading-[1rem] text-ellipsis overflow-hidden text-wrap font-light"
                   >
-                    {{ notification.content }}
+                    {{ notificationBody(notification) }}
                   </div>
                 </div>
-              </div>
 
-              <!-- Actions -->
-              <div class="flex justify-end gap-1">
-                <button
-                  class="text-xs text-neutral font-bold cursor-pointer px-2 py-1"
-                  v-if="notification.type === 'system'"
-                  @click="deleteNotification(notification._id)"
-                >
-                  Mark as read
-                </button>
+                <!-- Actions -->
+                <div class="flex justify-end text-sm text-neutral">
+                  <div v-if="notification.kind === 'invitation'" class="flex gap-1">
+                    <button
+                      class="cursor-pointer px-2 py-1"
+                      @click="deleteNotification(notification._id)"
+                    >
+                      Decline
+                    </button>
+
+                    <button
+                      class="text-primary cursor-pointer px-2 py-1"
+                      @click="acceptInvitation(notification)"
+                    >
+                      Accept
+                    </button>
+                  </div>
+                  <button
+                    v-else
+                    class="cursor-pointer px-2 py-1"
+                    @click="deleteNotification(notification._id)"
+                  >
+                    Mark as read
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -62,7 +80,7 @@ import { useNotificationStore } from '@/stores/notification'
 import { storeToRefs } from 'pinia'
 import dateFormat from 'dateformat'
 import { API_URL } from '@/const'
-import { computed, watch } from 'vue'
+import { computed } from 'vue'
 
 const { notifications } = storeToRefs(useNotificationStore())
 
@@ -74,13 +92,9 @@ const sortedNotifications = computed(() => {
   )
 })
 
-watch(sortedNotifications, () => {
-  console.log(sortedNotifications.value.values())
-})
-
 async function deleteNotification(id) {
   try {
-    const response = await fetch(`${API_URL}/notification/${id}`, {
+    const response = await fetch(`${API_URL}/notifications/${id}`, {
       method: 'DELETE'
     })
     if (!response.ok)
@@ -92,21 +106,50 @@ async function deleteNotification(id) {
   }
 }
 
+async function acceptInvitation(notification) {
+  if (notification.kind !== 'invitation') {
+    console.error('Notification in not an invitation')
+    return
+  }
+
+  switch (notification.invitation.kind) {
+    case 'note':
+    case 'groups':
+      throw new Error('yer to be implemented')
+    case 'pomodoro':
+      try {
+        const response = await fetch(`${API_URL}/${notification.user}/pomodoros/configs`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...notification.invitation.pomodoro
+          })
+        })
+        if (!response.ok)
+          throw new Error(`ERROR - accept invitation, response status ${response.status}`)
+
+        await deleteNotification(notification._id)
+      } catch (err) {
+        console.error(err)
+      }
+      break
+    default:
+      throw Error('Invalid entity type: ' + notification.entityType)
+  }
+}
+
 // TODO: come posso usare roba dichiarata in backend??? metto in const.h???
 function notificationIcon(notification) {
-  switch (notification.type) {
-    case 'system':
-      return 'fluent:settings-48-regular'
+  switch (notification.kind) {
     case 'chat':
       return 'fluent:chat-48-regular'
     case 'alert':
-      return 'fluent:alert-urgent-24-regular'
-    case 'invite':
-      switch (notification.entityType) {
+      return 'fluent:alert-48-regular'
+    case 'invitation':
+      switch (notification.invitation.kind) {
         case 'note':
-          return ''
         case 'groups':
-          return ''
+          throw Error('Yet to be implemented')
         case 'pomodoro':
           return 'fluent-emoji-high-contrast:tomato'
         default:
@@ -135,5 +178,39 @@ function printNotificationTime(created) {
   if (seconds > 0) return seconds + (seconds == 1 ? ' second' : ' seconds') + ' ago'
 
   return 'now'
+}
+
+function notificationTitle(notification) {
+  switch (notification.kind) {
+    case 'alert':
+      return 'Alert'
+    case 'chat':
+      return `Message from ${notification.sender.username}`
+    case 'invitation': {
+      switch (notification.invitation.kind) {
+        case 'pomodoro':
+          return 'A Pomodoro invitation for you!'
+        default:
+          throw new Error('invalid invitation kind')
+      }
+    }
+  }
+}
+
+function notificationBody(notification) {
+  switch (notification.kind) {
+    case 'alert':
+      return notification.content
+    case 'chat':
+      return notification.message
+    case 'invitation': {
+      switch (notification.invitation.kind) {
+        case 'pomodoro':
+          return `${notification.sender.username} shared their pomodoro with you!`
+        default:
+          throw new Error('invalid invitation kind')
+      }
+    }
+  }
 }
 </script>

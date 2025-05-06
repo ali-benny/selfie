@@ -1,64 +1,102 @@
 import express from 'express'
-import mongoose, { SchemaTypes } from 'mongoose'
+import mongoose from 'mongoose'
 import bodyParser from 'body-parser'
 import { connect } from '../app.js'
 import { sendNotification as sendPushNotification } from '../notifications.js'
+import { PomodoroConfigSchema } from '../pomodoro/pomodoro.js'
+import { loadUsernameById } from '../users/users.js'
 
-const NotificationType = Object.freeze({
-  SYSTEM: 'system',
-  INVITE: 'invite',
+const NotificationKind = Object.freeze({
+  INVITATION: 'invitation',
   CHAT: 'chat',
-  ALERT: 'alert',
-  values() {
-    return Object.values(this)
-  }
+  ALERT: 'alert'
 })
 
-const EntityType = Object.freeze({
+const InvitationKind = Object.freeze({
   GROUP: 'group',
   NOTE: 'note',
-  POMODORO_CONFIG: 'pomodoroConfig',
-  values() {
-    return Object.values(this)
-  }
+  POMODORO: 'pomodoro'
 })
 
-const NotificationSchema = new mongoose.Schema({
-  user: {
-    type: mongoose.ObjectId,
-    ref: 'user',
-    required: true
-  },
-  type: {
-    type: String,
-    enum: NotificationType.values(),
-    required: true
-  },
-  content: {
-    type: String,
-    required: true
-  },
-  entityType: {
-    type: String,
-    enum: EntityType.values(),
-    required: function () {
-      return this.type === NotificationType.invite
+const NotificationSchema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.ObjectId,
+      ref: 'user',
+      required: true
+    },
+    created: {
+      type: Date,
+      required: true
     }
   },
-  entity: {
-    type: SchemaTypes.ObjectId,
-    refPath: 'entityType',
-    required: function () {
-      return this.type === NotificationType.invite
-    }
-  },
-  created: {
-    type: Date,
-    required: true
-  }
-})
+  { discriminatorKey: 'kind' }
+)
 
 const Notification = mongoose.model('notification', NotificationSchema)
+
+const AlertNotification = Notification.discriminator(
+  NotificationKind.ALERT,
+  new mongoose.Schema({
+    content: {
+      type: String,
+      required: true
+    }
+  })
+)
+
+const ChatNotification = Notification.discriminator(
+  NotificationKind.CHAT,
+  new mongoose.Schema({
+    sender: {
+      id: {
+        type: mongoose.ObjectId,
+        ref: 'user',
+        required: true
+      },
+      username: {
+        type: String,
+        require: true
+      }
+    },
+    message: {
+      type: String,
+      required: true
+    }
+  })
+)
+
+const InvitationSchema = new mongoose.Schema({
+  invitation: {
+    type: new mongoose.Schema({}, { discriminatorKey: 'kind' }),
+    required: true
+  },
+  sender: {
+    id: {
+      type: mongoose.ObjectId,
+      ref: 'user',
+      required: true
+    },
+    username: {
+      type: String,
+      require: true
+    }
+  }
+})
+
+InvitationSchema.path('invitation').discriminator(
+  InvitationKind.POMODORO,
+  new mongoose.Schema({
+    pomodoro: {
+      type: PomodoroConfigSchema
+    }
+  })
+)
+
+const InvitationNotification = Notification.discriminator(
+  NotificationKind.INVITATION,
+  InvitationSchema
+)
 
 const app = express()
 app.use(bodyParser.json())
@@ -68,7 +106,9 @@ app.on('mount', async () => {
 
 app.get('/:user/notifications', async (req, res) => {
   try {
-    const notifications = await Notification.find({ user: req.params.user }).sort({ created: -1 })
+    const notifications = await Notification.find({ user: req.params.user }).sort({
+      created: -1
+    })
     res.status(200).json(notifications)
   } catch (err) {
     console.error(err)
@@ -76,26 +116,63 @@ app.get('/:user/notifications', async (req, res) => {
   }
 })
 
-app.post('/:user/notification', async (req, res) => {
+app.post('/:user/notifications', async (req, res) => {
   try {
-    const notification = new Notification({
-      user: req.params.user,
-      type: req.body.type,
-      content: req.body.content,
-      created: req.body.created
-    })
-    if (notification.type === NotificationType.INVITE) {
-      notification.entityType = req.body.entityType
-      notification.entity = req.body.entity
+    const user = req.params.user
+    const created = req.body.created
+    const kind = req.body.kind
+    const sender = req.body.sender
+      ? {
+          id: req.body.sender,
+          username: await loadUsernameById(req.body.sender)
+        }
+      : {}
+
+    let notification
+    switch (kind) {
+      case NotificationKind.ALERT:
+        notification = new AlertNotification({
+          user: user,
+          created: created,
+          content: req.body.content
+        })
+        break
+      case NotificationKind.CHAT:
+        notification = new ChatNotification({
+          user: user,
+          created: created,
+          sender: sender,
+          message: req.body.message
+        })
+        break
+      case NotificationKind.INVITATION:
+        notification = new InvitationNotification({
+          user: user,
+          created: created,
+          sender: sender
+        })
+        switch (req.body.invitation.kind) {
+          case InvitationKind.NOTE:
+          case InvitationKind.GROUP:
+            throw new Error('yet to be implemented!')
+          case InvitationKind.POMODORO:
+            notification.invitation = {
+              kind: 'pomodoro',
+              pomodoro: {
+                ...req.body.invitation.pomodoro
+              }
+            }
+            break
+          default:
+            throw new Error('Invalid InvitationKind: ' + req.body.invitation.kind)
+        }
+        break
+      default:
+        throw new Error('Invalid NotificationKind: ' + kind)
     }
+
     await notification.save()
-
-    await sendPushNotification(notification.user, {
-      title: 'selfie',
-      body: notification.content,
-      data: notification
-    })
-
+    await sendPushNotification(notification.user, notification)
     res.status(200).json(notification)
   } catch (err) {
     console.error(err)
@@ -103,7 +180,7 @@ app.post('/:user/notification', async (req, res) => {
   }
 })
 
-app.delete('/notification/:id', async (req, res) => {
+app.delete('/notifications/:id', async (req, res) => {
   const id = req.params.id
   try {
     await Notification.deleteOne({ _id: id }).then(() => {

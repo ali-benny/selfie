@@ -4,13 +4,13 @@ import { loadWebPushSubscriptions } from './notification/webpush.js'
 /**
  * Sends notifications to all web push subscriptions associated with a user
  * @param {string} user - The ID of the user to send notifications to
- * @param {Object} options - Notification options
+ * @param {Object} notification - The notification to be sent
  * @returns {Promise<void>} A promise that resolves when all notifications are processed
  * @throws {Error} If there's an error loading subscriptions from the database
  *
  * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/Notification/Notification#options|MDN Notification Options}
  */
-export async function sendNotification(user, options) {
+export async function sendNotification(user, notification) {
   try {
     const subscriptions = await loadWebPushSubscriptions(user)
 
@@ -23,7 +23,7 @@ export async function sendNotification(user, options) {
         batch.map(async (s) => {
           const subscription = { endpoint: s.endpoint, keys: s.keys }
           try {
-            await webPush.sendNotification(subscription, JSON.stringify({ options }))
+            await webPush.sendNotification(subscription, JSON.stringify({ notification }))
           } catch (error) {
             console.error(`ERROR for ${subscription.endpoint}:`, error.message)
             // TODO: decidere se eliminare la subscription

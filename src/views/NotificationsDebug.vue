@@ -14,8 +14,12 @@
           <p>Username: {{ user.username }}</p>
           <p># of subscriptions: {{ subscriptions.get(user._id)?.length }}</p>
           <div class="card-actions">
-            <button class="btn btn-primary" @click="() => sendNotification(user._id)">
+            <button class="btn btn-primary" @click="() => sendAlertNotification(user._id)">
               Send notification
+            </button>
+
+            <button class="btn btn-primary" @click="() => sendPomodoroInvitation(user._id)">
+              Send pomo invitation
             </button>
           </div>
         </div>
@@ -44,16 +48,49 @@ whenever(isReady, async () => {
   })
 })
 
-async function sendNotification(user) {
+async function sendAlertNotification(user) {
   try {
-    const response = await fetch(`${API_URL}/${user}/notification`, {
+    const response = await fetch(`${API_URL}/${user}/notifications`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        type: 'system',
+        kind: 'alert',
         content:
           'Test test, this is options.body.\nPossiamo mettere parecchio testo qui dentro!!!!',
         created: Date.now()
+      })
+    })
+    if (!response.ok) throw new Error()
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+async function sendPomodoroInvitation(user) {
+  try {
+    const response = await fetch(`${API_URL}/${user}/notifications`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        kind: 'invitation',
+        created: Date.now(),
+        sender: '676ebff38d5532e8b482b472',
+        invitation: {
+          kind: 'pomodoro',
+          pomodoro: {
+            name: 'Prova invito',
+            pomodoroTime: 15,
+            shortBreakTime: 4,
+            longBreak: {
+              time: 7,
+              interval: 5
+            },
+            color: {
+              name: 'Maroon',
+              hex: '#ee99a0'
+            }
+          }
+        }
       })
     })
     if (!response.ok) throw new Error()
