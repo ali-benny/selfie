@@ -46,7 +46,7 @@ whenever(isReady, async () => {
 
 async function sendNotification(user) {
   try {
-    const response = await fetch(API_URL + `/${user}/notification`, {
+    const response = await fetch(`${API_URL}/${user}/notification`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

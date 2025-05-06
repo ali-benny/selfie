@@ -9,11 +9,11 @@
       <div
         class="w-72 min-h-64 min-h-80 max-h-96 flex justify-stretch rounded-lg overflow-hidden m-1"
       >
-        <div class="overflow-y-auto" v-if="notifications.size > 0">
+        <div class="overflow-y-auto" v-if="sortedNotifications.size > 0">
           <div class="flex flex-col grow gap-3">
             <div
               class="w-full relative flex flex-col items-stretch rounded-lg bg-base-200 pt-4 pb-1 px-2"
-              v-for="[key, notification] in notifications.entries()"
+              v-for="[key, notification] in sortedNotifications.entries()"
               :key="key"
             >
               <!-- Notification time -->
@@ -41,7 +41,7 @@
                 <button
                   class="text-xs text-neutral font-bold cursor-pointer px-2 py-1"
                   v-if="notification.type === 'system'"
-                  @click="deleteNotification(notification)"
+                  @click="deleteNotification(notification._id)"
                 >
                   Mark as read
                 </button>
@@ -62,24 +62,37 @@ import { useNotificationStore } from '@/stores/notification'
 import { storeToRefs } from 'pinia'
 import dateFormat from 'dateformat'
 import { API_URL } from '@/const'
+import { computed, watch } from 'vue'
 
 const { notifications } = storeToRefs(useNotificationStore())
 
-async function deleteNotification(notification) {
+const sortedNotifications = computed(() => {
+  return new Map(
+    [...notifications.value.entries()].sort(
+      (a, b) => new Date(b[1].created) - new Date(a[1].created)
+    )
+  )
+})
+
+watch(sortedNotifications, () => {
+  console.log(sortedNotifications.value.values())
+})
+
+async function deleteNotification(id) {
   try {
-    const response = await fetch(`${API_URL}/notification/${notification._id}`, {
+    const response = await fetch(`${API_URL}/notification/${id}`, {
       method: 'DELETE'
     })
     if (!response.ok)
       throw new Error(`ERROR - deleteNotification, response status ${response.status}`)
 
-    notifications.value.delete(notification._id)
+    notifications.value.delete(id)
   } catch (err) {
     console.error(err)
   }
 }
 
-// TODO: come posso usare roba dichiarata in backend???
+// TODO: come posso usare roba dichiarata in backend??? metto in const.h???
 function notificationIcon(notification) {
   switch (notification.type) {
     case 'system':
