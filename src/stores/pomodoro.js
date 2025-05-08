@@ -291,7 +291,7 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
     pomodoro,
     userConfigs,
     timer,
-    preferredDurationFormat: userTimeFormat,
+    userTimeFormat,
     isWidgetOpen,
     playPomodoroTimer,
     pausePomodoroTimer,
