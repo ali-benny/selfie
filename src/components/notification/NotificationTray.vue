@@ -49,7 +49,7 @@
                     </button>
 
                     <button
-                      class="text-primary cursor-pointer px-2 py-1"
+                      class="!text-primary cursor-pointer px-2 py-1"
                       @click="acceptInvitation(notification)"
                     >
                       Accept
@@ -81,6 +81,7 @@ import { storeToRefs } from 'pinia'
 import dateFormat from 'dateformat'
 import { API_URL } from '@/const'
 import { computed } from 'vue'
+import { usePomodoroStore } from '@/stores/pomodoro'
 
 const { notifications } = storeToRefs(useNotificationStore())
 
@@ -126,7 +127,10 @@ async function acceptInvitation(notification) {
           })
         })
         if (!response.ok)
-          throw new Error(`ERROR - accept invitation, response status ${response.status}`)
+          throw new Error(
+            `ERROR when creating new Pomodoro Config, response status ${response.status}`
+          )
+        response.json().then((p) => usePomodoroStore().userConfigs.set(p._id, p))
 
         await deleteNotification(notification._id)
       } catch (err) {
