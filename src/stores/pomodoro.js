@@ -151,6 +151,7 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
     pomodoro.value.timer = pomodoro.value.initialTimer
     playPomodoroTimer()
   }
+
   function restartPomodoroPhase() {
     if (!pomodoro.value.started || pomodoro.value.finished) return
 
@@ -239,9 +240,7 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
   }
 
   function computeConfigDuration(config) {
-    if (!config.cycles) {
-      return Infinity
-    }
+    if (!config.cycles) return Infinity
     if (config.longBreak && !config.longBreak.time != !config.longBreak.interval) return 0
 
     let c = 0
