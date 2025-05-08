@@ -4,15 +4,21 @@
     <div class="grow" :class="{ 'flex-animation': !showConfigList }">
       <div class="flex justify-center items-center">
         <div
-          class="timer-container relative max-w-[36rem] w-3/4 sm:w-2/3 flex justify-center bg-transparent transition-colors duration-100 rounded-box border-4 border-transparent shadow-xl shadow-transparent p-8"
+          class="timer-container relative max-w-[36rem] w-3/4 sm:w-2/3 flex flex-col items-center gap-3 sm:gap-5 bg-transparent transition-colors duration-100 rounded-box border-4 border-transparent shadow-xl shadow-transparent p-8 sm:py-10 sm:px-16"
           :class="[
             { running: pomodoro.running },
             pomodoro.phase === 'pomodoro' ? 'pomodoroPhase' : 'breakPhase'
           ]"
         >
+          <PomodoroMessage />
           <PomodoroTimer />
 
-          <Popper class="absolute top-3 right-3" placement="bottom" arrow locked>
+          <Popper
+            class="absolute top-2 sm:top-3 right-2 sm:right-3"
+            placement="bottom"
+            arrow
+            locked
+          >
             <button>
               <Icon icon="fluent:info-24-regular" class="text-lg" />
             </button>
@@ -24,7 +30,7 @@
             </template>
           </Popper>
 
-          <YTPlayer class="absolute top-3 left-3">
+          <YTPlayer class="absolute top-2 sm:top-3 left-2 sm:left-3">
             <template #trigger>
               <button>
                 <Icon icon="fluent:music-note-2-play-20-filled" class="text-xl" />
@@ -62,6 +68,7 @@ import PomodoroConfigForm from '@/components/pomodoro/PomodoroConfigForm.vue'
 import PomodoroConfigInfo from '@/components/pomodoro/PomodoroConfigInfo.vue'
 import PomodoroConfigList from '@/components/pomodoro/PomodoroConfigList.vue'
 import PomodoroTimer from '@/components/pomodoro/PomodoroTimer.vue'
+import PomodoroMessage from '@/components/pomodoro/PomodoroMessage.vue'
 import YTPlayer from '@/components/pomodoro/YTPlayer.vue'
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
