@@ -59,7 +59,7 @@ const { config } = defineProps({
   }
 })
 
-const durationFormat = ref(config.durationFormat || usePomodoroStore().preferredDurationFormat)
+const durationFormat = ref(config.durationFormat || usePomodoroStore().userTimeFormat)
 
 watch(
   () => config.durationFormat,

@@ -98,11 +98,7 @@
                     m
                   </div>
                   <div class="absolute top-0 right-1 w-fit h-full flex justify-center items-center">
-                    <TimeFormatToggle
-                      v-model="preferredDurationFormat"
-                      true-value="mm"
-                      false-value="hhmm"
-                    />
+                    <TimeFormatToggle v-model="userTimeFormat" true-value="mm" false-value="hhmm" />
                   </div>
                 </div>
               </div>
@@ -225,11 +221,7 @@
                     />
                   </div>
                   <div v-else class="flex items-center gap-2">
-                    <TimeFormatToggle
-                      v-model="editableConfig.durationFormat"
-                      true-value="mm"
-                      false-value="hhmm"
-                    />
+                    <TimeFormatToggle v-model="editableConfig.durationFormat" />
                     <div class="input input-sm px-2">
                       <div class="w-16 flex justify-center items-center">
                         {{ formattedDuration }}
@@ -314,7 +306,7 @@ const { configId, placement, locked } = defineProps({
 
 const pomodoroStore = usePomodoroStore()
 const { userConfigs } = storeToRefs(pomodoroStore)
-const { preferredDurationFormat } = storeToRefs(pomodoroStore)
+const { userTimeFormat } = storeToRefs(pomodoroStore)
 const userId = useUserStore().loggedUser._id
 const firstStepDone = ref(false)
 
@@ -326,7 +318,7 @@ const editableConfig = ref(
 )
 
 if (!configId) {
-  editableConfig.value.durationFormat = preferredDurationFormat.value
+  editableConfig.value.durationFormat = userTimeFormat.value
 }
 
 /* Used in first step to input the desired focus duration */
@@ -390,8 +382,8 @@ whenever(
   () => (desiredDuration.value = 0)
 )
 
-watch(preferredDurationFormat, () => {
-  editableConfig.value.durationFormat = preferredDurationFormat.value
+watch(userTimeFormat, () => {
+  editableConfig.value.durationFormat = userTimeFormat.value
 })
 
 async function saveConfig(close) {
@@ -432,7 +424,7 @@ async function openHandler() {
   desiredDuration.value = 0
 
   if (configId) editableConfig.value = structuredClone(toRaw(userConfigs.value.get(configId)))
-  else editableConfig.value.durationFormat = preferredDurationFormat.value
+  else editableConfig.value.durationFormat = userTimeFormat.value
 
   await nextTick()
   configName.value.focus()
