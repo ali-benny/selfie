@@ -22,7 +22,7 @@ import { useNotificationStore } from './stores/notification.js'
 const app = createApp(App)
 const notivue = createNotivue({
   position: 'bottom-right',
-  enqueue: true,
+  enqueue: false, // altrimenti introduco inconsistenza con il tray
   limit: 4,
   notifications: {
     global: {
@@ -99,7 +99,11 @@ if ('serviceWorker' in navigator) {
     switch (event.data.type) {
       case 'pushNotification':
         if (event.data.isFocused) {
-          push.info(event.data.body)
+          push.info({
+            props: {
+              notification: event.data.notification
+            }
+          })
         }
 
         useNotificationStore().appendNotification(event.data.notification)

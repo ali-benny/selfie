@@ -1,11 +1,40 @@
 <script setup>
+import { provide } from 'vue'
+import ChatNotification from './components/notification/ChatNotification.vue'
+import PomodoroNotification from './components/notification/PomodoroNotification.vue'
 import PomodoroTimerWidget from './components/pomodoro/PomodoroTimerWidget.vue'
 import { useUserStore } from './stores/account'
 import { usePomodoroStore } from './stores/pomodoro'
-import { Notivue, Notification } from 'notivue'
+import { Notivue, Notification, NotivueSwipe } from 'notivue'
 
 const userStore = useUserStore()
 const pomodoroStore = usePomodoroStore()
+
+provide('notification.viewMode', 'notivue')
+
+function notificationComponent(item) {
+  const notification = item.props.notification
+
+  if (!notification) return Notification
+
+  switch (notification.kind) {
+    case 'chat':
+      return ChatNotification
+    case 'invitation': {
+      switch (notification.invitation.kind) {
+        case 'pomodoro':
+          return PomodoroNotification
+        case 'groups':
+        case 'note':
+          throw new Error('Not implemented yet')
+        default:
+          throw new Error('Invalid invitation kind:' + notification.invitation.kind)
+      }
+    }
+    default:
+      throw new Error('Notification kind:' + notification.kind)
+  }
+}
 </script>
 
 <template>
@@ -40,7 +69,9 @@ const pomodoroStore = usePomodoroStore()
     </div>
     <div id="app" class="relative w-full grow px-2 mb-16 sm:!pb-0">
       <Notivue v-slot="item">
-        <Notification :item="item" />
+        <NotivueSwipe :item="item" touch-only>
+          <component :item="item" :is="notificationComponent(item)" class="w-[350px]"></component>
+        </NotivueSwipe>
       </Notivue>
       <RouterView />
       <PomodoroTimerWidget v-if="pomodoroStore.showPomodoroWidget()" />

@@ -14,12 +14,11 @@
           <p>Username: {{ user.username }}</p>
           <p># of subscriptions: {{ subscriptions.get(user._id)?.length }}</p>
           <div class="card-actions">
-            <button class="btn btn-primary" @click="() => sendAlertNotification(user._id)">
-              Send notification
-            </button>
-
             <button class="btn btn-primary" @click="() => sendPomodoroInvitation(user._id)">
               Send pomo invitation
+            </button>
+            <button class="btn btn-primary" @click="() => sendChatMessage(user._id)">
+              Send chat message
             </button>
           </div>
         </div>
@@ -48,24 +47,6 @@ whenever(isReady, async () => {
   })
 })
 
-async function sendAlertNotification(user) {
-  try {
-    const response = await fetch(`${API_URL}/${user}/notifications`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        kind: 'alert',
-        content:
-          'Test test, this is options.body.\nPossiamo mettere parecchio testo qui dentro!!!!',
-        created: Date.now()
-      })
-    })
-    if (!response.ok) throw new Error()
-  } catch (err) {
-    console.error(err)
-  }
-}
-
 async function sendPomodoroInvitation(user) {
   try {
     const response = await fetch(`${API_URL}/${user}/notifications`, {
@@ -91,6 +72,25 @@ async function sendPomodoroInvitation(user) {
             }
           }
         }
+      })
+    })
+    if (!response.ok) throw new Error()
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+async function sendChatMessage(user) {
+  try {
+    const response = await fetch(`${API_URL}/${user}/notifications`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        kind: 'chat',
+        created: Date.now(),
+        sender: '676ebff38d5532e8b482b472',
+        message:
+          'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
       })
     })
     if (!response.ok) throw new Error()

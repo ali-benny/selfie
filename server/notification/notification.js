@@ -8,8 +8,7 @@ import { loadUsernameById } from '../users/users.js'
 
 const NotificationKind = Object.freeze({
   INVITATION: 'invitation',
-  CHAT: 'chat',
-  ALERT: 'alert'
+  CHAT: 'chat'
 })
 
 const InvitationKind = Object.freeze({
@@ -34,16 +33,6 @@ const NotificationSchema = new mongoose.Schema(
 )
 
 const Notification = mongoose.model('notification', NotificationSchema)
-
-const AlertNotification = Notification.discriminator(
-  NotificationKind.ALERT,
-  new mongoose.Schema({
-    content: {
-      type: String,
-      required: true
-    }
-  })
-)
 
 const ChatNotification = Notification.discriminator(
   NotificationKind.CHAT,
@@ -130,13 +119,6 @@ app.post('/:user/notifications', async (req, res) => {
 
     let notification
     switch (kind) {
-      case NotificationKind.ALERT:
-        notification = new AlertNotification({
-          user: user,
-          created: created,
-          content: req.body.content
-        })
-        break
       case NotificationKind.CHAT:
         notification = new ChatNotification({
           user: user,

@@ -17,9 +17,7 @@ self.addEventListener('push', (event) => {
     targetClient?.postMessage({
       type: 'pushNotification',
       notification: notification,
-      isFocused: focused !== undefined,
-      title: notificationTitle(notification),
-      body: notificationBody(notification)
+      isFocused: focused !== undefined
     })
 
     if (Notification.permission === 'granted' && !focused) {
@@ -53,8 +51,6 @@ self.addEventListener('notificationclick', (event) => {
 
 function notificationTitle(notification) {
   switch (notification.kind) {
-    case 'alert':
-      return 'Alert'
     case 'chat':
       return `Message from ${notification.sender.username}`
     case 'invitation': {
@@ -62,25 +58,27 @@ function notificationTitle(notification) {
         case 'pomodoro':
           return 'A Pomodoro invitation for you!'
         default:
-          throw new Error('invalid invitation kind')
+          throw new Error('Invalid invitation kind: ' + notification.invitation.kind)
       }
     }
+    default:
+      throw new Error('Invalid notification kind: ' + notification.kind)
   }
 }
 
 function notificationBody(notification) {
   switch (notification.kind) {
-    case 'alert':
-      return notification.content
     case 'chat':
       return notification.message
     case 'invitation': {
       switch (notification.invitation.kind) {
         case 'pomodoro':
-          return `${notification.sender.username} shared their pomodoro with you!`
+          return `${notification.sender.username} wants to share a Pomodoro with you.`
         default:
-          throw new Error('invalid invitation kind')
+          throw new Error('Invalid invitation kind: ' + notification.invitation.kind)
       }
     }
+    default:
+      throw new Error('Invalid notification kind: ' + notification.kind)
   }
 }

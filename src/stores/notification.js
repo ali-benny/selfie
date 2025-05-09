@@ -30,9 +30,24 @@ export const useNotificationStore = defineStore('notification', () => {
     notifications.value.set(notification._id, notification)
   }
 
+  async function deleteNotification(id) {
+    try {
+      const response = await fetch(`${API_URL}/notifications/${id}`, {
+        method: 'DELETE'
+      })
+      if (!response.ok)
+        throw new Error(`ERROR - deleteNotification, response status ${response.status}`)
+
+      notifications.value.delete(id)
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
   return {
     notifications,
     isReady,
-    appendNotification
+    appendNotification,
+    deleteNotification
   }
 })
