@@ -18,7 +18,7 @@
 
         <PomodoroAnimation :width="width" />
       </div>
-      <div class="timer-controls w-full flex justify-evenly gap-2">
+      <div v-if="!pomodoro.finished" class="timer-controls w-full flex justify-evenly gap-2">
         <button
           v-if="pomodoro.started"
           :disabled="!pomodoro.running"

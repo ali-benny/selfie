@@ -24,7 +24,13 @@
             </button>
             <template #content>
               <div class="w-52 p-3 flex flex-col gap-1 text-sm">
-                <h5 class="font-bold mb-1">Current focus</h5>
+                <h5 class="mb-1">
+                  <span class="font-semibold">Current focus</span>
+                  <span v-if="config.name" class="font-bold"
+                    ><span class="!font-semibold">:</span>
+                    {{ config.name }}
+                  </span>
+                </h5>
                 <PomodoroConfigInfo :config="config" />
               </div>
             </template>

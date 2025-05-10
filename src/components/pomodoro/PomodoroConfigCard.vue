@@ -1,8 +1,8 @@
 <template>
   <div
     class="max-w-full xs:max-w-56 sm:max-w-64 h-full card"
-    @click="!selected && pomodoroStore.setCurrentConfig(config)"
-    :class="{ selected: pomodoroStore.isConfigSelected(config._id) }"
+    @click="selectConfig"
+    :class="{ selected: isConfigSelected }"
   >
     <div class="card-body relative">
       <!-- Form edit -->
@@ -21,7 +21,7 @@
         <IconPomodoro :color="config.color.hex" class="text-5xl" />
         <div class="flex items-center gap-2">
           <h3 class="grow text-center m-0">{{ config.name }}</h3>
-          <UserShare type="Pomodoro" :id="config._id">
+          <UserShare @click.stop type="Pomodoro" :id="config._id">
             <button class="flex items-center mt-1">
               <Icon icon="fluent:share-48-regular" class="!text-neutral hover:!text-accent" />
             </button>
@@ -32,15 +32,41 @@
       <PomodoroConfigInfo :config="config" />
     </div>
   </div>
+  <dialog v-if="confirmConfigSelection" :id="modalId" :ref="modalId" class="modal">
+    <div class="modal-box">
+      <h3 class="font-bold">Caution!</h3>
+      <p class="py-3">
+        Changing focus now will interrupt your current session and lose its progress.
+      </p>
+      <div class="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="dontAskAgain"
+          name="dontAskAgain"
+          class="checkbox checkbox-sm border-solid"
+          v-model="dontAskAgain"
+        />
+        <label for="dontAskAgain" class="cursor-pointer">Don't ask again.</label>
+      </div>
+      <div class="modal-action">
+        <form method="dialog" class="flex gap-2">
+          <button class="btn btn-ghost">Dismiss</button>
+          <button class="btn btn-primary" @click="submitConfirmConfigSelection">Confirm</button>
+        </form>
+      </div>
+    </div>
+  </dialog>
 </template>
 
 <script setup>
 import PomodoroConfigForm from './PomodoroConfigForm.vue'
-import IconPomodoro from '../icons/IconPomodoro.vue'
-import { usePomodoroStore } from '@/stores/pomodoro'
-import { computed } from 'vue'
 import PomodoroConfigInfo from './PomodoroConfigInfo.vue'
 import UserShare from '../UserShare.vue'
+import IconPomodoro from '../icons/IconPomodoro.vue'
+import { usePomodoroStore } from '@/stores/pomodoro'
+import { computed, ref, useTemplateRef } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useLocalStorage } from '@vueuse/core'
 
 const { configId } = defineProps({
   configId: {
@@ -48,8 +74,33 @@ const { configId } = defineProps({
     required: true
   }
 })
-const pomodoroStore = usePomodoroStore()
-const config = computed(() => pomodoroStore.userConfigs.get(configId))
+const { pomodoro, userConfigs } = storeToRefs(usePomodoroStore())
+const config = computed(() => userConfigs.value.get(configId))
+const isConfigSelected = computed(
+  () => !pomodoro.value.finished && usePomodoroStore().isConfigSelected(configId)
+)
+
+const modalId = computed(() => `confirmConfigSelection${config.value._id}`)
+const modal = useTemplateRef(modalId.value)
+
+const dontAskAgain = ref(false)
+const confirmConfigSelection = useLocalStorage('pomodoro.confirmConfigSelection', true)
+
+function selectConfig() {
+  if (isConfigSelected.value) return
+  if (confirmConfigSelection.value && pomodoro.value.started && !pomodoro.value.finished) {
+    modal.value.showModal()
+    return
+  }
+  usePomodoroStore().setCurrentConfig(config.value)
+}
+
+async function submitConfirmConfigSelection() {
+  confirmConfigSelection.value = !dontAskAgain.value
+  dontAskAgain.value = false
+
+  usePomodoroStore().setCurrentConfig(config.value)
+}
 </script>
 
 <style lang="postcss" scoped>
@@ -59,7 +110,7 @@ const config = computed(() => pomodoroStore.userConfigs.get(configId))
 
 .card:hover,
 .card.selected {
-  @apply border-2 bg-base-300;
+  @apply border-2 bg-base-300/80;
 }
 
 .card:hover {

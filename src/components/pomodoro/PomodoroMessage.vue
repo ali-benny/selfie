@@ -2,12 +2,18 @@
   <div class="flex justify-center text-sm sm:text-base md:text-lg lg:text-xl font-semibold">
     <Transition>
       <h2 v-if="!pomodoro.started">Ready to start?</h2>
-      <h2 v-else-if="pomodoro.finished">Session done!</h2>
+      <div v-else-if="pomodoro.finished" class="relative text-base sm:text-lg md:text-xl">
+        <h2>Session done!</h2>
+
+        <div class="icon-container !top-1 md:!top-px">
+          <Icon icon="fluent-emoji-flat:party-popper" inline />
+        </div>
+      </div>
 
       <h2 v-else-if="!pomodoro.running">Taking a moment...</h2>
 
       <div v-else-if="usePomodoroStore().isPomodoroPhase()" class="relative">
-        <h2>Deep work now!</h2>
+        <h2>Deep work!</h2>
         <div class="icon-container">
           <Icon icon="fluent-emoji-flat:tomato" inline />
         </div>

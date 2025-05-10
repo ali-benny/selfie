@@ -15,14 +15,14 @@
           <button
             class="btn btn-outline btn-error btn-sm"
             @click="deleteConfig(close)"
-            :disabled="!pomodoroStore.isConfigDeletable(configId)"
+            :disabled="!usePomodoroStore().isConfigDeletable(configId)"
             v-if="configId"
           >
             <Icon icon="fluent:delete-32-regular" />
           </button>
         </div>
 
-        <form @submit.prevent="saveConfig(close)" ref="form">
+        <form @submit.prevent="formSubmit(close)" ref="form">
           <div class="flex flex-col items-stretch gap-y-2">
             <!-- gnome -->
             <label class="form-control">
@@ -179,7 +179,7 @@
                   </label>
                 </div>
               </div>
-              <div class="flex justify-between items-center">
+              <div class="flex justify-between items-center pt-2">
                 <label>Long break interval</label>
                 <input
                   type="text"
@@ -254,6 +254,35 @@
               <div class="flex flex-row justify-end gap-1">
                 <button type="button" class="btn btn-ghost" @click="close()">Cancel</button>
                 <input type="submit" value="Save" class="btn btn-outline btn-secondary" />
+                <dialog
+                  v-if="configId && confirmConfigSave"
+                  :id="modalId"
+                  :ref="modalId"
+                  class="modal"
+                >
+                  <div class="modal-box">
+                    <h3 class="font-bold">Caution: editing active focus!</h3>
+                    <p class="py-3">Saving these changes will update your current focus.</p>
+                    <div class="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="dontAskAgain"
+                        name="dontAskAgain"
+                        class="checkbox checkbox-sm border-solid"
+                        v-model="dontAskAgain"
+                      />
+                      <label for="dontAskAgain" class="cursor-pointer">Don't ask again.</label>
+                    </div>
+                    <div class="modal-action">
+                      <form method="dialog" class="flex gap-2">
+                        <button class="btn btn-ghost">Dismiss</button>
+                        <button class="btn btn-primary" @click="submitConfirmConfigSave(close)">
+                          Confirm
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                </dialog>
               </div>
             </div>
           </div>
@@ -276,7 +305,7 @@ import { nextTick, ref, useTemplateRef, computed, watch, toRaw } from 'vue'
 import { usePomodoroStore } from '@/stores/pomodoro'
 import PomodoroConfigInfo from './PomodoroConfigInfo.vue'
 import { storeToRefs } from 'pinia'
-import { useDebounceFn, whenever } from '@vueuse/core'
+import { useDebounceFn, useLocalStorage, whenever } from '@vueuse/core'
 import TimeFormatToggle from '@/components/TimeFormatToggle.vue'
 
 const colors = [
@@ -304,14 +333,19 @@ const { configId, placement, locked } = defineProps({
   locked: Boolean
 })
 
-const pomodoroStore = usePomodoroStore()
-const { userConfigs } = storeToRefs(pomodoroStore)
-const { userTimeFormat } = storeToRefs(pomodoroStore)
+const modalId = computed(() => `confirmConfigSave${configId}`)
+
+const { userConfigs } = storeToRefs(usePomodoroStore())
+const { userTimeFormat } = storeToRefs(usePomodoroStore())
 const userId = useUserStore().loggedUser._id
 const firstStepDone = ref(false)
 
+const dontAskAgain = ref(false)
+const confirmConfigSave = useLocalStorage('pomodoro.confirmConfigSave', true)
+
 const configName = useTemplateRef('configName')
 const form = useTemplateRef('form')
+const modal = useTemplateRef(modalId.value)
 
 const editableConfig = ref(
   structuredClone(configId ? toRaw(userConfigs.value.get(configId)) : initialConfig)
@@ -321,13 +355,17 @@ if (!configId) {
   editableConfig.value.durationFormat = userTimeFormat.value
 }
 
+const isConfigSelected = computed(() =>
+  configId ? usePomodoroStore().isConfigSelected(configId) : false
+)
+
 /* Used in first step to input the desired focus duration */
 const desiredDuration = ref(0)
 
 /* Used in second step to display the focus duration */
-const duration = computed(() => pomodoroStore.computeConfigDuration(editableConfig.value))
+const duration = computed(() => usePomodoroStore().computeConfigDuration(editableConfig.value))
 const formattedDuration = computed(() =>
-  pomodoroStore.formatDuration(duration.value, editableConfig.value.durationFormat)
+  usePomodoroStore().formatDuration(duration.value, editableConfig.value.durationFormat)
 )
 
 const pomodoroTime = computed(
@@ -386,12 +424,13 @@ watch(userTimeFormat, () => {
   editableConfig.value.durationFormat = userTimeFormat.value
 })
 
-async function saveConfig(close) {
+async function formSubmit(close) {
   try {
     if (configId) {
-      userConfigs.value.set(configId, structuredClone(toRaw(editableConfig.value)))
-      await updatePomodoroConfig(editableConfig.value)
-      push.success('Focus saved!')
+      if (isConfigSelected.value && confirmConfigSave.value) {
+        modal.value.showModal()
+        return
+      } else updateConfig()
     } else {
       const createdConfig = await createPomodoroConfig(userId, editableConfig.value)
       userConfigs.value.set(createdConfig._id, structuredClone(createdConfig))
@@ -403,6 +442,22 @@ async function saveConfig(close) {
     console.error(error)
     push.error('Failed to save focus')
   }
+}
+
+async function updateConfig() {
+  userConfigs.value.set(configId, structuredClone(toRaw(editableConfig.value)))
+  await updatePomodoroConfig(editableConfig.value)
+  if (isConfigSelected.value) {
+    usePomodoroStore().setCurrentConfig(structuredClone(toRaw(editableConfig.value)))
+  }
+  push.success('Focus saved!')
+}
+
+async function submitConfirmConfigSave(close) {
+  confirmConfigSave.value = !dontAskAgain.value
+  dontAskAgain.value = false
+  await updateConfig()
+  close()
 }
 
 async function deleteConfig(close) {
@@ -576,7 +631,7 @@ function buildLongBreakField(longBreakSubField) {
         if (!editableConfig.value.longBreak) editableConfig.value.longBreak = {}
         editableConfig.value.longBreak[longBreakSubField] = Number(value)
       } else {
-        invalidate({ fieldName: longBreakSubField })
+        invalidate({ fieldName: 'longBreak', subfieldName: longBreakSubField })
       }
     }
   }

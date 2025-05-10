@@ -44,8 +44,7 @@ const router = createRouter({
     {
       path: '/pomodoro',
       name: 'pomodoro',
-      component: PomodoroDashboard,
-      props: true
+      component: PomodoroDashboard
     },
     {
       path: '/login',
