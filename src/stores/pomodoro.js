@@ -13,7 +13,6 @@ import { useToast } from 'vue-toastification'
 import { useRoute } from 'vue-router'
 
 export const usePomodoroStore = defineStore('pomodoro', () => {
-  const currentRoute = useRoute()
   const toast = useToast()
 
   const defaultConfig = {
@@ -229,10 +228,12 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
   }
 
   function showPomodoroWidget() {
+    const route = useRoute()
     return (
-      currentRoute.name !== 'pomodoro' &&
-      currentRoute.name !== 'login' &&
-      currentRoute.name !== 'home' &&
+      route.name !== 'Pomodoro' &&
+      route.name !== 'login' &&
+      route.name !== 'home' &&
+      route.name !== 'NotFound' &&
       pomodoro.value.started &&
       !pomodoro.value.finished
     )
