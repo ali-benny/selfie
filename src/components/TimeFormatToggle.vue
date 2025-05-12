@@ -1,6 +1,6 @@
 <template>
   <label class="swap text-sm text-neutral">
-    <input type="checkbox" @input="toggle" />
+    <input type="checkbox" v-model="modelValue" :true-value="trueValue" :false-value="falseValue" />
     <div class="swap-on flex justify-end">mm</div>
     <div class="swap-off">hh:mm</div>
   </label>
@@ -8,29 +8,18 @@
 <script setup>
 const { trueValue, falseValue } = defineProps({
   trueValue: {
-    type: [Boolean, Number, String, Object, Date, null],
+    type: String,
     default() {
-      return true
+      return 'mm'
     }
   },
   falseValue: {
-    type: [Boolean, Number, String, Object, Date, null],
+    type: String,
     default() {
-      return false
+      return 'hhmm'
     }
   }
 })
 
-const emit = defineEmits(['toggle'])
 const modelValue = defineModel()
-
-function toggle() {
-  if (modelValue.value === trueValue) {
-    modelValue.value = falseValue
-  } else {
-    modelValue.value = trueValue
-  }
-
-  emit('toggle', modelValue.value)
-}
 </script>
