@@ -13,39 +13,31 @@
         vector-effect="non-scaling-stroke"
         width="100"
         height="100"
-        class="linecap-round stroke-surface-0/50"
+        class="linecap-round stroke-surface-1/50"
       />
       <polygon
         ref="progress"
         vector-effect="non-scaling-stroke"
         points="50,0 100,0 100,100, 0,100 0,0 50,0"
         class="linecap-round"
+        :class="{ hidden: pomodoro.finished || !pomodoro.started }"
         :stroke-dasharray="pathLength"
       ></polygon>
     </g>
 
     <g v-else class="fill-none linecap-round">
-      <line
-        id="dot"
-        x1="50"
-        y1="0"
-        x2="50"
-        y2="0"
-        vector-effect="non-scaling-stroke"
-        :stroke="breakColor"
-        pathLength="1"
-      />
       <circle
         cx="50"
         cy="50"
         r="50"
         vector-effect="non-scaling-stroke"
-        class="stroke-surface-0/50"
+        class="stroke-surface-1/50"
       />
       <circle
         ref="progress"
         vector-effect="non-scaling-stroke"
         class="stroke-primary origin-center -rotate-90"
+        :class="{ hidden: pomodoro.finished || !pomodoro.started }"
         cx="50"
         cy="50"
         r="50"
@@ -66,8 +58,8 @@ const breakColor = flavors.macchiato.colors.lavender.hex
 
 /*
  * NOTE: (Leo) devo passare width e height come props perché se le prendo usando
- * useElementSize sull'svg (o qualsias elemento che lo contiene), queste si
- * non si aggiornano quando il timer è dentro a swapy.
+ * useElementSize sull'svg (o qualsias elemento che lo contiene), queste non
+ * si aggiornano quando il timer è dentro a swapy.
  * È un bug strano, si aggiornano allow swap successivo, ho fatto mille prova, ma
  * non ho capito se è un bug di swapy (perché in altre pagine l'animazione è responsive),
  * useElementSize (ho provato anche a prendere le dimensioni in vanilla js, ma niente),

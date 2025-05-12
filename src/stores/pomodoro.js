@@ -53,10 +53,6 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
   const isWidgetOpen = useSessionStorage('pomodoro.isWidgetOpen', false)
 
   whenever(isConfigReady, () => {
-    if (!config.value) {
-      console.log('pppp')
-    }
-
     if (pomodoro.value?.configId !== config.value._id) pomodoro.value = initNewPomodoro
 
     if (pomodoro.value.started) {
@@ -73,14 +69,8 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
     }
   )
 
-  watch(config, () => {
-    if (!pomodoro.value.started) {
-      initNewPomodoro()
-    }
-  })
-
   function initNewPomodoro() {
-    pomodoro.value = initialPomodoro
+    pomodoro.value = structuredClone(initialPomodoro)
 
     pomodoro.value.configId = config.value._id
     pomodoro.value.initialTimer = config.value.pomodoroTime * 60
@@ -130,32 +120,45 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
           break
         }
 
-        if (pomodoro.value.longBreakLap == config.value.longBreak.interval) {
+        if (isLongBreakPhase()) {
           pomodoro.value.initialTimer = config.value.longBreak.time * 60
           pomodoro.value.longBreakLap = 0
         } else pomodoro.value.initialTimer = config.value.shortBreakTime * 60
 
         break
       case 'break':
+        if (config.value.cycles && pomodoro.value.cycle >= config.value.cycles) {
+          finishPomodoro()
+          return
+        }
+        pomodoro.value.phase = 'pomodoro'
+        pomodoro.value.initialTimer = config.value.pomodoroTime * 60
         pomodoro.value.cycle++
         pomodoro.value.longBreakLap++
-        if (config.value.cycles && pomodoro.value.cycle >= config.value.cycles) finishPomodoro()
-        else {
-          pomodoro.value.phase = 'pomodoro'
-          pomodoro.value.initialTimer = config.value.pomodoroTime * 60
-        }
+
         break
     }
 
     pomodoro.value.timer = pomodoro.value.initialTimer
     playPomodoroTimer()
   }
+
   function restartPomodoroPhase() {
     if (!pomodoro.value.started || pomodoro.value.finished) return
 
     if (pomodoro.value.running) {
       clearTimeout(pomodoro.value.timeoutId)
       playPomodoroTimer()
+    }
+
+    switch (pomodoro.value.phase) {
+      case 'pomodoro':
+        pomodoro.value.initialTimer = config.value.pomodoroTime * 60
+        break
+      case 'break':
+        if (isLongBreakPhase()) pomodoro.value.initialTimer = config.value.longBreak.time * 60
+        else pomodoro.value.initialTimer = config.value.shortBreakTime * 60
+        break
     }
 
     pomodoro.value.timer = pomodoro.value.initialTimer
@@ -173,7 +176,7 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
   }
 
   function isConfigDeletable(id) {
-    if (!pomodoro.value.started) return true
+    if (!pomodoro.value.started || pomodoro.value.finished) return true
 
     return !isConfigSelected(id)
   }
@@ -181,21 +184,26 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
   function setCurrentConfig(c) {
     if (!selectPomodoroConfig(c)) return
 
-    if (config.value._id !== c._id) {
+    if (pomodoro.value.finished || config.value._id !== c._id) {
       config.value = c
       initNewPomodoro()
       return
     }
 
-    let restartNeeded = false
+    let restartPhaseNeeded = false
     if (
       config.value.pomodoroTime != c.pomodoroTime ||
       config.value.shortBreakTime != c.shortBreakTime ||
       config.value.longBreak != c.longBreak
     )
-      restartNeeded = true
+      restartPhaseNeeded = true
+
+    if (!config.value.cycles && c.cycles) pomodoro.value.cycle = 0
+
     config.value = c
-    if (restartNeeded) restartPomodoroPhase()
+
+    if (restartPhaseNeeded) restartPomodoroPhase()
+    if (pomodoro.value.cycle >= config.value.cycles) finishPomodoro()
   }
 
   function formatClockTime(time) {
@@ -223,10 +231,6 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
     )
   }
 
-  function getUserConfig(configId) {
-    return toRaw(userConfigs.value.get(configId))
-  }
-
   function showPomodoroWidget() {
     const route = useRoute()
     return (
@@ -240,9 +244,7 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
   }
 
   function computeConfigDuration(config) {
-    if (!config.cycles) {
-      return Infinity
-    }
+    if (!config.cycles) return Infinity
     if (config.longBreak && !config.longBreak.time != !config.longBreak.interval) return 0
 
     let c = 0
@@ -303,7 +305,6 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
     isPomodoroPhase,
     isShortBreakPhase,
     isLongBreakPhase,
-    getUserConfig,
     showPomodoroWidget,
     computeConfigDuration,
     formatDuration,

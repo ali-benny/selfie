@@ -2,16 +2,23 @@
   <div class="timer-container w-full max-w-64 sm:max-w-80">
     <div class="flex flex-col items-center gap-3">
       <div ref="timerContainer" class="relative w-full flex justify-center items-center">
-        <!-- See style block for responsive font-size implementation -->
         <div
-          class="timer-clock absolute w-full h-full top-0 right-0 flex justify-center items-center digital select-none"
+          class="absolute w-full h-full top-0 left-0 flex justify-center items-center select-none"
         >
-          {{ pomodoroStore.timer }}
+          <div class="timer-clock relative">
+            <div class="digital">{{ pomodoroStore.timer }}</div>
+            <div
+              v-if="currentConfig.cycles"
+              class="timer-cycles absolute text-neutral w-full flex justify-center"
+            >
+              {{ pomodoro.cycle }} / {{ currentConfig.cycles }}
+            </div>
+          </div>
         </div>
 
         <PomodoroAnimation :width="width" />
       </div>
-      <div class="timer-controls w-full flex justify-evenly gap-2">
+      <div v-if="!pomodoro.finished" class="timer-controls w-full flex justify-evenly gap-2">
         <button
           v-if="pomodoro.started"
           :disabled="!pomodoro.running"
@@ -55,7 +62,7 @@ import { useElementSize } from '@vueuse/core'
 import { useTemplateRef } from 'vue'
 
 const pomodoroStore = usePomodoroStore()
-const { pomodoro } = storeToRefs(pomodoroStore)
+const { pomodoro, currentConfig } = storeToRefs(pomodoroStore)
 
 const { width } = useElementSize(useTemplateRef('timerContainer'))
 </script>
@@ -64,11 +71,18 @@ const { width } = useElementSize(useTemplateRef('timerContainer'))
 .digital {
   font-family: Digital-7;
 }
+
+/*
+ * Responsive timer font size based on timer element dimension
+ */
 .timer-container {
   container: timer / inline-size;
 }
 .timer-clock {
   @apply text-2xl;
+}
+.timer-cycles {
+  @apply text-xs;
 }
 .timer-controls button {
   @apply text-base;
@@ -94,6 +108,9 @@ const { width } = useElementSize(useTemplateRef('timerContainer'))
   .timer-clock {
     @apply text-4xl;
   }
+  .timer-cycles {
+    @apply text-sm;
+  }
   .timer-controls button {
     @apply text-xl;
   }
@@ -105,6 +122,7 @@ const { width } = useElementSize(useTemplateRef('timerContainer'))
   .timer-clock {
     @apply text-5xl;
   }
+
   .timer-controls button {
     @apply text-2xl;
   }
@@ -118,6 +136,9 @@ const { width } = useElementSize(useTemplateRef('timerContainer'))
   }
   .timer-clock {
     @apply text-6xl;
+  }
+  .timer-cycles {
+    @apply text-base;
   }
   .timer-controls button {
     @apply text-3xl;
