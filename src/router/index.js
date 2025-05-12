@@ -60,4 +60,12 @@ const router = createRouter({
   routes: routes
 })
 
+if (NODE_ENV === 'development') {
+  router.addRoute({
+    path: '/notifications',
+    name: 'notifications',
+    component: NotificationsDebug
+  })
+}
+
 export default router
