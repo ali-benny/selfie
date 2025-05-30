@@ -2,7 +2,6 @@
   <div v-if="isLoading" class="flex text-xl flex-row justify-center items-center h-[90svh]">
     <Icon icon="mingcute:loading-3-fill" class="animate-spin mr-1" />Loading...
   </div>
-
   <div v-else class="container mx-auto static">
     <!-- Permessi non validi -->
     <div v-if="!hasPermission" class="prose container mx-auto flex-col justify-center w-fit static">

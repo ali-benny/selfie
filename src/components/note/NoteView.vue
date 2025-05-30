@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { Icon } from '@iconify/vue'
 import edjsHTML from 'editorjs-html'
 import { API_URL } from '@/const.js'
@@ -8,8 +8,8 @@ import { useUserStore } from '@/stores/account'
 import { getUsersByIds } from '@/router/user/user.js'
 
 const userStore = useUserStore()
-
 const props = defineProps({
+  ownerId: String,
   viewMode: String,
   lastModified: Number,
   edit: Boolean,
@@ -32,10 +32,46 @@ const checklistParser = (block) => {
   return `<label class="label cursor-pointer flex justify-start gap-1">${items}</label>`
 }
 const edjsParser = edjsHTML({ checklist: checklistParser })
+const effectiveOwnerId = computed(() => props.ownerId || userStore.loggedUser._id)
+
+// reload notes when ownerId changes
+watch(effectiveOwnerId, async (newOwnerId) => {
+  console.log('🔥 - watch - newOwnerId:', newOwnerId)
+  console.log('🔥 - watch - effectiveOwnerId.value:', effectiveOwnerId.value)
+  if (newOwnerId) {
+    try {
+      notes.value = await getNotes(newOwnerId)
+      const authorIds = notes.value.map((note) => note.author)
+      const readerIds = notes.value.flatMap((note) => note.readers)
+      const uniqueUserIds = [...new Set([...authorIds, ...readerIds])]
+      users.value = await getUsersByIds(uniqueUserIds)
+    } catch (error) {
+      console.error('Failed to fetch notes:', error)
+    }
+  }
+})
+
+// watch refreshNotes prop to reload when parent requests it
+watch(
+  () => props.refreshNotes,
+  async () => {
+    try {
+      notes.value = await getNotes(effectiveOwnerId.value)
+      console.log('🔥 - watch effectiveOwnerId.value:', effectiveOwnerId.value)
+      const authorIds = notes.value.map((note) => note.author)
+      const readerIds = notes.value.flatMap((note) => note.readers)
+      const uniqueUserIds = [...new Set([...authorIds, ...readerIds])]
+      users.value = await getUsersByIds(uniqueUserIds)
+    } catch (error) {
+      console.error('Failed to fetch notes:', error)
+    }
+  }
+)
 
 onMounted(async () => {
   try {
-    notes.value = await getNotes(userStore.loggedUser._id)
+    console.log('🔥 - onMounted - effectiveOwnerId.value:', effectiveOwnerId.value)
+    notes.value = await getNotes(effectiveOwnerId.value)
     const authorIds = notes.value.map((note) => note.author)
     const readerIds = notes.value.flatMap((note) => note.readers)
     const uniqueUserIds = [...new Set([...authorIds, ...readerIds])]
@@ -69,10 +105,10 @@ async function duplicateNote(id) {
       filename: newFilename,
       data: newData,
       tags: note.tags,
-      author: userStore.loggedUser._id
+      author: effectiveOwnerId.value
     })
 
-    notes.value = await getNotes(userStore.loggedUser._id)
+    notes.value = await getNotes(effectiveOwnerId.value)
     push.success('Note duplicated successfully')
   } catch (error) {
     push.error('Error - duplicating note:', error)
@@ -132,7 +168,7 @@ const filteredNotes = computed(() => {
 async function removeNote(id) {
   try {
     await deleteNote(id)
-    notes.value = await getNotes(userStore.loggedUser._id)
+    notes.value = await getNotes(effectiveOwnerId.value)
     push.success('Note deleted successfully')
   } catch (error) {
     console.error('Failed to delete note:', error)
@@ -159,7 +195,8 @@ function toggleShowOptions(note) {
         :class="props.extended ? 'flex-col' : 'flex-row gap-4 w-64 items-center justify-between'"
       >
         <!-- DEBUG: note _id -->
-        <!-- <p>{{ note._id }}</p>  -->
+        <!-- <p>{{ note._id }} Owner: {{ note.author }}</p>  -->
+
         <h1 class="font-bold text-lg">{{ note.name }}</h1>
         <div class="flex flex-row items-center w-full z-2">
           <div class="avatar w-10 m-2 z-2">
@@ -197,7 +234,7 @@ function toggleShowOptions(note) {
           <p
             v-for="tag in note.tags"
             :key="tag._id"
-            class="flex px-2 rounded-xl font-semibold bg-primary/50"
+            class="flex px-2 rounded-xl font-semibold !bg-primary/50"
           >
             {{ tag }}
           </p>
@@ -248,7 +285,8 @@ function toggleShowOptions(note) {
   </ul>
   <div
     v-if="props.viewMode == 'grid'"
-    class="m-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"
+    class="m-2 w-full h-full grid gap-3"
+    style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr))"
   >
     <RouterLink
       :to="`/editor?edit=${note._id}`"
@@ -300,10 +338,10 @@ function toggleShowOptions(note) {
           </button>
         </div>
       </div>
-      <h2 class="text-xl font-bold">{{ note.name }}</h2>
-      <div class="flex flex-row items-center w-full">
-        <div class="avatar w-10 m-2">
-          <div class="ring-primary ring-offset-base-100 rounded-full ring ring-offset-2">
+      <h2 class="text-lg font-bold">{{ note.name }}</h2>
+      <div class="flex flex-row items-center w-full z-4">
+        <div class="avatar w-10 m-2 z-4">
+          <div class="w-10 ring-primary ring-offset-base-100 rounded-full ring ring-offset-2">
             <img
               :src="users[note.author]?.image"
               :title="users[note.author]?.name + ' ' + users[note.author]?.surname"
@@ -325,7 +363,7 @@ function toggleShowOptions(note) {
           </div>
         </div>
       </div>
-      <p class="flex align-items-center gap-2">
+      <p class="flex items-center gap-2">
         <Icon icon="ic:round-update" /> {{ formatDate(note.date) }}
       </p>
       <!-- Tags -->

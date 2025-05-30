@@ -3,6 +3,7 @@ import { ref, watch, onMounted } from 'vue'
 import { API_URL } from '@/const.js'
 import { useUserStore } from '@/stores/account'
 import GroupList from '@/components/group/GroupList.vue'
+import NoteView from '@/components/note/NoteView.vue'
 import UserShare from '@/components/UserShare.vue'
 import { getUsersByIds } from '../user/user'
 import { updateGroup, getGroupById } from './group'
@@ -69,8 +70,6 @@ async function handleSelectGroup(group) {
     // Ensure members is an array
     const members = Array.isArray(freshGroup.members) ? freshGroup.members : []
     const allUserIds = [freshGroup.owner, ...members].filter(Boolean) // Filter out null/undefined values
-
-    console.log('Getting users for IDs:', allUserIds)
 
     // Get user data for members and owner
     const usersData = await getUsersByIds(allUserIds)
@@ -203,9 +202,9 @@ async function deleteGroup(group) {
 </script>
 
 <template>
-  <div class="flex flex-row w-full mt-3 prose">
+  <div class="flex flex-row w-full mt-3">
     <div class="flex flex-col w-full">
-      <div class="flex items-baseline justify-between">
+      <div class="flex items-baseline justify-between prose">
         <h2>My Groups</h2>
         <Popper arrow>
           <button class="btn btn-sm btn-secondary !btn-outline rounded-full">
@@ -251,10 +250,10 @@ async function deleteGroup(group) {
     <Transition name="slide-fade" :duration="550">
       <div
         v-if="selectedGroup != null"
-        class="flex flex-col w-full bg-surface-0 rounded-box p-5 h-min pt-0 my-[10%]"
+        class="flex flex-col w-full bg-surface-0/50 rounded-box p-5 h-min pt-0 my-[10%] gap-3"
         id="dynamic-view"
       >
-        <div class="flex items-baseline justify-between">
+        <div class="flex items-baseline justify-between prose mt-4 mb-0">
           <h2>{{ selectedGroup.name }}</h2>
           <div>
             <button
@@ -307,39 +306,53 @@ async function deleteGroup(group) {
           </p>
         </label>
         <!-- Actual members -->
-        <div class="flex flex-row items-center justify-start m-2">
-          <div class="flex flex-row items-center w-max mt-1">
-            <!-- owner avatar -->
-            <div class="avatar w-10 mr-2">
-              <div class="w-10 ring-primary ring-offset-base-100 rounded-full ring ring-offset-2">
-                <img
-                  class="mt-0"
-                  :src="users[selectedGroup.owner]?.image"
-                  :title="
-                    users[selectedGroup.owner]?.name + ' ' + users[selectedGroup.owner]?.surname
-                  "
-                />
+        <div>
+          <h2><b>Group Members</b></h2>
+          <div class="flex flex-row items-center justify-start m-2">
+            <div class="flex flex-row items-center w-max mt-1">
+              <!-- owner avatar -->
+              <div class="avatar w-10 mr-2">
+                <div class="w-10 ring-primary ring-offset-base-100 rounded-full ring ring-offset-2">
+                  <img
+                    class="mt-0"
+                    :src="users[selectedGroup.owner]?.image"
+                    :title="
+                      users[selectedGroup.owner]?.name + ' ' + users[selectedGroup.owner]?.surname
+                    "
+                  />
+                </div>
+              </div>
+              <!-- member avatar -->
+              <div class="avatar-group w-max">
+                <div v-for="reader in selectedGroup.members" :key="reader" class="avatar h-10">
+                  <img
+                    class="mask mask-circle !bg-secondary mt-0"
+                    :src="users[reader]?.image"
+                    :title="users[reader]?.name + ' ' + users[reader]?.surname"
+                  />
+                </div>
               </div>
             </div>
-            <!-- member avatar -->
-            <div class="avatar-group w-max">
-              <div v-for="reader in selectedGroup.members" :key="reader" class="avatar h-10">
-                <img
-                  class="mask mask-circle !bg-secondary mt-0"
-                  :src="users[reader]?.image"
-                  :title="users[reader]?.name + ' ' + users[reader]?.surname"
-                />
-              </div>
-            </div>
+            <!-- Only show UserShare for owner -->
+            <UserShare
+              v-if="selectedGroup.owner === userStore.loggedUser._id"
+              :id="selectedGroup._id"
+              type="Group"
+              msg="Invites"
+              v-model="realGroupMembers"
+            ></UserShare>
           </div>
-          <!-- Only show UserShare for owner -->
-          <UserShare
-            v-if="selectedGroup.owner === userStore.loggedUser._id"
-            :id="selectedGroup._id"
-            type="Group"
-            msg="Invites"
-            v-model="realGroupMembers"
-          ></UserShare>
+        </div>
+        <div class="divider m-0"></div>
+        <!-- Group Notes -->
+        <div class="flex flex-col *:mx-0">
+          <h3 class="text-lg font-bold">Group Notes</h3>
+          <NoteView
+            viewMode="grid"
+            :edit="false"
+            :extended="false"
+            :ownerId="selectedGroup._id"
+          ></NoteView>
         </div>
       </div>
     </Transition>
