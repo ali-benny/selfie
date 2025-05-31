@@ -96,4 +96,6 @@ dove `type` può essere: success/warining/error
 
 Per realizzare cose particolari consiglio di consultare https://docs.notivue.smastrom.io/push-usage/methods.html
 
-## Gantt Chart - Vue Ganttastic
+## Gantt Chart - DHTMLX Gantt
+
+docs: https://github.com/DHTMLX/gantt
