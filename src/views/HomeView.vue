@@ -1,8 +1,17 @@
 <template>
-  <div ref="container" class="container grid grid-cols-3 gap-5 place-content-center h-[85dvh]">
-    <div class="bg-base-200 rounded-xl" data-swapy-slot="1">
+  <div ref="container" class="container grid grid-cols-3 gap-5 place-content-center h-[85dvh]">    <div class="bg-base-200 rounded-xl" data-swapy-slot="1">
       <div class="col-md-6 p-3 rounded-xl shadow-sm bg-surface-0" data-swapy-item="calendar">
-        Calendar
+        <div class="flex flex-row justify-between items-center mb-3">
+          <h4 class="font-semibold text-lg ml-3">Calendario</h4>
+          <router-link to="/calendar" class="btn btn-sm btn-primary">
+            <Icon icon="fluent:calendar-24-filled" />
+            Apri
+          </router-link>
+        </div>
+        <div class="p-3 text-center text-gray-500">
+          <Icon icon="fluent:calendar-24-regular" class="text-4xl mb-2" />
+          <p>Vista calendario completa</p>
+        </div>
       </div>
     </div>
     <div class="bg-base-200 col-span-2 rounded-xl" data-swapy-slot="2">

@@ -7,6 +7,7 @@ import UserView from '../views/UserView.vue'
 import PomodoroDashboard from './pomodoro/PomodoroDashboard.vue'
 import GroupDash from './group/GroupDash.vue'
 import Chat from '../components/ChatComponent.vue'
+import CalendarMain from '../components/calendar/CalendarMain.vue'
 import NotFound from '@/views/NotFound.vue'
 
 const routes = [
@@ -40,11 +41,15 @@ const routes = [
     path: '/chat',
     name: 'chat',
     component: Chat
-  },
-  {
+  },  {
     path: '/pomodoro',
     name: 'Pomodoro',
     component: PomodoroDashboard
+  },
+  {
+    path: '/calendar',
+    name: 'calendar',
+    component: CalendarMain
   },
   {
     path: '/login',
