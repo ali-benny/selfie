@@ -51,11 +51,11 @@ const routes = [
     path: '/login',
     name: 'login',
     component: LoginView
-  },
-  {
-    path: '/projects',
+  },  {
+    path: '/projects/:projectId?',
     name: 'projects',
-    component: ProjectDash
+    component: ProjectDash,
+    props: true
   }
 ]
 

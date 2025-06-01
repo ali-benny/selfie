@@ -22,6 +22,10 @@ const pomodoroStore = usePomodoroStore()
       <RouterLink class="hover:!text-accent" to="/pomodoro">
         <Icon icon="fluent-emoji-high-contrast:tomato" />
       </RouterLink>
+      <RouterLink class="hover:!text-accent text-3xl" to="/projects">
+        <!-- <Icon icon="mingcute:chart-horizontal-fill" /> -->
+        <Icon icon="fluent:gantt-chart-24-filled" />
+      </RouterLink>
       <RouterLink class="hover:!text-accent" to="/group">
         <Icon icon="mingcute:group-3-fill" />
       </RouterLink>
