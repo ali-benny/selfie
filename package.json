@@ -8,7 +8,7 @@
     "backend:dev": "cross-env NODE_ENV=development nodemon server/app.js -w server",
     "build": "cross-env NODE_ENV=production vite build",
     "preview": "cross-env NODE_ENV=development vite preview & npm run dev",
-    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-pattern .gitignore",
     "format": "prettier --write src/",
     "start": "npm-run-all --parallel dev backend:dev"
   },
