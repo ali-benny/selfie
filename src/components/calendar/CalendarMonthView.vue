@@ -9,10 +9,7 @@
           </h2>
           <span class="text-sm text-subtext-0">{{ monthEvents.length }} eventi questo mese</span>
         </div>
-        <button 
-          @click="createEvent()"
-          class="btn btn-sm btn-primary"
-        >
+        <button @click="createEvent()" class="btn btn-sm btn-primary">
           <Icon icon="fluent:add-24-filled" />
           Nuovo evento
         </button>
@@ -21,22 +18,23 @@
 
     <!-- Header giorni settimana -->
     <div class="grid grid-cols-7 gap-1 mb-2">
-      <div 
+      <div
         v-for="day in weekdayNames"
         :key="day"
         class="text-center text-sm font-semibold text-subtext-1 py-2"
-      >        {{ day }}
+      >
+        {{ day }}
       </div>
     </div>
 
     <!-- Griglia calendario -->
     <div class="flex-1 grid grid-rows-6 gap-1">
-      <div 
+      <div
         v-for="(week, weekIndex) in monthWeeks"
         :key="weekIndex"
         class="grid grid-cols-7 gap-1 min-h-32"
       >
-        <div 
+        <div
           v-for="day in week"
           :key="day ? day.toISOString() : `empty-${weekIndex}`"
           :class="[
@@ -50,7 +48,8 @@
               'border-l-4 border-l-accent': day && getDayEvents(day).length > 0,
               'opacity-0 pointer-events-none': !day
             }
-          ]"          @click="selectDay(day)"
+          ]"
+          @click="selectDay(day)"
         >
           <!-- Numero del giorno -->
           <div class="flex justify-between items-start mb-1">
@@ -58,7 +57,7 @@
               {{ day ? day.getDate() : '' }}
             </span>
             <!-- Quick add button -->
-            <button 
+            <button
               v-if="day && getDayEvents(day).length === 0"
               @click.stop="createEventAt(day)"
               class="opacity-0 hover:opacity-100 transition-opacity duration-200 btn btn-xs btn-ghost text-primary"
@@ -70,7 +69,7 @@
           <!-- Eventi del giorno -->
           <div v-if="day" class="space-y-1">
             <!-- Mostra primi eventi -->
-            <div 
+            <div
               v-for="(event, index) in getDayEvents(day).slice(0, 3)"
               :key="event._id || event.id"
               :class="[
@@ -82,12 +81,13 @@
             >
               {{ event.title }}
             </div>
-            
+
             <!-- Indicator per eventi aggiuntivi -->
-            <div 
+            <div
               v-if="getDayEvents(day).length > 3"
               @click.stop="showMoreEvents(day)"
-              class="text-xs text-subtext-1 hover:text-primary cursor-pointer font-medium"            >
+              class="text-xs text-subtext-1 hover:text-primary cursor-pointer font-medium"
+            >
               +{{ getDayEvents(day).length - 3 }} altri
             </div>
           </div>
@@ -96,12 +96,15 @@
     </div>
 
     <!-- Modal eventi giorno -->
-    <div 
+    <div
       v-if="showDayEventsModal"
       class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
       @click="closeDayEventsModal"
     >
-      <div class="bg-base-100 rounded-xl shadow-xl max-w-lg w-full mx-4 max-h-[80vh] flex flex-col" @click.stop>
+      <div
+        class="bg-base-100 rounded-xl shadow-xl max-w-lg w-full mx-4 max-h-[80vh] flex flex-col"
+        @click.stop
+      >
         <!-- Header Modal -->
         <div class="flex justify-between items-center p-4 border-b border-base-300">
           <h3 class="text-lg font-semibold">{{ formatSelectedDayTitle() }}</h3>
@@ -109,11 +112,11 @@
             <Icon icon="fluent:dismiss-24-filled" />
           </button>
         </div>
-        
+
         <!-- Content Modal -->
         <div class="flex-1 overflow-y-auto p-4">
           <div class="space-y-3">
-            <div 
+            <div
               v-for="event in selectedDayEvents"
               :key="event._id || event.id"
               :class="[
@@ -130,7 +133,10 @@
                 <div v-if="event.description" class="text-sm text-subtext-0 mt-2">
                   {{ event.description }}
                 </div>
-                <div v-if="event.location" class="text-sm text-subtext-0 mt-1 flex items-center gap-1">
+                <div
+                  v-if="event.location"
+                  class="text-sm text-subtext-0 mt-1 flex items-center gap-1"
+                >
                   <Icon icon="fluent:location-24-filled" />
                   {{ event.location }}
                 </div>
@@ -138,13 +144,10 @@
             </div>
           </div>
         </div>
-        
+
         <!-- Actions Modal -->
         <div class="p-4 border-t border-base-300">
-          <button 
-            @click="createEventAt(selectedDayForModal)"
-            class="btn btn-primary btn-sm w-full"
-          >
+          <button @click="createEventAt(selectedDayForModal)" class="btn btn-primary btn-sm w-full">
             <Icon icon="fluent:add-24-filled" />
             Nuovo evento
           </button>
@@ -155,6 +158,7 @@
 </template>
 
 <script>
+// TODO: refactor using Composition API
 import { computed, ref } from 'vue'
 import { useCalendarStore } from '@/stores/calendar'
 import { Icon } from '@iconify/vue'
@@ -173,24 +177,34 @@ export default {
     const selectedDayForModal = ref(null)
 
     // Nomi giorni settimana
+    // TODO: creare costante e poi renderla reactive
     const weekdayNames = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']
 
     // Mese corrente
     const currentMonth = computed(() => {
-      return new Date(calendarStore.currentDate.getFullYear(), calendarStore.currentDate.getMonth(), 1)
+      return new Date(
+        calendarStore.currentDate.getFullYear(),
+        calendarStore.currentDate.getMonth(),
+        1
+      )
     })
 
     // Settimane del mese (con giorni precedenti/successivi per riempire griglia)
     const monthWeeks = computed(() => {
       const weeks = []
       const firstDay = new Date(currentMonth.value)
-      const lastDay = new Date(currentMonth.value.getFullYear(), currentMonth.value.getMonth() + 1, 0)
-      
+      // FIXME: unused lastDay
+      const lastDay = new Date(
+        currentMonth.value.getFullYear(),
+        currentMonth.value.getMonth() + 1,
+        0
+      )
+
       // Calcola primo lunedì della vista (potrebbe essere del mese precedente)
       const firstDayOfWeek = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1 // Lunedì = 0
       const startDate = new Date(firstDay)
       startDate.setDate(firstDay.getDate() - firstDayOfWeek)
-      
+
       // Genera 6 settimane
       let currentDate = new Date(startDate)
       for (let week = 0; week < 6; week++) {
@@ -201,14 +215,22 @@ export default {
         }
         weeks.push(weekDays)
       }
-      
+
       return weeks
-    })    // Eventi del mese
+    }) // Eventi del mese
     const monthEvents = computed(() => {
-      const startOfMonth = new Date(currentMonth.value.getFullYear(), currentMonth.value.getMonth(), 1)
-      const endOfMonth = new Date(currentMonth.value.getFullYear(), currentMonth.value.getMonth() + 1, 0)
-      
-      return calendarStore.visibleEvents.filter(event => {
+      const startOfMonth = new Date(
+        currentMonth.value.getFullYear(),
+        currentMonth.value.getMonth(),
+        1
+      )
+      const endOfMonth = new Date(
+        currentMonth.value.getFullYear(),
+        currentMonth.value.getMonth() + 1,
+        0
+      )
+
+      return calendarStore.visibleEvents.filter((event) => {
         // Gestisce sia formato backend (startDate) che frontend (date/dueDate)
         const eventDate = new Date(event.startDate || event.date || event.dueDate)
         return eventDate >= startOfMonth && eventDate <= endOfMonth
@@ -223,18 +245,23 @@ export default {
 
     // Formattazione
     const formatMonthTitle = () => {
-      return currentMonth.value.toLocaleDateString('it-IT', {
-        month: 'long',
-        year: 'numeric'
-      }).replace(/^\w/, c => c.toUpperCase())
+      return currentMonth.value
+        .toLocaleDateString('it-IT', {
+          month: 'long',
+          year: 'numeric'
+        })
+        .replace(/^\w/, (c) => c.toUpperCase())
     }
 
     const formatSelectedDayTitle = () => {
       if (!selectedDayForModal.value) return ''
-      return selectedDayForModal.value.toLocaleDateString('it-IT', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long'      }).replace(/^\w/, c => c.toUpperCase())
+      return selectedDayForModal.value
+        .toLocaleDateString('it-IT', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long'
+        })
+        .replace(/^\w/, (c) => c.toUpperCase())
     }
 
     const formatEventTime = (event) => {
@@ -244,18 +271,18 @@ export default {
           minute: '2-digit'
         })
       }
-      
+
       if (event.allDay) {
         return 'Tutto il giorno'
       }
-      
+
       // Gestisce formato backend (startDate/endDate) e frontend (startTime/endTime)
       if (event.startDate && !event.allDay) {
         const startTime = new Date(event.startDate).toLocaleTimeString('it-IT', {
           hour: '2-digit',
           minute: '2-digit'
         })
-        
+
         if (event.endDate) {
           const endTime = new Date(event.endDate).toLocaleTimeString('it-IT', {
             hour: '2-digit',
@@ -265,21 +292,23 @@ export default {
         }
         return startTime
       }
-      
+
       if (event.startTime) {
         if (event.endTime) {
           return `${event.startTime} - ${event.endTime}`
         }
         return event.startTime
       }
-      
+
       return ''
     }
 
     // Utility
     const isCurrentMonth = (date) => {
-      return date.getMonth() === currentMonth.value.getMonth() && 
-             date.getFullYear() === currentMonth.value.getFullYear()
+      return (
+        date.getMonth() === currentMonth.value.getMonth() &&
+        date.getFullYear() === currentMonth.value.getFullYear()
+      )
     }
 
     const isToday = (date) => {
@@ -294,21 +323,23 @@ export default {
     const truncateText = (text, maxLength) => {
       if (text.length <= maxLength) return text
       return text.substring(0, maxLength) + '...'
-    }    // Eventi per giorno
+    } // Eventi per giorno
     const getDayEvents = (day) => {
-      return calendarStore.visibleEvents.filter(event => {
-        // Gestisce sia formato backend (startDate) che frontend (date/dueDate)
-        const eventDate = new Date(event.startDate || event.date || event.dueDate)
-        return eventDate.toDateString() === day.toDateString()
-      }).sort((a, b) => {
-        // Ordina per orario, eventi tutto il giorno prima
-        if (a.allDay && !b.allDay) return -1
-        if (!a.allDay && b.allDay) return 1
-        
-        const timeA = a.startTime || (a.dueDate ? new Date(a.dueDate).toTimeString() : '00:00')
-        const timeB = b.startTime || (b.dueDate ? new Date(b.dueDate).toTimeString() : '00:00')
-        return timeA.localeCompare(timeB)
-      })
+      return calendarStore.visibleEvents
+        .filter((event) => {
+          // Gestisce sia formato backend (startDate) che frontend (date/dueDate)
+          const eventDate = new Date(event.startDate || event.date || event.dueDate)
+          return eventDate.toDateString() === day.toDateString()
+        })
+        .sort((a, b) => {
+          // Ordina per orario, eventi tutto il giorno prima
+          if (a.allDay && !b.allDay) return -1
+          if (!a.allDay && b.allDay) return 1
+
+          const timeA = a.startTime || (a.dueDate ? new Date(a.dueDate).toTimeString() : '00:00')
+          const timeB = b.startTime || (b.dueDate ? new Date(b.dueDate).toTimeString() : '00:00')
+          return timeA.localeCompare(timeB)
+        })
     }
 
     // Classe CSS per tipo evento
@@ -322,7 +353,7 @@ export default {
     // Classi DaisyUI per eventi
     const getEventClasses = (event, variant = 'small') => {
       const baseClasses = []
-      
+
       if (event.type === 'todo') {
         if (variant === 'full') {
           baseClasses.push('border-l-4 border-l-warning bg-warning/10')
@@ -336,7 +367,7 @@ export default {
           baseClasses.push('bg-primary/20 text-primary-content border-primary/30')
         }
       }
-      
+
       return baseClasses.join(' ')
     }
 

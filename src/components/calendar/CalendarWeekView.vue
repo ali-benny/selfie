@@ -11,10 +11,7 @@
         </div>
         <div class="flex items-center gap-4">
           <span class="text-sm text-subtext-1">{{ weekEvents.length }} eventi</span>
-          <button 
-            @click="createEvent()"
-            class="btn btn-sm btn-primary"
-          >
+          <button @click="createEvent()" class="btn btn-sm btn-primary">
             <Icon icon="fluent:add-24-filled" />
             Nuovo evento
           </button>
@@ -30,8 +27,8 @@
           <span class="text-xs text-subtext-1 font-medium">Ora</span>
         </div>
         <div class="flex-1 min-h-0 overflow-y-auto overflow-visible" ref="timeColumn">
-          <div 
-            v-for="hour in hours" 
+          <div
+            v-for="hour in hours"
             :key="hour"
             class="h-16 border-b border-base-300/50 flex items-start justify-center pt-1 overflow-visible"
           >
@@ -44,7 +41,7 @@
       <div class="flex-1 flex flex-col min-w-0">
         <!-- Header giorni -->
         <div class="grid grid-cols-7 border-b border-base-300">
-          <div 
+          <div
             v-for="day in weekDays"
             :key="day.toISOString()"
             :class="[
@@ -59,27 +56,34 @@
           >
             <div class="text-xs font-medium text-center">{{ formatDayName(day) }}</div>
             <div class="text-lg font-bold">{{ day.getDate() }}</div>
-            <div v-if="getDayEventsCount(day) > 0" class="text-xs bg-accent text-accent-content rounded-full px-1.5 py-0.5 min-w-5 text-center">
+            <div
+              v-if="getDayEventsCount(day) > 0"
+              class="text-xs bg-accent text-accent-content rounded-full px-1.5 py-0.5 min-w-5 text-center"
+            >
               {{ getDayEventsCount(day) }}
             </div>
           </div>
         </div>
-        
+
         <!-- Griglia eventi -->
-        <div class="flex-1 grid grid-cols-7 min-h-0 overflow-y-auto overflow-x-visible" ref="eventsColumn" @scroll="syncScroll">
-          <div 
+        <div
+          class="flex-1 grid grid-cols-7 min-h-0 overflow-y-auto overflow-x-visible"
+          ref="eventsColumn"
+          @scroll="syncScroll"
+        >
+          <div
             v-for="day in weekDays"
             :key="day.toISOString()"
             class="border-r border-base-300/50 relative overflow-visible"
           >
             <div
-              v-for="hour in hours" 
+              v-for="hour in hours"
               :key="hour"
               class="h-16 border-b border-base-300/30 hover:bg-base-200/50 cursor-pointer transition-colors duration-200 relative overflow-visible"
               @click="createEventAt(day, hour)"
             >
               <!-- Eventi in questa ora e giorno -->
-              <div 
+              <div
                 v-for="(event, index) in getEventsForDayHour(day, hour)"
                 :key="event._id || event.id"
                 :class="[
@@ -104,16 +108,12 @@
     <div v-if="allDayEvents.length > 0" class="mt-4 bg-base-200 rounded-lg p-4">
       <h3 class="text-lg font-semibold text-base-content mb-3">Eventi tutto il giorno</h3>
       <div class="grid grid-cols-7 gap-1">
-        <div 
-          v-for="day in weekDays"
-          :key="day.toISOString()"
-          class="space-y-1"
-        >
+        <div v-for="day in weekDays" :key="day.toISOString()" class="space-y-1">
           <div class="text-xs font-medium text-center text-subtext-1 border-b border-base-300 pb-1">
             {{ formatDayName(day) }} {{ day.getDate() }}
           </div>
           <div class="space-y-1">
-            <div 
+            <div
               v-for="event in getAllDayEventsForDay(day)"
               :key="event._id || event.id"
               :class="[
@@ -132,6 +132,7 @@
 </template>
 
 <script>
+// TODO: Refactor using Composition API
 import { computed, ref } from 'vue'
 import { useCalendarStore } from '@/stores/calendar'
 import { Icon } from '@iconify/vue'
@@ -149,7 +150,7 @@ export default {
     const timeColumn = ref(null)
     const eventsColumn = ref(null)
 
-    // Ore della giornata (6-23)
+    // Ora della giornata (6-23)
     const hours = Array.from({ length: 18 }, (_, i) => i + 6)
 
     // Giorni della settimana
@@ -159,112 +160,118 @@ export default {
 
     // Eventi della settimana
     const weekEvents = computed(() => {
-      const events = calendarStore.visibleEvents.filter(event => {
+      const events = calendarStore.visibleEvents.filter((event) => {
         // Gestisce sia formato backend (startDate) che frontend (date/dueDate)
         const eventDate = new Date(event.startDate || event.date || event.dueDate)
-        return weekDays.value.some(day => 
-          eventDate.toDateString() === day.toDateString()
-        )
+        return weekDays.value.some((day) => eventDate.toDateString() === day.toDateString())
       })
-        // DEBUG: Log tutti gli eventi della settimana
-      console.log('🔍 WEEK EVENTS DEBUG:', events.map(e => ({
-        title: e.title,
-        allDay: e.allDay,
-        startTime: e.startTime,
-        endTime: e.endTime,
-        duration: e.duration,
-        startDate: e.startDate,
-        date: e.date,
-        dueDate: e.dueDate
-      })))
-      
+      // DEBUG: Log tutti gli eventi della settimana
+      console.log(
+        '🔍 WEEK EVENTS DEBUG:',
+        events.map((e) => ({
+          title: e.title,
+          allDay: e.allDay,
+          startTime: e.startTime,
+          endTime: e.endTime,
+          duration: e.duration,
+          startDate: e.startDate,
+          date: e.date,
+          dueDate: e.dueDate
+        }))
+      )
+
       // DEBUG: Log completo dell'evento WEBINAR
-      const webinarEvent = events.find(e => e.title === 'WEBINAR')
+      const webinarEvent = events.find((e) => e.title === 'WEBINAR')
       if (webinarEvent) {
         console.log('🔍 WEBINAR COMPLETE DATA:', webinarEvent)
       }
-      
+
       return events
     })
 
     // Eventi con orario specifico
     const timedEvents = computed(() => {
-      const result = weekEvents.value.filter(event => {
+      const result = weekEvents.value.filter((event) => {
         // REGOLA PRINCIPALE: Se allDay è esplicitamente true, l'evento è tutto il giorno
         if (event.allDay === true) {
-          return false; // Non è un evento con orario specifico
+          return false // Non è un evento con orario specifico
         }
-        
+
         // Se allDay è false, significa che l'utente vuole un evento con orario specifico
         // Cerchiamo un orario di inizio (in ordine di priorità)
-        
+
         // 1. Controllo esplicito per startTime come stringa
         if (event.startTime) {
-          return true;
+          return true
         }
-        
+
         // 2. Controllo basato su startDate
         if (event.startDate) {
           const date = new Date(event.startDate)
           const hours = date.getHours()
           const minutes = date.getMinutes()
-          
+
           // Se l'ora non è 00:00, consideriamo che abbia un orario specifico
           if (hours !== 0 || minutes !== 0) {
-            return true;
+            return true
           }
         }
-        
+
         // Se siamo qui, l'evento non ha un orario valido ma allDay è false
         // Lo trattiamo come timed event per rispettare la volontà dell'utente
-        return event.allDay === false;
+        return event.allDay === false
       })
-      
+
       // DEBUG: Log eventi con orario
-      console.log('🕒 TIMED EVENTS DEBUG:', result.map(e => ({
-        title: e.title,
-        allDay: e.allDay,
-        startTime: e.startTime,
-        endTime: e.endTime
-      })))
-      
+      console.log(
+        '🕒 TIMED EVENTS DEBUG:',
+        result.map((e) => ({
+          title: e.title,
+          allDay: e.allDay,
+          startTime: e.startTime,
+          endTime: e.endTime
+        }))
+      )
+
       return result
     })
 
     // Eventi tutto il giorno
     const allDayEvents = computed(() => {
-      return weekEvents.value.filter(event => {
+      return weekEvents.value.filter((event) => {
+        // FIXME: questi if
+
         // REGOLA SEMPLIFICATA:
         // 1. Se allDay è esplicitamente true, è un evento tutto il giorno
         if (event.allDay === true) {
-          return true;
+          return true
         }
-        
+
         // 2. Se allDay è esplicitamente false, NON è un evento tutto il giorno
         if (event.allDay === false) {
-          return false;
+          return false
         }
-        
+
         // 3. Se allDay non è specificato, controlliamo startTime e startDate
-        
+
         // Se ha startTime, NON è un evento tutto il giorno
         if (event.startTime) {
-          return false;
+          return false
         }
-        
+
         // Se startDate ha un'ora specifica, NON è un evento tutto il giorno
         if (event.startDate) {
-          const date = new Date(event.startDate);
-          const hours = date.getHours();
-          const minutes = date.getMinutes();
-          
+          const date = new Date(event.startDate)
+          const hours = date.getHours()
+          const minutes = date.getMinutes()
+
           if (hours !== 0 || minutes !== 0) {
-            return false;
+            return false
           }
         }
-        
+
         // Default: se non abbiamo abbastanza info, consideriamolo tutto il giorno
-        return true;
+        return true
       })
     })
 
@@ -279,10 +286,10 @@ export default {
     const formatWeekRange = () => {
       const firstDay = weekDays.value[0]
       const lastDay = weekDays.value[6]
-      
+
       const startMonth = firstDay.toLocaleDateString('it-IT', { month: 'long' })
       const endMonth = lastDay.toLocaleDateString('it-IT', { month: 'long' })
-      
+
       if (startMonth === endMonth) {
         return `${firstDay.getDate()}-${lastDay.getDate()} ${startMonth}`
       } else {
@@ -290,16 +297,20 @@ export default {
       }
     }
 
+    // TODO: imparare API di date
     const formatDayName = (date) => {
-      return date.toLocaleDateString('it-IT', { 
-        weekday: 'short' 
-      }).replace(/^\w/, c => c.toUpperCase())
+      return date
+        .toLocaleDateString('it-IT', {
+          weekday: 'short'
+        })
+        .replace(/^\w/, (c) => c.toUpperCase())
     }
 
     const formatHour = (hour) => {
       return `${hour.toString().padStart(2, '0')}:00`
     }
 
+    // TODO: imparare API di date
     const formatEventTime = (event) => {
       if (event.type === 'todo' && event.dueDate) {
         return new Date(event.dueDate).toLocaleTimeString('it-IT', {
@@ -307,7 +318,7 @@ export default {
           minute: '2-digit'
         })
       }
-      
+
       if (event.startTime) {
         if (event.endTime) {
           return `${event.startTime}-${event.endTime}`
@@ -318,14 +329,14 @@ export default {
         }
         return event.startTime
       }
-      
+
       return ''
     }
 
     // Utility
     const getWeekNumber = (date) => {
       const firstDayOfYear = new Date(date.getFullYear(), 0, 1)
-      const pastDaysOfYear = (date - firstDayOfYear) / 86400000
+      const pastDaysOfYear = (date - firstDayOfYear) / 86400000 // TODO: creare costante, perché che è sta roba?
       return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7)
     }
 
@@ -340,7 +351,7 @@ export default {
 
     // Conteggi eventi
     const getDayEventsCount = (day) => {
-      return weekEvents.value.filter(event => {
+      return weekEvents.value.filter((event) => {
         const eventDate = new Date(event.startDate || event.date || event.dueDate)
         return eventDate.toDateString() === day.toDateString()
       }).length
@@ -348,20 +359,21 @@ export default {
 
     // Eventi per giorno e ora (include eventi multi-ora)
     const getEventsForDayHour = (day, hour) => {
-      return timedEvents.value.filter(event => {
+      return timedEvents.value.filter((event) => {
         const eventDate = new Date(event.startDate || event.date || event.dueDate)
         if (eventDate.toDateString() !== day.toDateString()) {
           return false
         }
 
+        // FIXME: unused endHour
         let startHour, endHour
-        
+
         if (event.type === 'todo' && event.dueDate) {
           startHour = new Date(event.dueDate).getHours()
           endHour = startHour // Todo eventi sono sempre di 1 ora
         } else if (event.startTime) {
           startHour = parseInt(event.startTime.split(':')[0])
-          
+
           if (event.endTime) {
             endHour = parseInt(event.endTime.split(':')[0])
           } else if (event.duration) {
@@ -372,7 +384,7 @@ export default {
           }
         } else if (event.startDate) {
           startHour = new Date(event.startDate).getHours()
-          
+
           if (event.duration) {
             const durationHours = Math.ceil(event.duration / 60)
             endHour = startHour + durationHours
@@ -382,43 +394,43 @@ export default {
         } else {
           return false
         }
-        
+
         // L'evento viene mostrato solo nell'ora di inizio per evitare duplicati
         return startHour === hour
       })
-    }    // Calcola le ore che un evento occupa
+    } // Calcola le or che un evento occupa
     const getEventDurationInHours = (event) => {
       if (event.type === 'todo') {
         return 1 // Todo eventi sono sempre di 1 ora nella vista settimanale
       }
-      
+
       // 1. Controlla startTime/endTime (formato stringa)
       if (event.endTime && event.startTime) {
         const startHour = parseInt(event.startTime.split(':')[0])
         const startMinute = parseInt(event.startTime.split(':')[1] || '0')
         const endHour = parseInt(event.endTime.split(':')[0])
         const endMinute = parseInt(event.endTime.split(':')[1] || '0')
-        
+
         const startTotalMinutes = startHour * 60 + startMinute
         const endTotalMinutes = endHour * 60 + endMinute
         const duration = (endTotalMinutes - startTotalMinutes) / 60
-        
+
         return Math.max(1, duration)
       }
-      
+
       // 2. Controlla proprietà duration in minuti
       if (event.duration) {
         const duration = event.duration / 60
         return Math.max(1, duration)
       }
-      
+
       // 3. NUOVO: Controlla se l'evento ha startDate e endDate
       if (event.startDate && event.endDate) {
         const startDate = new Date(event.startDate)
         const endDate = new Date(event.endDate)
         const durationMs = endDate.getTime() - startDate.getTime()
         const durationHours = durationMs / (1000 * 60 * 60)
-        
+
         // DEBUG: Log per eventi con startDate/endDate
         console.log('🐛 DURATION DEBUG (startDate/endDate):', {
           title: event.title,
@@ -426,30 +438,31 @@ export default {
           endDate: event.endDate,
           durationHours: durationHours
         })
-        
+
         return Math.max(1, durationHours)
       }
-      
+
+      // TODO: cos'è sta roba? serve?
       // 4. NUOVO: Se l'evento ha solo startDate, prova a derivare la durata dal titolo o altre proprietà
       if (event.title && event.title.includes('WEBINAR')) {
-        // Per il WEBINAR specifico, impostiamo 2.25 ore (dalle 12:00 alle 14:15)
+        // Per il WEBINAR specifico, impostiamo 2.25 or (dalle 12:00 alle 14:15)
         console.log('🐛 WEBINAR HARDCODED DURATION: 2.25 hours')
         return 2.25
       }
-      
+
       // DEBUG: Log per eventi che vanno nel fallback
       console.log('🐛 DURATION DEBUG (fallback):', {
         title: event.title,
         event: event,
         defaultDuration: 1
       })
-      
+
       return 1 // Default 1 ora
     }
 
     // Eventi tutto il giorno per giorno
     const getAllDayEventsForDay = (day) => {
-      return allDayEvents.value.filter(event => {
+      return allDayEvents.value.filter((event) => {
         const eventDate = new Date(event.startDate || event.date || event.dueDate)
         return eventDate.toDateString() === day.toDateString()
       })
@@ -469,10 +482,10 @@ export default {
     const getCollisionAwareStyle = (event, day, hour, index) => {
       const hourEvents = getEventsForDayHour(day, hour)
       const totalEvents = hourEvents.length
-      
-      // Calcola la durata dell'evento in ore
+
+      // Calcola la durata dell'evento in or
       const durationHours = getEventDurationInHours(event)
-      
+
       // DEBUG: Log per eventi WEBINAR
       if (event.title === 'WEBINAR') {
         console.log('🎯 WEBINAR STYLE DEBUG:', {
@@ -483,15 +496,15 @@ export default {
           index: index
         })
       }
-      
+
       // Base styles from standard event style
       const baseStyle = getEventStyle(event)
-      
+
       // Calcola l'altezza effettiva basata sulla durata multi-ora
       // Ogni slot è 64px (h-16) + 1px border = 65px per slot
       const slotHeight = 65 // 64px + 1px border
       const totalHeight = Math.max(slotHeight * durationHours - 4, 20)
-      
+
       if (totalEvents <= 1) {
         // Se c'è un solo evento nell'ora, occupa tutto lo spazio orizzontale
         const style = {
@@ -504,19 +517,19 @@ export default {
           // Permite che l'evento si estenda oltre il bordo inferiore del contenitore
           overflow: 'visible'
         }
-        
+
         // DEBUG: Log per eventi WEBINAR
         if (event.title === 'WEBINAR') {
           console.log('🎯 WEBINAR FINAL STYLE:', style)
         }
-        
+
         return style
       }
-      
+
       // Calcola la larghezza di ciascun evento per eventi multipli
       const eventWidth = Math.floor(100 / totalEvents)
       const leftOffset = index * eventWidth
-      
+
       const style = {
         ...baseStyle,
         height: `${totalHeight}px`,
@@ -527,12 +540,12 @@ export default {
         // Permite che l'evento si estenda oltre il bordo inferiore del contenitore
         overflow: 'visible'
       }
-      
+
       // DEBUG: Log per eventi WEBINAR
       if (event.title === 'WEBINAR') {
         console.log('🎯 WEBINAR FINAL STYLE (MULTIPLE):', style)
       }
-      
+
       return style
     }
 
@@ -547,7 +560,7 @@ export default {
     // Classi DaisyUI per eventi
     const getEventClasses = (event, variant = 'small') => {
       const baseClasses = []
-      
+
       if (event.type === 'todo') {
         if (variant === 'full') {
           baseClasses.push('border-l-4 border-l-warning bg-warning/10')
@@ -561,7 +574,7 @@ export default {
           baseClasses.push('!bg-primary/30 border-primary/30')
         }
       }
-      
+
       return baseClasses.join(' ')
     }
 
