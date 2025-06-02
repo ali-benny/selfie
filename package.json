@@ -38,7 +38,7 @@
     "cheerio": "^1.0.0",
     "colorjs.io": "^0.5.2",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
+    "dotenv": "^16.5.0",
     "editorjs-md-parser": "^0.0.3",
     "express": "^5.1.0",
     "express-fileupload": "^1.5.1",
