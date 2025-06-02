@@ -73,13 +73,15 @@
               v-for="(event, index) in getDayEvents(day).slice(0, 3)"
               :key="event._id || event.id"
               :class="[
-                'text-xs px-2 py-1 rounded truncate cursor-pointer transition-colors duration-200',
+                'text-xs px-2 py-1 rounded truncate cursor-pointer transition-colors duration-200 flex items-center gap-1',
                 getEventClasses(event)
               ]"
               @click.stop="selectEvent(event)"
               :title="event.title"
             >
-              {{ event.title }}
+              <span v-if="event.type !== 'todo'">{{ calendarStore.getCategoryByValue(event.category || 'other').icon }}</span>
+              <span v-else>⏰</span>
+              <span class="truncate">{{ event.title }}</span>
             </div>
 
             <!-- Indicator per eventi aggiuntivi -->
@@ -124,10 +126,13 @@
                 getEventClasses(event, 'full')
               ]"
               @click="selectEvent(event)"
-            >
-              <div class="card-body p-4">
+            >              <div class="card-body p-4">
                 <div class="flex justify-between items-start">
-                  <h4 class="card-title text-base">{{ event.title }}</h4>
+                  <div class="flex items-center gap-2">
+                    <span v-if="event.type !== 'todo'">{{ calendarStore.getCategoryByValue(event.category || 'other').icon }}</span>
+                    <span v-else>⏰</span>
+                    <h4 class="card-title text-base">{{ event.title }}</h4>
+                  </div>
                   <span class="text-sm text-subtext-1">{{ formatEventTime(event) }}</span>
                 </div>
                 <div v-if="event.description" class="text-sm text-subtext-0 mt-2">
@@ -219,20 +224,12 @@ export default {
       return weeks
     }) // Eventi del mese
     const monthEvents = computed(() => {
-      const startOfMonth = new Date(
-        currentMonth.value.getFullYear(),
-        currentMonth.value.getMonth(),
-        1
-      )
-      const endOfMonth = new Date(
-        currentMonth.value.getFullYear(),
-        currentMonth.value.getMonth() + 1,
-        0
-      )
-
-      return calendarStore.visibleEvents.filter((event) => {
-        // Gestisce sia formato backend (startDate) che frontend (date/dueDate)
-        const eventDate = new Date(event.startDate || event.date || event.dueDate)
+      const startOfMonth = new Date(currentMonth.value.getFullYear(), currentMonth.value.getMonth(), 1)
+      const endOfMonth = new Date(currentMonth.value.getFullYear(), currentMonth.value.getMonth() + 1, 0)
+      
+      return calendarStore.visibleEvents.filter(event => {
+        // Use standardized property names: start for events, dueDate for todos
+        const eventDate = new Date(event.start || event.dueDate)
         return eventDate >= startOfMonth && eventDate <= endOfMonth
       })
     })
@@ -271,20 +268,19 @@ export default {
           minute: '2-digit'
         })
       }
-
-      if (event.allDay) {
+        if (event.allDay) {
         return 'Tutto il giorno'
       }
-
-      // Gestisce formato backend (startDate/endDate) e frontend (startTime/endTime)
-      if (event.startDate && !event.allDay) {
-        const startTime = new Date(event.startDate).toLocaleTimeString('it-IT', {
+      
+      // Use standardized startTime property or extract from start date
+      if (event.start && !event.allDay) {
+        const startTime = new Date(event.start).toLocaleTimeString('it-IT', {
           hour: '2-digit',
           minute: '2-digit'
         })
-
-        if (event.endDate) {
-          const endTime = new Date(event.endDate).toLocaleTimeString('it-IT', {
+        
+        if (event.end) {
+          const endTime = new Date(event.end).toLocaleTimeString('it-IT', {
             hour: '2-digit',
             minute: '2-digit'
           })
@@ -325,27 +321,24 @@ export default {
       return text.substring(0, maxLength) + '...'
     } // Eventi per giorno
     const getDayEvents = (day) => {
-      return calendarStore.visibleEvents
-        .filter((event) => {
-          // Gestisce sia formato backend (startDate) che frontend (date/dueDate)
-          const eventDate = new Date(event.startDate || event.date || event.dueDate)
-          return eventDate.toDateString() === day.toDateString()
-        })
-        .sort((a, b) => {
-          // Ordina per orario, eventi tutto il giorno prima
-          if (a.allDay && !b.allDay) return -1
-          if (!a.allDay && b.allDay) return 1
-
-          const timeA = a.startTime || (a.dueDate ? new Date(a.dueDate).toTimeString() : '00:00')
-          const timeB = b.startTime || (b.dueDate ? new Date(b.dueDate).toTimeString() : '00:00')
-          return timeA.localeCompare(timeB)
-        })
+      return calendarStore.visibleEvents.filter(event => {
+        // Use standardized property names: start for events, dueDate for todos
+        const eventDate = new Date(event.start || event.dueDate)
+        return eventDate.toDateString() === day.toDateString()
+      }).sort((a, b) => {
+        // Ordina per orario, eventi tutto il giorno prima
+        if (a.allDay && !b.allDay) return -1
+        if (!a.allDay && b.allDay) return 1
+        
+        const timeA = a.startTime || (a.dueDate ? new Date(a.dueDate).toTimeString() : '00:00')
+        const timeB = b.startTime || (b.dueDate ? new Date(b.dueDate).toTimeString() : '00:00')
+        return timeA.localeCompare(timeB)
+      })
     }
 
     // Classe CSS per tipo evento
     const getEventTypeClass = (event) => {
-      if (event.type === 'todo') {
-        return 'event-todo'
+      if (event.type === 'todo') {      return 'event-todo'
       }
       return 'event-calendar'
     }
@@ -361,15 +354,17 @@ export default {
           baseClasses.push('bg-warning/20 text-warning-content border-warning/30')
         }
       } else {
+        // Get category color scheme
+        const category = calendarStore.getCategoryByValue(event.category || 'other')
+        
         if (variant === 'full') {
-          baseClasses.push('border-l-4 border-l-primary bg-primary/10')
+          baseClasses.push(`border-l-4 border-l-primary ${category.colors.accent}`)
         } else {
-          baseClasses.push('bg-primary/20 text-primary-content border-primary/30')
+          baseClasses.push(`${category.colors.bg} ${category.colors.border}`)
         }
       }
-
-      return baseClasses.join(' ')
-    }
+      
+      return baseClasses.join(' ')    }
 
     // Azioni
     const createEvent = () => {
@@ -408,6 +403,7 @@ export default {
     }
 
     return {
+      calendarStore,
       weekdayNames,
       monthWeeks,
       monthEvents,

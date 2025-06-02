@@ -59,26 +59,61 @@
             <Icon icon="fluent:add-24-filled" />
             Nuovo Evento
           </button>
-        </div>
+        </div>        <!-- Filtri -->
+        <div class="flex items-center gap-4">
+          <!-- Filtri tipo -->
+          <div class="flex items-center gap-2">
+            <label class="label cursor-pointer gap-2">
+              <input 
+                type="checkbox" 
+                v-model="showEvents" 
+                class="checkbox checkbox-sm checkbox-primary" 
+              />
+              <span class="label-text">Eventi</span>
+            </label>
+            <label class="label cursor-pointer gap-2">
+              <input 
+                type="checkbox" 
+                v-model="showTodos" 
+                class="checkbox checkbox-sm checkbox-error" 
+              />
+              <span class="label-text">Scadenze</span>
+            </label>
+          </div>
 
-        <!-- Filtri -->
-        <div class="flex items-center gap-2">
-          <label class="label cursor-pointer gap-2">
-            <input
-              type="checkbox"
-              v-model="showEvents"
-              class="checkbox checkbox-sm checkbox-primary"
-            />
-            <span class="label-text">Eventi</span>
-          </label>
-          <label class="label cursor-pointer gap-2">
-            <input
-              type="checkbox"
-              v-model="showTodos"
-              class="checkbox checkbox-sm checkbox-error"
-            />
-            <span class="label-text">Scadenze</span>
-          </label>
+          <!-- Separatore -->
+          <div class="divider divider-horizontal m-0"></div>
+
+          <!-- Filtri categoria -->
+          <div class="dropdown dropdown-end">
+            <div tabindex="0" role="button" class="btn btn-sm btn-ghost">
+              <Icon icon="fluent:filter-24-filled" />
+              Categorie
+              <Icon icon="fluent:chevron-down-24-filled" />
+            </div>
+            <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-56 p-2 shadow border border-base-300">
+              <li class="menu-title">
+                <span>Filtra per categoria</span>
+              </li>
+              <li 
+                v-for="category in calendarStore.eventCategories"
+                :key="category.value"
+              >
+                <label class="label cursor-pointer">
+                  <span class="flex items-center gap-2">
+                    <span>{{ category.icon }}</span>
+                    <span>{{ category.label }}</span>
+                  </span>
+                  <input 
+                    type="checkbox" 
+                    class="checkbox checkbox-sm"
+                    :checked="calendarStore.activeCategories.includes(category.value)"
+                    @change="calendarStore.toggleCategoryFilter(category.value)"
+                  />
+                </label>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>

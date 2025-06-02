@@ -218,14 +218,19 @@ export function validateEventData(eventData) {
  * Formatta un evento per la visualizzazione nel calendario
  */
 export function formatEventForCalendar(event) {
-  return {
+  const formatted = {
     id: event._id,
+    _id: event._id, // Mantieni anche _id per compatibilità
     title: event.title,
     start: event.startDate,
     end: event.endDate,
     allDay: event.allDay,
     description: event.description,
     location: event.location,
+    category: event.category || 'other', // Include category per il color coding
+    startTime: event.startTime, // Include startTime per la vista settimanale
+    endTime: event.endTime, // Include endTime per la vista settimanale
+    duration: event.duration, // Include duration
     author: event.author,
     invitees: event.invitees,
     backgroundColor: event.isRecurring ? '#3b82f6' : '#10b981', // Blu per ricorrenti, verde per singoli
@@ -237,6 +242,8 @@ export function formatEventForCalendar(event) {
       originalEventId: event.originalEventId
     }
   }
+  
+  return formatted
 }
 
 /**

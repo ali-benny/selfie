@@ -67,12 +67,13 @@
               ]"
               :style="getCollisionAwareStyle(event, hour, index)"
               @click.stop="selectEvent(event)"
-            >
-              <div class="text-xs opacity-75">
+            >              <div class="text-xs opacity-75">
                 {{ formatEventTime(event) }}
               </div>
-              <div class="font-medium truncate">
-                {{ event.title }}
+              <div class="font-medium truncate flex items-center gap-1">
+                <span v-if="event.type !== 'todo'">{{ calendarStore.getCategoryByValue(event.category || 'other').icon }}</span>
+                <span v-else>⏰</span>
+                <span class="truncate">{{ event.title }}</span>
               </div>
               <div v-if="event.location" class="text-xs opacity-75 flex items-center gap-1">
                 <Icon icon="fluent:location-24-filled" class="w-3 h-3" />
@@ -100,10 +101,12 @@
             getEventClasses(event, 'full')
           ]"
           @click="selectEvent(event)"
-        >
-          <div class="card-body p-3">
-            <div class="flex justify-between items-start">
-              <h4 class="card-title text-sm">{{ event.title }}</h4>
+        >          <div class="card-body p-3">            <div class="flex justify-between items-start">
+              <div class="flex items-center gap-2">
+                <span v-if="event.type !== 'todo'">{{ calendarStore.getCategoryByValue(event.category || 'other').icon }}</span>
+                <span v-else>⏰</span>
+                <h4 class="card-title text-sm">{{ event.title }}</h4>
+              </div>
               <span v-if="event.type === 'todo'" class="badge badge-warning badge-xs">Todo</span>
             </div>
             <div v-if="event.description" class="text-xs text-subtext-0 mt-1">
@@ -138,18 +141,17 @@ export default {
     const timeColumn = ref(null)
     const eventsColumn = ref(null)
 
-    // Or della giornata (6-23)
-    const hours = Array.from({ length: 18 }, (_, i) => i + 6)
-
-    // Eventi del giorno corrente
+    // Ore della giornata (6-23)
+    const hours = Array.from({ length: 18 }, (_, i) => i + 6)    // Eventi del giorno corrente
     const currentDay = computed(() => calendarStore.currentDate)
+      
     const dayEvents = computed(() => {
       console.log('Calculating dayEvents for currentDay:', currentDay.value)
       console.log('Available events:', calendarStore.visibleEvents)
-
-      const events = calendarStore.visibleEvents.filter((event) => {
-        // Gestisce diversi formati di data per compatibilità backend/frontend
-        const eventDate = new Date(event.date || event.startDate || event.dueDate || event.start)
+      
+      const events = calendarStore.visibleEvents.filter(event => {
+        // Use standardized property names: start for events, dueDate for todos
+        const eventDate = new Date(event.start || event.dueDate)
         const dayString = currentDay.value.toDateString()
         const eventString = eventDate.toDateString()
 
@@ -180,17 +182,16 @@ export default {
           console.log('Event:', event.title, 'has explicit startTime:', event.startTime)
           return true
         }
-
-        // 2. Controllo basato su startDate
-        if (event.startDate) {
-          const date = new Date(event.startDate)
+          // 2. Controllo basato su start (standardized property)
+        if (event.start) {
+          const date = new Date(event.start)
           const hours = date.getHours()
           const minutes = date.getMinutes()
 
           // Se l'ora non è 00:00, consideriamo che abbia un orario specifico
           if (hours !== 0 || minutes !== 0) {
-            console.log('Event:', event.title, 'has time in startDate:', hours + ':' + minutes)
-            return true
+            console.log('Event:', event.title, 'has time in start:', hours + ':' + minutes)
+            return true;
           }
         }
 
@@ -223,13 +224,12 @@ export default {
         if (event.startTime) {
           return false
         }
-
-        // Se startDate ha un'ora specifica, NON è un evento tutto il giorno
-        if (event.startDate) {
-          const date = new Date(event.startDate)
-          const hours = date.getHours()
-          const minutes = date.getMinutes()
-
+          // Se startDate ha un'ora specifica, NON è un evento tutto il giorno
+        if (event.start) {
+          const date = new Date(event.start);
+          const hours = date.getHours();
+          const minutes = date.getMinutes();
+          
           if (hours !== 0 || minutes !== 0) {
             return false
           }
@@ -292,15 +292,11 @@ export default {
 
         // Prova diversi modi per ottenere l'ora dell'evento
         if (event.type === 'todo' && event.dueDate) {
-          startHour = new Date(event.dueDate).getHours()
-        } else if (event.startTime) {
+          startHour = new Date(event.dueDate).getHours()        } else if (event.startTime) {
           // Se ha startTime come stringa "HH:MM"
           startHour = parseInt(event.startTime.split(':')[0])
-        } else if (event.startDate) {
-          // Se ha startDate come ISO string
-          startHour = new Date(event.startDate).getHours()
         } else if (event.start) {
-          // Formato alternativo
+          // Usa la proprietà start standardizzata
           startHour = new Date(event.start).getHours()
         }
 
@@ -357,18 +353,17 @@ export default {
         console.log('⌛ Calculated from duration property:', duration, 'hours')
         return duration
       }
-
-      // 4. Calcolo basato su startDate/endDate
-      if (event.startDate && event.endDate) {
+        // 4. Calcolo basato su start/end (standardized properties)
+      if (event.start && event.end) {
         try {
-          const startDate = new Date(event.startDate)
-          const endDate = new Date(event.endDate)
+          const startDate = new Date(event.start)
+          const endDate = new Date(event.end)
           const diffMs = endDate.getTime() - startDate.getTime()
           const diffHours = Math.max(1, diffMs / (1000 * 60 * 60))
-          console.log('📅 Calculated from startDate/endDate:', diffHours, 'hours')
+          console.log('📅 Calculated from start/end:', diffHours, 'hours')
           return diffHours
         } catch (error) {
-          console.error('❌ Error parsing startDate/endDate:', error)
+          console.error('❌ Error parsing start/end:', error)
         }
       }
 
@@ -398,7 +393,7 @@ export default {
         return 'event-todo'
       }
       return 'event-calendar'
-    }
+    }    
     // Classi DaisyUI per eventi
     const getEventClasses = (event, variant = 'small') => {
       const baseClasses = []
@@ -410,10 +405,13 @@ export default {
           baseClasses.push('!bg-warning/20 border-warning/30')
         }
       } else {
+        // Get category color scheme
+        const category = calendarStore.getCategoryByValue(event.category || 'other')
+        
         if (variant === 'full') {
-          baseClasses.push('border-l-4 border-l-primary !bg-primary/10')
+          baseClasses.push(`border-l-4 border-l-primary ${category.colors.accent}`)
         } else {
-          baseClasses.push('!bg-primary/30 !border-primary/30')
+          baseClasses.push(`${category.colors.bg} ${category.colors.border}`)
         }
       }
 
@@ -493,10 +491,11 @@ export default {
     const syncScroll = () => {
       if (timeColumn.value && eventsColumn.value) {
         timeColumn.value.scrollTop = eventsColumn.value.scrollTop
-      }
-    }
+      }    }
 
     return {
+      // Store
+      calendarStore,
       // Refs
       timeColumn,
       eventsColumn,

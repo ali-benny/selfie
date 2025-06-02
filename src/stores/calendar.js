@@ -19,28 +19,140 @@ export const useCalendarStore = defineStore('calendar', () => {
   const currentView = ref('month') // 'day', 'week', 'month'
   const currentDate = ref(new Date())
   const selectedEvent = ref(null)
-  const isLoading = ref(false)  // Computed
+  const isLoading = ref(false)
+
+  // Categorie eventi con colori DaisyUI
+  const eventCategories = ref([
+    { 
+      value: 'work', 
+      label: 'Lavoro', 
+      icon: '💼',
+      colors: {
+        bg: 'bg-primary/20',
+        border: 'border-primary/30',
+        text: 'text-primary-content',
+        accent: 'bg-primary/10'
+      }
+    },
+    { 
+      value: 'personal', 
+      label: 'Personale', 
+      icon: '🏠',
+      colors: {
+        bg: 'bg-secondary/20',
+        border: 'border-secondary/30', 
+        text: 'text-secondary-content',
+        accent: 'bg-secondary/10'
+      }
+    },
+    { 
+      value: 'health', 
+      label: 'Salute', 
+      icon: '🏥',
+      colors: {
+        bg: 'bg-success/20',
+        border: 'border-success/30',
+        text: 'text-success-content', 
+        accent: 'bg-success/10'
+      }
+    },
+    { 
+      value: 'study', 
+      label: 'Studio', 
+      icon: '📚',
+      colors: {
+        bg: 'bg-info/20',
+        border: 'border-info/30',
+        text: 'text-info-content',
+        accent: 'bg-info/10'
+      }
+    },
+    { 
+      value: 'family', 
+      label: 'Famiglia', 
+      icon: '👨‍👩‍👧‍👦',
+      colors: {
+        bg: 'bg-warning/20',
+        border: 'border-warning/30',
+        text: 'text-warning-content',
+        accent: 'bg-warning/10'
+      }
+    },
+    { 
+      value: 'social', 
+      label: 'Sociale', 
+      icon: '🎉',
+      colors: {
+        bg: 'bg-accent/20',
+        border: 'border-accent/30',
+        text: 'text-accent-content',
+        accent: 'bg-accent/10'
+      }
+    },
+    { 
+      value: 'travel', 
+      label: 'Viaggio', 
+      icon: '✈️',
+      colors: {
+        bg: 'bg-neutral/20',
+        border: 'border-neutral/30',
+        text: 'text-neutral-content',
+        accent: 'bg-neutral/10'
+      }
+    },
+    { 
+      value: 'other', 
+      label: 'Altro', 
+      icon: '📌',
+      colors: {
+        bg: 'bg-base-300/50',
+        border: 'border-base-300',
+        text: 'text-base-content',
+        accent: 'bg-base-300/20'
+      }
+    }
+  ])
+
+  // Filtri categoria attivi
+  const activeCategories = ref(eventCategories.value.map(cat => cat.value))
+
+  // Funzione per ottenere categoria per valore
+  const getCategoryByValue = (value) => {
+    return eventCategories.value.find(cat => cat.value === value) || eventCategories.value[eventCategories.value.length - 1]  }
+  
+  // Funzione per filtrare eventi per categoria
+  const toggleCategoryFilter = (categoryValue) => {
+    const index = activeCategories.value.indexOf(categoryValue)
+    if (index > -1) {
+      activeCategories.value.splice(index, 1)
+    } else {
+      activeCategories.value.push(categoryValue)
+    }
+  }
+  
   const calendarItems = computed(() => {
     return [...events.value, ...todos.value]
   })
   
   const visibleEvents = computed(() => {
     const range = viewRange.value
-    console.log('VisibleEvents calculation - Current view:', currentView.value)
-    console.log('VisibleEvents calculation - Range:', { start: range.start, end: range.end })
-    console.log('VisibleEvents calculation - All items:', calendarItems.value)
-    
     const filtered = calendarItems.value.filter(item => {
-      // Gestisce sia il formato backend (startDate/endDate) che quello frontend (date/start)
-      const itemDate = new Date(item.startDate || item.date || item.dueDate || item.start)
+      // Gli eventi da getCalendarItems hanno start/end, i todos hanno dueDate
+      const itemDate = new Date(item.start || item.dueDate)
       const isInRange = itemDate >= range.start && itemDate <= range.end
       
-      console.log('Event:', item.title, 'Date:', itemDate, 'In range:', isInRange)
+      // Apply category filter for events (todos don't have categories)
+      if (item.type !== 'todo') {
+        const eventCategory = item.category || 'other'
+        const isCategoryActive = activeCategories.value.includes(eventCategory)
+        if (!isCategoryActive) {
+          return false
+        }
+      }
       
       return isInRange
     })
     
-    console.log('VisibleEvents filtered result:', filtered)
     return filtered
   })
 
@@ -62,15 +174,12 @@ export const useCalendarStore = defineStore('calendar', () => {
   const currentMonth = computed(() => {
     return currentDate.value.getMonth()
   })
-  
-  const currentYear = computed(() => {
+    const currentYear = computed(() => {
     return currentDate.value.getFullYear()
   })
     const viewRange = computed(() => {
     const date = new Date(currentDate.value)
     let start, end
-    
-    console.log('ViewRange calculation for view:', currentView.value, 'date:', date)
     
     switch (currentView.value) {
       case 'day':
@@ -93,7 +202,6 @@ export const useCalendarStore = defineStore('calendar', () => {
         break
     }
     
-    console.log('ViewRange result:', { start, end })
     return { start, end }
   })
   
@@ -141,9 +249,8 @@ export const useCalendarStore = defineStore('calendar', () => {
       
     } catch (error) {
       console.error('Error fetching todos:', error)
-    }
-  }
-
+    }  }
+  
   const setCurrentDate = (date) => {
     currentDate.value = new Date(date)
   }
@@ -154,6 +261,7 @@ export const useCalendarStore = defineStore('calendar', () => {
     isLoading.value = true
     try {
       const range = startDate && endDate ? { start: startDate, end: endDate } : viewRange.value
+      
       const items = await getCalendarItems(
         userStore.loggedUser._id,
         range.start,
@@ -164,27 +272,24 @@ export const useCalendarStore = defineStore('calendar', () => {
       const eventsData = items.filter(item => !item.extendedProps?.type)
       const todosData = items.filter(item => item.extendedProps?.type === 'todo')
       
+      // Gli eventi da getCalendarItems sono già formattati correttamente con start/end
       events.value = eventsData
       todos.value = todosData
+      
     } catch (error) {
-      console.error('Error fetching calendar items:', error)
-    } finally {
+      console.error('Error fetching calendar items:', error)    } finally {
       isLoading.value = false
     }
   }
-    const createNewEvent = async (eventData) => {
+  
+  const createNewEvent = async (eventData) => {
     try {
-      console.log('Creating event with data:', eventData)
-      
       const newEvent = await createEvent({
         ...eventData,
         author: userStore.loggedUser._id
       })
       
-      console.log('Event created successfully:', newEvent)
-      
-      // Ricarica gli elementi del calendario
-      await fetchCalendarItems()
+      // Ricarica gli elementi del calendario      await fetchCalendarItems()
       
       return newEvent
     } catch (error) {
@@ -197,8 +302,7 @@ export const useCalendarStore = defineStore('calendar', () => {
     try {
       const updatedEvent = await updateEvent(eventId, eventData)
       
-      // Ricarica gli elementi del calendario
-      await fetchCalendarItems()
+      // Ricarica gli elementi del calendario      await fetchCalendarItems()
       
       return updatedEvent
     } catch (error) {
@@ -206,7 +310,8 @@ export const useCalendarStore = defineStore('calendar', () => {
       throw error
     }
   }
-    const deleteExistingEvent = async (eventId) => {
+  
+  const deleteExistingEvent = async (eventId) => {
     try {
       await deleteEvent(eventId)
       
@@ -216,7 +321,6 @@ export const useCalendarStore = defineStore('calendar', () => {
       // Ricarica gli elementi del calendario per sicurezza
       await fetchCalendarItems()
       
-      console.log('Event deleted successfully, remaining events:', events.value.length)
     } catch (error) {
       console.error('Error deleting event:', error)
       throw error
@@ -301,22 +405,20 @@ export const useCalendarStore = defineStore('calendar', () => {
     return calendarItems.value.filter(item => {
       const itemDate = new Date(item.start)
       itemDate.setHours(0, 0, 0, 0)
-      
-      if (item.allDay) {
+        if (item.allDay) {
         return itemDate.getTime() === targetDate.getTime()
-      } else {
+      } else {        
         // Per eventi con orario, controlla se la data è nel range
         const itemEndDate = new Date(item.end || item.start)
         itemEndDate.setHours(0, 0, 0, 0)
-        
         return targetDate.getTime() >= itemDate.getTime() && 
                targetDate.getTime() <= itemEndDate.getTime()
-      }    })
+      }
+    })
   }
   
   // Watchers per ricarica automatica
   watch([currentView, currentDate], () => {
-    console.log('View or date changed, reloading events...')
     fetchEvents()
     fetchTodos()
   }, { immediate: true })
@@ -327,15 +429,14 @@ export const useCalendarStore = defineStore('calendar', () => {
     todos,
     currentView,
     currentDate,
-    selectedEvent,
-    isLoading,
-      // Computed
+    selectedEvent,    isLoading,
+    
+    // Computed
     calendarItems,
     visibleEvents,
     currentWeekDays,
     currentMonth,
-    currentYear,
-    viewRange,
+    currentYear,    viewRange,
     
     // Actions
     fetchEvents,
@@ -352,6 +453,12 @@ export const useCalendarStore = defineStore('calendar', () => {
     navigatePrevious,
     navigateNext,
     navigateToday,
-    getEventsForDate
+    getEventsForDate,
+
+    // Categorie eventi
+    eventCategories,
+    activeCategories,
+    getCategoryByValue,
+    toggleCategoryFilter
   }
 })

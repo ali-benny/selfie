@@ -35,11 +35,16 @@ const EventSchema = new mongoose.Schema({
     type: String,
     required: true,
     ref: 'User'
-  },
-  invitees: [{
+  },  invitees: [{
     type: String,
     ref: 'User'
   }],
+  // Categoria evento per color coding
+  category: {
+    type: String,
+    enum: ['work', 'personal', 'health', 'study', 'family', 'social', 'travel', 'other'],
+    default: 'other'
+  },
   // Campi per eventi ricorrenti
   isRecurring: {
     type: Boolean,

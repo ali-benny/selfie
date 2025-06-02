@@ -43,6 +43,7 @@
             </label>
           </div>
         </div>
+
         <!-- Orari (se non tutto il giorno) -->
         <div v-if="!formData.allDay" class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="form-control">
@@ -74,6 +75,7 @@
             placeholder="60"
           />
         </div>
+
         <!-- Descrizione -->
         <div class="form-control">
           <label class="label">
@@ -99,6 +101,23 @@
             placeholder="Dove si svolge l'evento"
           />
         </div>
+
+        <!-- Categoria -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Categoria</span>
+          </label>
+          <select v-model="formData.category" class="select select-bordered">
+            <option
+              v-for="category in calendarStore.eventCategories"
+              :key="category.value"
+              :value="category.value"
+            >
+              {{ category.icon }} {{ category.label }}
+            </option>
+          </select>
+        </div>
+
         <!-- Invitati -->
         <div class="form-control">
           <label class="label">
@@ -140,6 +159,7 @@
             </div>
           </div>
         </div>
+
         <!-- Ricorrenza -->
         <div class="form-control">
           <label class="label cursor-pointer">
@@ -151,6 +171,7 @@
             />
           </label>
         </div>
+
         <!-- Opzioni ricorrenza -->
         <div v-if="formData.isRecurring" class="card bg-base-200">
           <div class="card-body p-4">
@@ -243,7 +264,7 @@
           <button
             v-if="isEditing"
             type="button"
-            @click="deleteEvent"
+            @click="openDeleteConfirmModal"
             class="btn btn-error"
             :disabled="isLoading"
           >
@@ -255,10 +276,74 @@
             <Icon v-if="isLoading" icon="fluent:spinner-ios-20-filled" class="animate-spin" />
             <Icon v-else icon="fluent:save-24-filled" />
             {{ isLoading ? 'Salvando...' : isEditing ? 'Salva Modifiche' : 'Crea Evento' }}
-          </button>
-        </div>
+          </button>        </div>
       </form>
-    </div>
+    </div>    <!-- Modal Conferma Eliminazione -->
+    <dialog id="delete_confirm_modal" class="modal">
+      <div class="modal-box">
+        <h3 class="font-bold text-lg mb-4">Conferma eliminazione evento</h3>
+        
+        <!-- Info evento -->
+        <div class="bg-base-200 rounded-lg p-4 mb-4">
+          <div class="flex items-center gap-2 mb-2">
+            <Icon icon="fluent:calendar-24-filled" class="text-primary" />
+            <h4 class="font-semibold">{{ formData.title }}</h4>
+          </div>
+          
+          <div class="space-y-2 text-sm">
+            <!-- Data -->
+            <div class="flex items-center gap-2">
+              <Icon icon="fluent:calendar-day-24-regular" class="w-4 h-4 text-base-content/60" />
+              <span>{{ formatEventDate() }}</span>
+            </div>
+            
+            <!-- Orario (se non tutto il giorno) -->
+            <div v-if="!formData.allDay && (formData.startTime || formData.endTime)" class="flex items-center gap-2">
+              <Icon icon="fluent:clock-24-regular" class="w-4 h-4 text-base-content/60" />
+              <span>{{ formatEventTime() }}</span>
+            </div>
+            
+            <!-- Categoria -->
+            <div v-if="formData.category" class="flex items-center gap-2">
+              <Icon icon="fluent:tag-24-regular" class="w-4 h-4 text-base-content/60" />
+              <span>{{ getCategoryLabel() }}</span>
+            </div>
+            
+            <!-- Luogo -->
+            <div v-if="formData.location" class="flex items-center gap-2">
+              <Icon icon="fluent:location-24-regular" class="w-4 h-4 text-base-content/60" />
+              <span>{{ formData.location }}</span>
+            </div>
+            
+            <!-- Invitati -->
+            <div v-if="formData.attendees.length > 0" class="flex items-center gap-2">
+              <Icon icon="fluent:people-24-regular" class="w-4 h-4 text-base-content/60" />
+              <span>{{ formData.attendees.length }} invitat{{ formData.attendees.length === 1 ? 'o' : 'i' }}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="alert alert-warning">
+          <Icon icon="fluent:warning-24-filled" />
+          <span>Questa azione non può essere annullata.</span>
+        </div>
+        
+        <div class="modal-action">
+          <form method="dialog">
+            <button class="btn btn-ghost btn-sm mr-2">Annulla</button>
+            <button
+              class="btn btn-error btn-sm"
+              @click="confirmDeleteEvent"
+              :disabled="isLoading"
+            >
+              <Icon v-if="isLoading" icon="fluent:spinner-ios-20-filled" class="animate-spin" />
+              <Icon v-else icon="fluent:delete-24-regular" />
+              {{ isLoading ? 'Eliminando...' : 'Sì, elimina evento' }}
+            </button>
+          </form>
+        </div>
+      </div>
+    </dialog>
   </div>
 </template>
 
@@ -285,9 +370,10 @@ export default {
     initialData: {
       type: Object,
       default: () => ({})
-    }
+    }  
   },
   emits: ['close', 'save', 'delete'],
+
   setup(props, { emit }) {
     const calendarStore = useCalendarStore()
     const isLoading = ref(false)
@@ -305,6 +391,7 @@ export default {
       duration: 60,
       description: '',
       location: '',
+      category: 'other', // Default category
       attendees: [],
       isRecurring: false,
       recurrence: {
@@ -326,16 +413,15 @@ export default {
       return formData.value.title.trim() && formData.value.date
     }) // Inizializzazione form
     const initializeForm = () => {
-      console.log('Initializing form with:', { event: props.event, initialData: props.initialData })
-
+      // Reset loading state quando si apre un nuovo evento
+      isLoading.value = false
+      
       if (props.event) {
         // Modifica evento esistente
         const event = props.event
 
         // Gestione date dal backend
-        let eventDate,
-          startTime = '',
-          endTime = ''
+        let eventDate, startTime = '', endTime = ''
 
         if (event.startDate) {
           const startDate = new Date(event.startDate)
@@ -352,9 +438,8 @@ export default {
 
         if (event.endDate && !event.allDay) {
           const endDate = new Date(event.endDate)
-          endTime = endDate.toTimeString().substring(0, 5)
-        }
-
+          endTime = endDate.toTimeString().substring(0, 5)        }
+        
         formData.value = {
           title: event.title || '',
           date: eventDate || new Date().toISOString().split('T')[0],
@@ -364,22 +449,18 @@ export default {
           duration: event.duration || 60,
           description: event.description || '',
           location: event.location || '',
+          category: event.category || 'other', // Include category from event
           attendees: [...(event.attendees || event.invitees || [])],
           isRecurring: !!event.isRecurring, // TODO: check !! in js
           recurrence: {
             frequency: event.recurrenceRule?.frequency || 'weekly',
             interval: event.recurrenceRule?.interval || 1,
             daysOfWeek: [...(event.recurrenceRule?.daysOfWeek || [])],
-            endType:
-              event.recurrenceRule?.endType === 'count'
-                ? 'after'
-                : event.recurrenceRule?.endType === 'date'
-                  ? 'on'
-                  : 'never',
+            endType: event.recurrenceRule?.endType === 'count' ? 'after' :
+                     event.recurrenceRule?.endType === 'date' ? 'on' : 'never',
             count: event.recurrenceRule?.endCount || 10,
-            until: event.recurrenceRule?.endDate
-              ? new Date(event.recurrenceRule.endDate).toISOString().split('T')[0]
-              : ''
+            until: event.recurrenceRule?.endDate ?
+              new Date(event.recurrenceRule.endDate).toISOString().split('T')[0] : ''
           }
         }
       } else {
@@ -393,17 +474,13 @@ export default {
           } else {
             formData.value.date = new Date(props.initialData.date).toISOString().split('T')[0]
           }
-          console.log('Set date from initialData:', formData.value.date)
-        }
-        if (props.initialData?.startTime) {
+        }        if (props.initialData?.startTime) {
           formData.value.startTime = props.initialData.startTime
-          console.log('Set startTime from initialData:', formData.value.startTime)
         }
 
         // Data di default oggi se non specificata
         if (!formData.value.date) {
           formData.value.date = new Date().toISOString().split('T')[0]
-          console.log('Set default date:', formData.value.date)
         }
       }
     }
@@ -419,7 +496,9 @@ export default {
 
     const removeAttendee = (index) => {
       formData.value.attendees.splice(index, 1)
-    } // Azioni
+    }
+
+    // Azioni
     const closeModal = () => {
       emit('close')
     }
@@ -478,6 +557,7 @@ export default {
           title: formData.value.title.trim(),
           description: formData.value.description.trim(),
           location: formData.value.location.trim(),
+          category: formData.value.category, // Include category in save data
           startDate: startDate.toISOString(),
           endDate: endDate.toISOString(),
           startTime: formData.value.allDay ? null : formData.value.startTime,
@@ -495,10 +575,8 @@ export default {
           }
 
           // Giorni settimana per ricorrenza settimanale
-          if (
-            formData.value.recurrence.frequency === 'weekly' &&
-            formData.value.recurrence.daysOfWeek.length > 0
-          ) {
+          if (formData.value.recurrence.frequency === 'weekly' &&
+              formData.value.recurrence.daysOfWeek.length > 0) {
             eventData.recurrenceRule.daysOfWeek = formData.value.recurrence.daysOfWeek
           }
 
@@ -515,7 +593,7 @@ export default {
             eventData.recurrenceRule.endType = 'never'
           }
         }
-
+        
         if (isEditing.value) {
           // Aggiorna evento esistente
           await calendarStore.updateExistingEvent(props.event._id, eventData)
@@ -524,46 +602,91 @@ export default {
           await calendarStore.createNewEvent(eventData)
         }
 
-        emit('save', eventData)
-        closeModal()
+        // Aspetta che Vue aggiorni la reattività prima di chiudere il modal
+        await nextTick()
+
+        // Piccolo ritardo aggiuntivo per assicurarsi che tutti i computed si aggiornino
+        setTimeout(() => {
+          emit('save', eventData)
+          closeModal()
+        }, 100)
       } catch (error) {
         console.error('Errore salvando evento:', error)
         // TODO: Mostra messaggio errore all'utente
       } finally {
         isLoading.value = false
+      }    }
+
+    const openDeleteConfirmModal = () => {
+      const modal = document.getElementById('delete_confirm_modal')
+      if (modal) {
+        modal.showModal()
       }
     }
 
-    const deleteEvent = async () => {
+    const confirmDeleteEvent = async () => {
       if (!isEditing.value || isLoading.value) return
-
-      if (!confirm('Sei sicuro di voler eliminare questo evento?')) {
-        return
-      }
 
       isLoading.value = true
 
       try {
         await calendarStore.deleteExistingEvent(props.event._id)
         emit('delete', props.event)
+        
+        // Chiudi il modal di conferma
+        const modal = document.getElementById('delete_confirm_modal')
+        if (modal) {
+          modal.close()
+        }
+        
         closeModal()
       } catch (error) {
         console.error('Errore eliminando evento:', error)
-        // TODO: Mostra messaggio errore all'utente
-      } finally {
+        // TODO: Mostra messaggio errore all'utente      } finally {
         isLoading.value = false
       }
-    } // Watchers
-    watch(
-      () => props.isVisible,
-      (newValue) => {
-        if (newValue) {
-          nextTick(() => {
-            initializeForm()
-          })
-        }
+    }
+
+    const deleteEvent = async () => {
+      // Funzione mantenuta per retrocompatibilità, ma non più utilizzata
+      // L'eliminazione avviene ora tramite confirmDeleteEvent
+      console.warn('deleteEvent chiamata - utilizzare openDeleteConfirmModal invece')
+    }
+
+    // Funzioni di formattazione per il modal di conferma
+    const formatEventDate = () => {
+      if (!formData.value.date) return ''
+      const date = new Date(formData.value.date)
+      return date.toLocaleDateString('it-IT', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      })
+    }
+
+    const formatEventTime = () => {
+      if (formData.value.allDay) return 'Tutto il giorno'
+      
+      const start = formData.value.startTime || '09:00'
+      const end = formData.value.endTime || '10:00'
+      
+      return `${start} - ${end}`
+    }
+
+    const getCategoryLabel = () => {
+      const category = calendarStore.eventCategories.find(cat => cat.value === formData.value.category)
+      return category ? `${category.icon} ${category.label}` : formData.value.category
+    }
+
+    // Watchers
+    watch(() => props.isVisible, (newValue) => {
+      if (newValue) {
+        nextTick(() => {
+          initializeForm()
+        })
       }
-    )
+    })
 
     watch(
       () => props.event,
@@ -577,30 +700,35 @@ export default {
       { deep: true }
     )
 
-    watch(
-      () => props.initialData,
-      (newValue) => {
-        if (props.isVisible && newValue) {
-          nextTick(() => {
-            initializeForm()
-          })
-        }
-      },
-      { deep: true }
-    )
+    watch(() => props.initialData, (newValue) => {
+      if (props.isVisible && newValue) {        nextTick(() => {
+          initializeForm()
+        })
+      }    }, { deep: true })
 
     return {
+      // Store
+      calendarStore,
+      // Data
       formData,
       isLoading,
       newAttendee,
       weekdays,
+      // Computed
       isEditing,
       isFormValid,
+      // Actions
       addAttendee,
       removeAttendee,
       closeModal,
       saveEvent,
-      deleteEvent
+      openDeleteConfirmModal,
+      confirmDeleteEvent,
+      deleteEvent,
+      // Formatting functions for delete modal
+      formatEventDate,
+      formatEventTime,
+      getCategoryLabel
     }
   }
 }
