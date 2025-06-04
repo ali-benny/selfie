@@ -37,54 +37,27 @@
         <Icon icon="fluent:edit-16-filled" :inline="true" v-if="!isChecked" />
         <Icon icon="fluent:checkmark-12-filled" v-else />
       </button> -->
-        </div>
-        <div class="flex justify-between flex-wrap lg:justify-end items-center">
-          <div
-            class="avatar-group flex items-center -space-x-4 hover:-space-x-0 transition hover:-translate-x-1 ease-in-out duration-300 rtl:space-x-reverse"
+        </div>        <div class="flex justify-between flex-wrap lg:justify-end items-center">          <!-- Note Author + Readers Display -->
+          <AvatarMembers
+            v-if="id != null"
+            :owner-user="author"
+            :member-users="readers_verbose"
+            variant="hover-expand"
+            :show-online-status="true"
+            :show-count="true"
+            :display-limit="6"
+            size="medium"
+            @remove-member="removeShare"
           >
-            <!-- avatar author -->
-            <div
-              v-if="id != null"
-              class="relative space-x-2 hover:cursor-pointer transition ease-in-out duration-300 rounded-full"
-            >
-              <div class="avatar h-12 border !border-primary border-lg">
-                <img
-                  class="mask mask-circle !bg-surface-2"
-                  :src="author.image"
-                  :alt="author.name + ' ' + author.surname"
-                />
-              </div>
-              <span
-                v-if="author.logged"
-                class="absolute top-0 right-1 w-3 h-3 !bg-success rounded-full border-2 border-base-100 transform translate-x-1 translate-y-1"
-              ></span>
-            </div>
-            <!-- avatar readers -->
-            <div
-              v-for="reader in readers_verbose"
-              :key="reader._id"
-              class="relative h-10 hover:cursor-pointer transition ease-in-out hover:scale-125 duration-300 rounded-full"
-              draggable="true"
-              @dragstart="onDragStart(reader)"
-              @dragend="onDragEnd"
-              @mouseover="showTrashBin"
-              @mouseleave="hideTrashBin"
-            >
-              <div class="avatar h-10">
-                <img
-                  class="mask mask-circle !bg-secondary hover:!bg-error"
-                  :src="reader.image"
-                  :title="reader.name + ' ' + reader.surname"
-                />
-              </div>
-              <span
-                v-if="reader.logged"
-                class="absolute top-0 right-1 w-3 h-3 !bg-success rounded-full border-2 border-base-100 transform translate-x-1 translate-y-1"
-              ></span>
-            </div>
-          </div>
+            <template #share-button>
+              <UserShare :id="id" v-model="readers" type="Note" />
+            </template>
+          </AvatarMembers>
+          
+          <!-- Fallback UserShare for new notes -->
+          <UserShare v-else :id="id" v-model="readers" type="Note" />
+          
           <div class="flex items-center">
-            <UserShare :id="id" v-model="readers" type="Note"></UserShare>
             <button class="btn text-xl btn-primary my-2 rounded-box" @click="saveNote">
               <Icon icon="fluent:save-32-filled" /> Save
             </button>
@@ -167,6 +140,7 @@ import {
 } from './note.js'
 import { getTags, createTag } from '@/router/note/editor/tags'
 import UserShare from '@/components/UserShare.vue'
+import AvatarMembers from '@/components/AvatarMembers.vue'
 import EditorComponent from '@/components/note/EditorComponent.vue'
 import { useUserStore } from '@/stores/account'
 import { getDirectoryStructure, createDirectory } from './directory.js'
@@ -433,9 +407,9 @@ export default {
     async readers() {
       this.readers_verbose = await getUsersByIds(this.readers)
     }
-  },
-  components: {
+  },  components: {
     UserShare,
+    AvatarMembers,
     EditorComponent
   }
 }
