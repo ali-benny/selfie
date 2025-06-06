@@ -25,7 +25,7 @@ const LongBreakSchema = new mongoose.Schema(
  * durata della pausa, quanti cicli fare...). Una configurazione può essere condivisa tra più timer
  * pomodoro sei parametri sono gli stessi
  */
-const PomodoroConfigSchema = new mongoose.Schema({
+export const PomodoroConfigSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true

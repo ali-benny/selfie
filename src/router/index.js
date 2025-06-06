@@ -5,9 +5,11 @@ import NoteList from './note/Notes.vue'
 import NoteEditor from './note/editor/NoteEditor.vue'
 import UserView from '../views/UserView.vue'
 import PomodoroDashboard from './pomodoro/PomodoroDashboard.vue'
+import NotificationsDebug from '@/views/NotificationsDebug.vue'
 import GroupDash from './group/GroupDash.vue'
 import Chat from '../components/ChatComponent.vue'
 import NotFound from '@/views/NotFound.vue'
+import { NODE_ENV } from '~/server/const'
 
 const routes = [
   { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound },
@@ -57,5 +59,13 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: routes
 })
+
+if (NODE_ENV === 'development') {
+  router.addRoute({
+    path: '/notifications',
+    name: 'notifications',
+    component: NotificationsDebug
+  })
+}
 
 export default router

@@ -31,13 +31,14 @@
     "@editorjs/table": "^2.4.4",
     "@mdi/font": "^7.4.47",
     "@popperjs/core": "^2.11.8",
-    "@vueuse/core": "^13.0.0",
     "@vue-youtube/component": "^0.0.6",
     "@vue-youtube/core": "^0.0.6",
+    "@vueuse/core": "^13.0.0",
     "bcryptjs": "^3.0.2",
     "cheerio": "^1.0.0",
     "colorjs.io": "^0.5.2",
     "cors": "^2.8.5",
+    "dateformat": "^5.0.3",
     "dotenv": "^16.4.7",
     "editorjs-md-parser": "^0.0.3",
     "express": "^5.1.0",
@@ -62,7 +63,8 @@
     "vue-simple-password-meter": "^1.3.4",
     "vue-toastification": "^2.0.0-rc.5",
     "vue3-popper": "^1.5.0",
-    "vuetify": "^3.8.1"
+    "vuetify": "^3.8.1",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@catppuccin/tailwindcss": "^0.1.6",

@@ -70,10 +70,10 @@ UsersSchema.pre('save', function (next) {
 app.patch('/users/migrate-colors', async (req, res) => {
   try {
     const RING_COLORS = ['primary', 'secondary', 'accent', 'success', 'warning', 'error']
-    
+
     // Trova tutti gli utenti senza color
     const usersToUpdate = await Users.find({ color: { $exists: false } })
-    
+
     // Aggiorna ogni utente con un colore casuale
     for (const user of usersToUpdate) {
       await Users.findByIdAndUpdate(user._id, {
@@ -223,3 +223,11 @@ app.patch('/users/logged/:id', async (req, res) => {
 })
 
 export default app
+
+export async function loadUsernameById(userId) {
+  try {
+    return (await Users.findById(userId)).username
+  } catch (err) {
+    console.error(err)
+  }
+}
