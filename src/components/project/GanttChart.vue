@@ -263,15 +263,16 @@ export default {
           return false;
         }
         this.$emit('task-updated', this.formatTaskForDB(task));
-      });
-
-      // Eliminazione task
+      });      // Eliminazione task
       gantt.attachEvent("onBeforeTaskDelete", (id, task) => {
         if (!this.isProjectOwner) {
           this.showPermissionError();
           return false;
         }
-        this.$emit('task-deleted', id);
+        // Non emettere eventi durante il cleanup automatico
+        if (!this._isCleaningUp) {
+          this.$emit('task-deleted', id);
+        }
         return true;
       });
 
@@ -315,9 +316,11 @@ export default {
           linksCount: ganttData.links.length,
           taskIds: ganttData.data.map(t => t.id)
         });
-        
-        // Aggressive cleanup before loading new data
+          // Aggressive cleanup before loading new data
         try {
+          // Set cleanup flag to prevent emitting events
+          this._isCleaningUp = true;
+          
           // Remove all existing tasks manually
           const existingTasks = gantt.getTaskByTime();
           existingTasks.forEach(task => {
@@ -339,6 +342,9 @@ export default {
           });
         } catch (e) {
           console.warn('Error during manual cleanup:', e);
+        } finally {
+          // Always reset cleanup flag
+          this._isCleaningUp = false;
         }
         
         // Clear data with multiple methods

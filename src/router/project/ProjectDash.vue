@@ -620,6 +620,10 @@ export default {
         if (response.ok) {
           console.log('✅ Frontend: Task deleted successfully');
           await loadTasks(); // Ricarica i task per aggiornare la vista
+        } else if (response.status === 404) {
+          // Task già eliminata o non esistente, non è un errore critico
+          console.warn('⚠️ Task not found (already deleted):', taskId);
+          await loadTasks(); // Ricarica per sincronizzare lo stato
         } else {
           const errorText = await response.text();
           console.error('❌ Failed to delete task:', response.status, response.statusText, errorText);

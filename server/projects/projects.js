@@ -43,51 +43,26 @@ const checkProjectPermissions = async (req, res, next) => {
     if (!connected['project']) await connect('project')
     const projectId = req.params.projectId
 
-    console.log('🔧 checkProjectPermissions - checking permissions for project:', projectId)
-    console.log('🔧 checkProjectPermissions - user:', req.userId)
-
     const project = await Project.findById(projectId)
 
     if (!project) {
-      console.log('❌ checkProjectPermissions - project not found')
       return res.status(404).json({ error: 'Progetto non trovato' })
     }
-
-    console.log('🔧 checkProjectPermissions - project found:', {
-      id: project._id,
-      title: project.title,
-      ownerId: project.ownerId,
-      ownerIdType: typeof project.ownerId,
-      ownerIdString: project.ownerId.toString(),
-      requestUserId: req.userId,
-      requestUserIdType: typeof req.userId,
-      membersCount: project.members?.length || 0
-    })
 
     // Verifica se l'utente è membro del progetto
     const isOwner = project.ownerId.toString() === req.userId
     const isMemberOfArray = project.members && project.members.some((m) => m.userId && m.userId.toString() === req.userId)
     const isMember = isOwner || isMemberOfArray
 
-    console.log('🔧 checkProjectPermissions - permission check:', {
-      isOwner,
-      isMemberOfArray,
-      isMember,
-      ownerComparison: `${project.ownerId.toString()} === ${req.userId}`,
-      ownerComparisonResult: project.ownerId.toString() === req.userId
-    })
 
     if (!isMember) {
-      console.log('❌ checkProjectPermissions - access denied')
       return res.status(403).json({ error: 'Accesso negato al progetto' })
     }
 
-    console.log('✅ checkProjectPermissions - access granted')
     req.project = project
     req.isOwner = isOwner
     next()
   } catch (error) {
-    console.error('❌ checkProjectPermissions - error:', error)
     res.status(500).json({ error: error.message })
   }
 }
@@ -103,9 +78,6 @@ router.get('/users/:userId/projects', requireAuth, async (req, res) => {
     
     const userId = req.params.userId
 
-    console.log('🔧 Backend: Loading projects for user:', userId)
-    console.log('🔧 Backend: Connected to database:', mongoose.connection.name)
-
     // Cerca progetti reali nel database
     const projects = await Project.find({
       $or: [
@@ -113,16 +85,13 @@ router.get('/users/:userId/projects', requireAuth, async (req, res) => {
         { 'members.userId': userId }
       ]    }).sort({ updatedAt: -1 })
 
-    console.log('✅ Backend: Found projects:', projects.length);
     
     if (projects.length === 0) {
-      console.log('📝 Backend: No projects found, returning empty array')
       return res.json([])
     }
 
     res.json(projects)
   } catch (error) {
-    console.error('❌ Backend: Error loading user projects:', error)
     res.status(500).json({ error: error.message })
   }
 })
@@ -134,26 +103,15 @@ router.get('/projects/:projectId', requireAuth, async (req, res) => {
     
     const projectId = req.params.projectId
 
-    console.log('🔧 Backend: Loading project', projectId, 'for user', req.userId)
-    console.log('🔧 Backend: Connected to database:', mongoose.connection.name)
-
     // Cerca il progetto nel database
     const project = await Project.findById(projectId)
       if (!project) {
-      console.log('❌ Backend: Project not found')
       return res.status(404).json({ error: 'Progetto non trovato' })
     }
 
-    console.log('✅ Backend: Project found:', {
-      id: project._id,
-      title: project.title,
-      status: project.status,
-      ownerId: project.ownerId
-    })
-
     res.json(project)
   } catch (error) {
-    console.error('❌ Backend: Error loading project:', error)
+    console.error('Error loading project:', error)
     res.status(500).json({ error: error.message })
   }
 })
@@ -164,42 +122,17 @@ router.get('/projects/:projectId/tasks', requireAuth, checkProjectPermissions, a
     if (!connected['project']) await connect('project')
     const projectId = req.params.projectId
     
-    console.log('🔧 Backend: Loading tasks for project:', projectId)
-    console.log('🔧 Backend: ProjectId type:', typeof projectId)
-
-    // DEBUGGING: Let's see what's actually in the tasks collection
-    const allTasks = await Task.find({}).limit(10)
-    console.log('🔧 Backend: Total tasks in database:', await Task.countDocuments())
-    console.log('🔧 Backend: Sample of all tasks:', allTasks.map(t => ({ 
-      taskId: t._id, 
-      projectId: t.projectId, 
-      projectIdType: typeof t.projectId,
-      title: t.title 
-    })))
-
     // Try different search patterns
     const tasksWithObjectId = await Task.find({ projectId: new mongoose.Types.ObjectId(projectId) })
     const tasksWithString = await Task.find({ projectId: projectId })
     const tasksWithAnyProjectId = await Task.find({ projectId: { $exists: true } })
 
-    console.log('🔧 Backend: Search results:', {
-      withObjectId: tasksWithObjectId.length,
-      withString: tasksWithString.length,
-      withAnyProjectId: tasksWithAnyProjectId.length
-    })
 
     // Use the search that found results, or default to ObjectId search
     let tasks = tasksWithObjectId.length > 0 ? tasksWithObjectId : tasksWithString
     
-    console.log('✅ Backend: Found tasks:', tasks.length)
-    console.log('🔧 Backend: Sample task projectIds:', tasks.slice(0, 3).map(t => ({ 
-      taskId: t._id, 
-      projectId: t.projectId, 
-      projectIdType: typeof t.projectId,
-      title: t.title 
-    })))// Se non ci sono task reali, ritorna array vuoto
+    // Se non ci sono task reali, ritorna array vuoto
     if (tasks.length === 0) {
-      console.log('📝 Backend: No tasks found, returning empty project')
       return res.json({
         tasks: [],
         links: []
@@ -213,12 +146,6 @@ router.get('/projects/:projectId/tasks', requireAuth, checkProjectPermissions, a
       ]
     })
 
-    console.log('🔧 Backend: Task dependency filter:', {
-      projectId: projectId,
-      projectIdConverted: mongoose.Types.ObjectId.isValid(projectId) ? new mongoose.Types.ObjectId(projectId) : projectId,
-      tasksIds: tasks.map(t => t._id),
-      linksFound: links.length
-    })
 
     const formattedLinks = links.map((link, index) => ({
       id: index + 1,
@@ -229,17 +156,12 @@ router.get('/projects/:projectId/tasks', requireAuth, checkProjectPermissions, a
             link.type === 'finish_to_finish' ? '2' : '3'
     }))
 
-    console.log('✅ Backend: Returning real tasks and links:', {
-      tasksCount: tasks.length,
-      linksCount: formattedLinks.length
-    })
-
     res.json({
       tasks: tasks,
       links: formattedLinks
     })
   } catch (error) {
-    console.error('❌ Backend: Error loading tasks:', error)
+    console.error('Error loading tasks:', error)
     res.status(500).json({ error: error.message })
   }
 })
@@ -247,15 +169,8 @@ router.get('/projects/:projectId/tasks', requireAuth, checkProjectPermissions, a
 // POST /api/projects/:projectId/tasks - Crea nuovo task
 router.post('/projects/:projectId/tasks', requireAuth, checkProjectPermissions, async (req, res) => {
   try {
-    console.log('🔧 Backend: Creating task for project:', req.params.projectId)
-    console.log('🔧 Backend: User:', req.userId)
-    console.log('🔧 Backend: Request body:', JSON.stringify(req.body, null, 2))
-    console.log('🔧 Backend: Is owner:', req.isOwner)
-    console.log('🔧 Backend: Project settings:', req.project.settings)
-
     // Solo il proprietario può creare task (o membri se consentito)
     if (!req.isOwner && !req.project.settings.allowMemberTaskCreation) {
-      console.log('❌ Backend: User not authorized to create tasks')
       return res.status(403).json({ error: 'Non autorizzato a creare task' })
     }
 
@@ -265,7 +180,6 @@ router.post('/projects/:projectId/tasks', requireAuth, checkProjectPermissions, 
       const start = new Date(req.body.startDate)
       const end = new Date(req.body.endDate)
       duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24))
-      console.log('🔧 Backend: Calculated duration:', duration, 'days')
     }    // Calcola la posizione per il nuovo task
     const lastTask = await Task.findOne(
       { projectId: req.params.projectId },
@@ -303,31 +217,19 @@ router.post('/projects/:projectId/tasks', requireAuth, checkProjectPermissions, 
       updatedAt: new Date()
     }
 
-    console.log('🔧 Backend: Final task data:', {
-      title: taskData.title,
-      projectId: taskData.projectId,
-      projectIdType: typeof taskData.projectId,
-      requestProjectId: req.params.projectId,
-      requestProjectIdType: typeof req.params.projectId
-    })
-
-    console.log('🔧 Backend: Creating task with Mongoose...')
     const newTask = new Task(taskData)
     const result = await newTask.save()
-    console.log('✅ Backend: Task created successfully with ID:', result._id)
 
     // Crea evento nel calendario se necessario
     if (taskData.type !== 'phase') {
-      console.log('📅 Backend: Creating calendar event for task')
-      // await createCalendarEvent(taskData, req.project)
+      console.log('📅 Creating calendar event for task')
+      await createCalendarEvent(taskData, req.project)
     }
 
     const responseData = { _id: result._id, ...result.toObject() }
-    console.log('🔧 Backend: Sending response:', JSON.stringify(responseData, null, 2))
     
     res.status(201).json(responseData)
   } catch (error) {
-    console.error('❌ Backend: Error creating task:', error)
     res.status(500).json({ error: error.message })
   }
 })
@@ -335,13 +237,8 @@ router.post('/projects/:projectId/tasks', requireAuth, checkProjectPermissions, 
 // PUT /api/projects/:projectId/tasks/:taskId - Aggiorna task esistente
 router.put('/projects/:projectId/tasks/:taskId', requireAuth, checkProjectPermissions, async (req, res) => {
   try {
-    console.log('🔧 Backend: Updating task:', req.params.taskId, 'for project:', req.params.projectId)
-    console.log('🔧 Backend: User:', req.userId)
-    console.log('🔧 Backend: Request body:', JSON.stringify(req.body, null, 2))
-
     // Solo il proprietario può modificare task (o membri se consentito)
     if (!req.isOwner && !req.project.settings.allowMemberTaskCreation) {
-      console.log('❌ Backend: User not authorized to update tasks')
       return res.status(403).json({ error: 'Non autorizzato a modificare task' })
     }
 
@@ -352,7 +249,6 @@ router.put('/projects/:projectId/tasks/:taskId', requireAuth, checkProjectPermis
     })
 
     if (!existingTask) {
-      console.log('❌ Backend: Task not found')
       return res.status(404).json({ error: 'Task non trovato' })
     }
 
@@ -362,7 +258,6 @@ router.put('/projects/:projectId/tasks/:taskId', requireAuth, checkProjectPermis
       const start = new Date(req.body.startDate)
       const end = new Date(req.body.endDate)
       duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24))
-      console.log('🔧 Backend: Calculated duration:', duration, 'days')
     }
 
     // Prepara i dati di aggiornamento
@@ -391,18 +286,14 @@ router.put('/projects/:projectId/tasks/:taskId', requireAuth, checkProjectPermis
       }
     }
 
-    console.log('🔧 Backend: Update data:', JSON.stringify(updateData, null, 2))
-
     const updatedTask = await Task.findByIdAndUpdate(
       req.params.taskId,
       updateData,
       { new: true, runValidators: true }
     )
 
-    console.log('✅ Backend: Task updated successfully')
     res.json(updatedTask)
   } catch (error) {
-    console.error('❌ Backend: Error updating task:', error)
     res.status(500).json({ error: error.message })
   }
 })
@@ -410,12 +301,8 @@ router.put('/projects/:projectId/tasks/:taskId', requireAuth, checkProjectPermis
 // DELETE /api/projects/:projectId/tasks/:taskId - Elimina task
 router.delete('/projects/:projectId/tasks/:taskId', requireAuth, checkProjectPermissions, async (req, res) => {
   try {
-    console.log('🔧 Backend: Deleting task:', req.params.taskId, 'for project:', req.params.projectId)
-    console.log('🔧 Backend: User:', req.userId)
-
     // Solo il proprietario può eliminare task (o membri se consentito)
     if (!req.isOwner && !req.project.settings.allowMemberTaskCreation) {
-      console.log('❌ Backend: User not authorized to delete tasks')
       return res.status(403).json({ error: 'Non autorizzato a eliminare task' })
     }
 
@@ -426,7 +313,6 @@ router.delete('/projects/:projectId/tasks/:taskId', requireAuth, checkProjectPer
     })
 
     if (!task) {
-      console.log('❌ Backend: Task not found')
       return res.status(404).json({ error: 'Task non trovato' })
     }
 
@@ -441,10 +327,8 @@ router.delete('/projects/:projectId/tasks/:taskId', requireAuth, checkProjectPer
     // Elimina il task
     await Task.findByIdAndDelete(req.params.taskId)
 
-    console.log('✅ Backend: Task deleted successfully')
     res.json({ message: 'Task eliminato con successo' })
   } catch (error) {
-    console.error('❌ Backend: Error deleting task:', error)
     res.status(500).json({ error: error.message })
   }
 })
@@ -505,13 +389,8 @@ router.get('/debug/database', requireAuth, async (req, res) => {
   try {
     if (!connected['project']) await connect('project')
     
-    console.log('🔧 DEBUG: Database inspection started')
-    console.log('🔧 DEBUG: Connection state:', mongoose.connection.readyState)
-    console.log('🔧 DEBUG: Database name:', mongoose.connection.name)
-    
     // Ottieni tutte le collezioni
     const collections = await mongoose.connection.db.listCollections().toArray()
-    console.log('🔧 DEBUG: Available collections:', collections.map(c => c.name))
     
     // Controlla ogni collezione
     const result = {}
@@ -534,31 +413,12 @@ router.get('/debug/database', requireAuth, async (req, res) => {
       }
     }
     
-    console.log('🔧 DEBUG: Database contents:', result)
-    
-    // Tenta di trovare tasks usando il modello Mongoose
-    try {
-      const mongooseTasks = await Task.find({}).limit(3)
-      console.log('🔧 DEBUG: Mongoose Task results:', mongooseTasks.length)
-      if (mongooseTasks.length > 0) {
-        console.log('🔧 DEBUG: Sample mongoose tasks:', mongooseTasks.map(t => ({
-          _id: t._id,
-          title: t.title,
-          projectId: t.projectId,
-          projectIdType: typeof t.projectId
-        })))
-      }
-    } catch (mongooseError) {
-      console.log('🔧 DEBUG: Mongoose Task error:', mongooseError.message)
-    }
-    
     res.json({
       collections: result,
       mongooseConnectionState: mongoose.connection.readyState,
       databaseName: mongoose.connection.name
     })
   } catch (error) {
-    console.error('❌ DEBUG: Database inspection error:', error)
     res.status(500).json({ error: error.message })
   }
 })
