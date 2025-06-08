@@ -176,6 +176,7 @@
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useCalendarStore } from '@/stores/calendar'
 import { useCalendarDragDrop } from '@/composables/useDragAndDrop'
+import { now, today } from '@/stores/timeMachine'
 import { Icon } from '@iconify/vue'
 
 export default {
@@ -197,9 +198,7 @@ export default {
 
     // Nomi giorni settimana
     // TODO: creare costante e poi renderla reactive
-    const weekdayNames = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']
-
-    // Mese corrente
+    const weekdayNames = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']    // Mese corrente
     const currentMonth = computed(() => {
       return new Date(
         calendarStore.currentDate.getFullYear(),
@@ -229,9 +228,7 @@ export default {
           currentDate.setUTCDate(currentDate.getUTCDate() + 1)
         }
         weeks.push(weekDays)
-      }
-
-      return weeks
+      }      return weeks
     })
     
     // Eventi del mese
@@ -306,36 +303,35 @@ export default {
           return `${event.startTime} - ${event.endTime}`
         }
         return event.startTime
-      }
+      }      return ''
+    }
 
-      return ''
-    }    // Utility
+    // Utility
     const isCurrentMonth = (date) => {
       return (
         date.getUTCMonth() === currentMonth.value.getMonth() &&
         date.getUTCFullYear() === currentMonth.value.getFullYear()
       )
-    }
-
-    const isToday = (date) => {
-      const today = new Date()
+    }    
+      const isToday = (date) => {
+      const todayDate = today() // Use virtual time
       // Usa UTC per confrontare solo le date, non gli orari
-      const todayUTC = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()))
+      const todayUTC = new Date(Date.UTC(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate()))
       const dateUTC = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()))
       return todayUTC.getTime() === dateUTC.getTime()
     }
 
     const isSelected = (date) => {
       if (!selectedDay.value) return false
-      // Usa UTC per confrontare solo le date
-      const selectedUTC = new Date(Date.UTC(selectedDay.value.getFullYear(), selectedDay.value.getMonth(), selectedDay.value.getDate()))
+      // Usa UTC per confrontare solo le date      const selectedUTC = new Date(Date.UTC(selectedDay.value.getFullYear(), selectedDay.value.getMonth(), selectedDay.value.getDate()))
       const dateUTC = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()))
       return selectedUTC.getTime() === dateUTC.getTime()
     }
 
     const truncateText = (text, maxLength) => {
       if (text.length <= maxLength) return text
-      return text.substring(0, maxLength) + '...'    }
+      return text.substring(0, maxLength) + '...'
+    }
     
     // Eventi per giorno
     const getDayEvents = (day) => {

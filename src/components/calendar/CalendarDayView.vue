@@ -127,6 +127,7 @@
 // TODO: Refactor using Composition API
 import { computed, ref } from 'vue'
 import { useCalendarStore } from '@/stores/calendar'
+import { now, today } from '@/stores/timeMachine'
 import { Icon } from '@iconify/vue'
 
 export default {

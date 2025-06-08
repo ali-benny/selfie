@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import { useUserStore } from './account'
+import { now, today } from './timeMachine'
 import {
   getCalendarItems,
   getEvents,
@@ -12,12 +13,11 @@ import {
 
 export const useCalendarStore = defineStore('calendar', () => {
   const userStore = useUserStore()
-  
-  // State
+    // State
   const events = ref([])
   const todos = ref([])
   const currentView = ref('month') // 'day', 'week', 'month'
-  const currentDate = ref(new Date())
+  const currentDate = ref(today()) // Use virtual time
   const selectedEvent = ref(null)
   const isLoading = ref(false)
 
@@ -393,9 +393,8 @@ export const useCalendarStore = defineStore('calendar', () => {
     
     navigateToDate(date)
   }
-  
-  const navigateToday = () => {
-    navigateToDate(new Date())
+    const navigateToday = () => {
+    navigateToDate(today()) // Use virtual time
   }
   
   const getEventsForDate = (date) => {

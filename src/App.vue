@@ -1,5 +1,6 @@
 <script setup>
 import PomodoroTimerWidget from './components/pomodoro/PomodoroTimerWidget.vue'
+import TimeMachine from './components/TimeMachine.vue'
 import { useUserStore } from './stores/account'
 import { usePomodoroStore } from './stores/pomodoro'
 import { Notivue, Notification } from 'notivue'
@@ -38,12 +39,12 @@ const pomodoroStore = usePomodoroStore()
         <Icon v-else icon="fluent:settings-48-filled" />
       </RouterLink>
     </div>
-    <div id="app" class="relative w-full grow px-2 mb-16 sm:!pb-0">
-      <Notivue v-slot="item">
+    <div id="app" class="relative w-full grow px-2 mb-16 sm:!pb-0">      <Notivue v-slot="item">
         <Notification :item="item" />
       </Notivue>
       <RouterView />
       <PomodoroTimerWidget v-if="pomodoroStore.showPomodoroWidget()" />
+      <TimeMachine />
     </div>
   </div>
 </template>

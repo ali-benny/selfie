@@ -139,6 +139,7 @@
 // TODO: Refactor using Composition API
 import { computed, ref } from 'vue'
 import { useCalendarStore } from '@/stores/calendar'
+import { now, today } from '@/stores/timeMachine'
 import { Icon } from '@iconify/vue'
 
 export default {
@@ -312,13 +313,12 @@ export default {
     // Utility
     const getWeekNumber = (date) => {
       const firstDayOfYear = new Date(date.getFullYear(), 0, 1)
-      const pastDaysOfYear = (date - firstDayOfYear) / 86400000 // TODO: creare costante, perché che è sta roba?
-      return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7)
+      const pastDaysOfYear = (date - firstDayOfYear) / 86400000 // TODO: creare costante, perché che è sta roba?      return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7)
     }
 
     const isToday = (date) => {
-      const today = new Date()
-      return date.toDateString() === today.toDateString()
+      const todayDate = today() // Use virtual time
+      return date.toDateString() === todayDate.toDateString()
     }
 
     const isSelected = (date) => {
