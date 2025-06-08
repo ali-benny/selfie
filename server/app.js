@@ -9,6 +9,7 @@ import upload from './notes/upload.js'
 import pomodoro from './pomodoro/pomodoro.js'
 import todo from './todo/todo.js'
 import groups from './groups/groups.js'
+import projects from './projects/projects.js'
 import calendar from './calendar/calendar.js'
 import chat, { initializeSocket } from './chat/messages.js'
 
@@ -30,6 +31,7 @@ app.use('/api', upload)
 app.use('/api', todo)
 app.use('/api', pomodoro)
 app.use('/api', groups)
+app.use('/api', projects)
 app.use('/api', calendar)
 app.use('/chat', chat)
 app.use('/uploads', express.static('uploads'))

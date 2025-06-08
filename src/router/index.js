@@ -9,6 +9,7 @@ import GroupDash from './group/GroupDash.vue'
 import Chat from '../components/ChatComponent.vue'
 import CalendarMain from '../components/calendar/CalendarMain.vue'
 import NotFound from '@/views/NotFound.vue'
+import ProjectDash from './project/ProjectDash.vue'
 
 const routes = [
   { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound },
@@ -55,6 +56,11 @@ const routes = [
     path: '/login',
     name: 'login',
     component: LoginView
+  },  {
+    path: '/projects/:projectId?',
+    name: 'projects',
+    component: ProjectDash,
+    props: true
   }
 ]
 
