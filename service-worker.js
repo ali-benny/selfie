@@ -17,7 +17,8 @@ self.addEventListener('push', (event) => {
     targetClient?.postMessage({
       type: 'pushNotification',
       notification: notification,
-      isFocused: focused !== undefined
+      isFocused: focused !== undefined,
+      isAlertOnly: notification.isAlertOnly
     })
 
     if (Notification.permission === 'granted' && !focused) {
@@ -51,6 +52,8 @@ self.addEventListener('notificationclick', (event) => {
 
 function notificationTitle(notification) {
   switch (notification.kind) {
+    case 'alert':
+      return notification.title
     case 'chat':
       return `Message from ${notification.sender.username}`
     case 'invitation': {
@@ -68,6 +71,8 @@ function notificationTitle(notification) {
 
 function notificationBody(notification) {
   switch (notification.kind) {
+    case 'alert':
+      return notification.message
     case 'chat':
       return notification.message
     case 'invitation': {

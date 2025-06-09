@@ -14,11 +14,14 @@
           <p>Username: {{ user.username }}</p>
           <p># of subscriptions: {{ subscriptions.get(user._id)?.length }}</p>
           <div class="card-actions">
-            <button class="btn btn-primary" @click="() => sendPomodoroInvitation(user._id)">
+            <button class="btn btn-primary" @click="() => mockPomodoroInvitation(user)">
               Send pomo invitation
             </button>
-            <button class="btn btn-primary" @click="() => sendChatMessage(user._id)">
+            <button class="btn btn-primary" @click="() => mockChatMessage(user)">
               Send chat message
+            </button>
+            <button class="btn btn-primary" @click="() => mockPomodoroAlert(user)">
+              Send pomo alert
             </button>
           </div>
         </div>
@@ -32,6 +35,11 @@ import { getUsers } from '@/router/user/user'
 import { useAsyncState, whenever } from '@vueuse/core'
 import { ref } from 'vue'
 import { API_URL } from '@/const.js'
+import {
+  sendPomodoroAlert,
+  sendPomodoroInvitation,
+  sendChatMessage
+} from '@/router/notifications/notifications'
 
 const { state: users, isReady } = useAsyncState(async () => {
   return await getUsers()
@@ -47,55 +55,85 @@ whenever(isReady, async () => {
   })
 })
 
-async function sendPomodoroInvitation(user) {
-  try {
-    const response = await fetch(`${API_URL}/${user}/notifications`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        kind: 'invitation',
-        created: Date.now(),
-        sender: '676ebff38d5532e8b482b472',
-        invitation: {
-          kind: 'pomodoro',
-          pomodoro: {
-            name: 'Prova invito',
-            pomodoroTime: 15,
-            shortBreakTime: 4,
-            longBreak: {
-              time: 7,
-              interval: 5
-            },
-            color: {
-              name: 'Maroon',
-              hex: '#ee99a0'
-            }
-          }
-        }
-      })
-    })
-    if (!response.ok) throw new Error()
-  } catch (err) {
-    console.error(err)
-  }
+async function mockPomodoroAlert(user) {
+  await sendPomodoroAlert(
+    user,
+    'Pomodoro Alert debug only',
+    'Keep going! This is only for this, but still!!'
+  )
 }
 
-async function sendChatMessage(user) {
-  try {
-    const response = await fetch(`${API_URL}/${user}/notifications`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        kind: 'chat',
-        created: Date.now(),
-        sender: '676ebff38d5532e8b482b472',
-        message:
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
-      })
-    })
-    if (!response.ok) throw new Error()
-  } catch (err) {
-    console.error(err)
-  }
+async function mockPomodoroInvitation(user) {
+  await sendPomodoroInvitation(
+    user,
+    { _id: '676ebff38d5532e8b482b472' },
+    {
+      name: 'Prova invito',
+      pomodoroTime: 15,
+      shortBreakTime: 4,
+      longBreak: {
+        time: 7,
+        interval: 5
+      },
+      color: {
+        name: 'Maroon',
+        hex: '#ee99a0'
+      }
+    }
+  )
+  // try {
+  //   const response = await fetch(`${API_URL}/${user}/notifications`, {
+  //     method: 'POST',
+  //     headers: { 'Content-Type': 'application/json' },
+  //     body: JSON.stringify({
+  //       kind: 'invitation',
+  //       created: Date.now(),
+  //       sender: '676ebff38d5532e8b482b472',
+  //       invitation: {
+  //         kind: 'pomodoro',
+  //         pomodoro: {
+  //           name: 'Prova invito',
+  //           pomodoroTime: 15,
+  //           shortBreakTime: 4,
+  //           longBreak: {
+  //             time: 7,
+  //             interval: 5
+  //           },
+  //           color: {
+  //             name: 'Maroon',
+  //             hex: '#ee99a0'
+  //           }
+  //         }
+  //       }
+  //     })
+  //   })
+  //   if (!response.ok) throw new Error()
+  // } catch (err) {
+  //   console.error(err)
+  // }
+}
+
+async function mockChatMessage(user) {
+  await sendChatMessage(
+    user,
+    { _id: '676ebff38d5532e8b482b472' },
+    'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
+  )
+  // try {
+  //   const response = await fetch(`${API_URL}/${user}/notifications`, {
+  //     method: 'POST',
+  //     headers: { 'Content-Type': 'application/json' },
+  //     body: JSON.stringify({
+  //       kind: 'chat',
+  //       created: Date.now(),
+  //       sender: '676ebff38d5532e8b482b472',
+  //       message:
+  //         'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
+  //     })
+  //   })
+  //   if (!response.ok) throw new Error()
+  // } catch (err) {
+  //   console.error(err)
+  // }
 }
 </script>

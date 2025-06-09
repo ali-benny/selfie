@@ -8,9 +8,10 @@ import {
   loadLatestConfig,
   selectPomodoroConfig
 } from '@/router/pomodoro/pomodoro.js'
-import { computed, toRaw, watch } from 'vue'
+import { computed } from 'vue'
 import { useToast } from 'vue-toastification'
 import { useRoute } from 'vue-router'
+import { sendPomodoroAlert } from '@/router/notifications/notifications'
 
 export const usePomodoroStore = defineStore('pomodoro', () => {
   const toast = useToast()
@@ -166,6 +167,15 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
 
   function timerProgress() {
     pomodoro.value.timer--
+
+    if (pomodoro.value.timer == 30) {
+      let title = isPomodoroPhase() ? 'Pomodoro timer' : 'Pomodoro timer'
+      let message = isPomodoroPhase()
+        ? 'Great work! You will be resting soon!'
+        : 'Get ready! You have to focus soon!'
+      sendPomodoroAlert(useUserStore().loggedUser, title, message)
+    }
+
     if (pomodoro.value.timer <= 0) skipPomodoroPhase()
     else if (pomodoro.value.running && !pomodoro.value.finished)
       pomodoro.value.timeoutId = setTimeout(timerProgress, 1000)

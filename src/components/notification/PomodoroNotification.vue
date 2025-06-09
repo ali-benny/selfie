@@ -12,8 +12,8 @@
 
     <template #actions="{ dismiss }">
       <div class="flex justify-end gap-1">
-        <button class="btn btn-sm btn-outline" @click="dismiss()">Decline</button>
-        <button class="btn btn-sm btn-primary" @click="acceptPomodoroInvitation(dismiss)">
+        <button class="btn btn-sm btn-outline" @click.stop="dismiss()">Decline</button>
+        <button class="btn btn-sm btn-primary" @click.stop="acceptPomodoroInvitation(dismiss)">
           Accept
         </button>
       </div>
