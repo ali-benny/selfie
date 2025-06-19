@@ -7,6 +7,7 @@ import { PomodoroConfigSchema } from '../pomodoro/pomodoro.js'
 import { loadUsernameById } from '../users/users.js'
 
 const NotificationKind = Object.freeze({
+  ALERT: 'alert',
   INVITATION: 'invitation',
   CHAT: 'chat'
 })
@@ -16,6 +17,9 @@ const InvitationKind = Object.freeze({
   NOTE: 'note',
   POMODORO: 'pomodoro'
 })
+
+// TODO: aggiungere eventi, todo, ...
+const AlertKind = Object.freeze({})
 
 const NotificationSchema = new mongoose.Schema(
   {
@@ -27,12 +31,35 @@ const NotificationSchema = new mongoose.Schema(
     created: {
       type: Date,
       required: true
+    },
+    isAlertOnly: {
+      type: Boolean,
+      default: false
     }
   },
   { discriminatorKey: 'kind' }
 )
 
 const Notification = mongoose.model('notification', NotificationSchema)
+
+const AlertNotification = Notification.discriminator(
+  NotificationKind.ALERT,
+  new mongoose.Schema({
+    title: {
+      type: String,
+      required: true
+    },
+    message: {
+      type: String,
+      required: true
+    },
+    alertKind: {
+      type: String,
+      enum: Object.values(AlertKind),
+      required: true
+    }
+  })
+)
 
 const ChatNotification = Notification.discriminator(
   NotificationKind.CHAT,
@@ -119,6 +146,15 @@ app.post('/:user/notifications', async (req, res) => {
 
     let notification
     switch (kind) {
+      case NotificationKind.ALERT:
+        notification = new AlertNotification({
+          user: user,
+          created: created,
+          title: req.body.title,
+          message: req.body.message,
+          alertKind: req.body.alertKind
+        })
+        break
       case NotificationKind.CHAT:
         notification = new ChatNotification({
           user: user,
@@ -153,7 +189,10 @@ app.post('/:user/notifications', async (req, res) => {
         throw new Error('Invalid NotificationKind: ' + kind)
     }
 
-    await notification.save()
+    notification.isAlertOnly = req.body.isAlertOnly || false
+
+    if (!notification.isAlertOnly) await notification.save()
+
     await sendPushNotification(notification.user, notification)
     res.status(200).json(notification)
   } catch (err) {

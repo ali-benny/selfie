@@ -106,7 +106,8 @@ if ('serviceWorker' in navigator) {
           })
         }
 
-        useNotificationStore().appendNotification(event.data.notification)
+        if (!event.data.isAlertOnly)
+          useNotificationStore().appendNotification(event.data.notification)
         break
     }
   })

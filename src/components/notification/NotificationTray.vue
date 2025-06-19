@@ -12,7 +12,14 @@
         <div class="w-full overflow-y-auto" v-if="sortedNotifications.size > 0">
           <div class="flex flex-col grow gap-3">
             <div v-for="[key, notification] in sortedNotifications.entries()" :key="key">
-              <ChatNotification v-if="notification.kind === 'chat'" :notification="notification" />
+              <AlertNotification
+                v-if="notification.kind === 'alert'"
+                :notification="notification"
+              />
+              <ChatNotification
+                v-else-if="notification.kind === 'chat'"
+                :notification="notification"
+              />
               <PomodoroNotification
                 v-else-if="notification.invitation.kind === 'pomodoro'"
                 :notification="notification"
@@ -32,6 +39,7 @@
 import { useNotificationStore } from '@/stores/notification'
 import { storeToRefs } from 'pinia'
 import { computed, provide } from 'vue'
+import AlertNotification from './AlertNotification.vue'
 import PomodoroNotification from './PomodoroNotification.vue'
 import ChatNotification from './ChatNotification.vue'
 

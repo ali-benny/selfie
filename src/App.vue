@@ -1,5 +1,6 @@
 <script setup>
 import { provide } from 'vue'
+import AlertNotification from './components/notification/AlertNotification.vue'
 import ChatNotification from './components/notification/ChatNotification.vue'
 import PomodoroNotification from './components/notification/PomodoroNotification.vue'
 import PomodoroTimerWidget from './components/pomodoro/PomodoroTimerWidget.vue'
@@ -18,6 +19,8 @@ function notificationComponent(item) {
   if (!notification) return Notification
 
   switch (notification.kind) {
+    case 'alert':
+      return AlertNotification
     case 'chat':
       return ChatNotification
     case 'invitation': {
@@ -69,7 +72,7 @@ function notificationComponent(item) {
     </div>
     <div id="app" class="relative w-full grow px-2 mb-16 sm:!pb-0">
       <Notivue v-slot="item">
-        <NotivueSwipe :item="item" touch-only>
+        <NotivueSwipe :item="item">
           <component :item="item" :is="notificationComponent(item)" class="w-[350px]"></component>
         </NotivueSwipe>
       </Notivue>

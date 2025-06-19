@@ -5,17 +5,25 @@
     class="cursor-pointer"
     @click="
       () => {
-        // TODO: aprire la chat del messaggio
-        throw new Error('Chat notification click: yet to be implemented')
+        switch (notification.alertKind) {
+          case 'pomodoro':
+            router.push('pomodoro')
+            props.item.destroy()
+            break
+          default:
+            throw new Error(
+              'Alert notification click: yet to be implemented for kind: ' + notification.alertKind
+            )
+        }
       }
     "
   >
     <template #icon>
-      <Icon icon="fluent:chat-48-filled" class="!text-primary" />
+      <Icon icon="fluent:alert-urgent-24-filled" class="!text-primary" />
     </template>
 
     <template #title>
-      {{ notification.sender.username }}
+      {{ notification.title }}
     </template>
     <template #message>
       {{ notification.message }}
@@ -32,6 +40,7 @@
 <script setup>
 import { computed, inject } from 'vue'
 import NotificationBase from './NotificationBase.vue'
+import { useRouter } from 'vue-router'
 
 const props = defineProps({
   item: Object,
@@ -41,4 +50,6 @@ const props = defineProps({
 const notification = computed(() => props.notification || props.item.props.notification)
 
 const viewMode = inject('notification.viewMode')
+
+const router = useRouter()
 </script>
