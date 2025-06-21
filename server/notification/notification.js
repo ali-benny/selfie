@@ -61,6 +61,18 @@ const AlertNotification = Notification.discriminator(
   })
 )
 
+const GroupChatSchema = new mongoose.Schema({
+  id: {
+    type: mongoose.ObjectId,
+    ref: 'user',
+    required: true
+  },
+  name: {
+    type: String,
+    required: true
+  }
+})
+
 const ChatNotification = Notification.discriminator(
   NotificationKind.CHAT,
   new mongoose.Schema({
@@ -78,6 +90,10 @@ const ChatNotification = Notification.discriminator(
     message: {
       type: String,
       required: true
+    },
+    group: {
+      type: GroupChatSchema,
+      required: false
     }
   })
 )
@@ -214,3 +230,5 @@ app.delete('/notifications/:id', async (req, res) => {
 })
 
 export default app
+
+export { ChatNotification }

@@ -4,6 +4,9 @@ import mongoose from 'mongoose'
 import { SERVER_URL } from '../const.js'
 import { connect } from '../app.js'
 import { Group } from '../groups/groups.js'
+import { Users } from '../users/users.js'
+import { sendNotification } from '../notifications.js'
+import { ChatNotification } from '../notification/notification.js'
 
 const app = express()
 let io = null
@@ -400,6 +403,30 @@ const setupSocketEvents = (io) => {
         // Emetti il messaggio a tutti i client nella stanza
         io.to(messageData.chatId).emit('chat-message', savedMessage)
 
+        if (messageData.chatType === 'private') {
+          const recipient = messageData.chatId.split('_')[1]
+          const notification = new ChatNotification({
+            sender: { id: messageData.user_id, username: messageData.name },
+            user: recipient,
+            created: new Date(),
+            message: messageData.message
+          })
+          await notification.save()
+
+          await sendNotification(recipient, notification)
+        } else if (messageData.chatType === 'group') {
+          // TODO: implementare
+          //   const group = await Group.findById(messageData.chatId)
+          //   group.members.forEach((x) => recipients.push(x))
+          // }
+          // let users = []
+          // recipients.forEach(async (userId) => {
+          //   const u = await Users.findById(userId)
+          //   users.push()
+          // })
+        }
+
+        // } else {
         // Conferma al mittente
         socket.emit('message-sent', {
           messageId: savedMessage._id,
