@@ -16,6 +16,9 @@ const pomodoroStore = usePomodoroStore()
     >
       <RouterLink class="hover:!text-accent" to="/">
         <Icon icon="ic:round-dashboard" />
+      </RouterLink>      
+      <RouterLink class="hover:!text-accent" to="/calendar">
+        <Icon icon="fluent:calendar-24-filled"/>
       </RouterLink>
       <RouterLink class="hover:!text-accent" to="/note">
         <Icon icon="fluent:notebook-32-filled" />

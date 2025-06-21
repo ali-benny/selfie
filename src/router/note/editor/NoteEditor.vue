@@ -37,7 +37,9 @@
         <Icon icon="fluent:edit-16-filled" :inline="true" v-if="!isChecked" />
         <Icon icon="fluent:checkmark-12-filled" v-else />
       </button> -->
-        </div>        <div class="flex justify-between flex-wrap lg:justify-end items-center">          <!-- Note Author + Readers Display -->
+        </div>        
+        <div class="flex justify-between flex-wrap lg:justify-end items-center">          
+          <!-- Note Author + Readers Display -->
           <AvatarMembers
             v-if="id != null"
             :owner-user="author"

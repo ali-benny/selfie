@@ -49,7 +49,7 @@
     <div class="bg-base-200 col-span-2 rounded-xl" data-swapy-slot="3">
       <div class="h-100 min-h-36 p-3 rounded-xl shadow-sm bg-surface-0" data-swapy-item="project">
         <h4 class="font-semibold text-lg ml-3">Projects' Gantt View</h4>
-        <ProjectDash></ProjectDash>
+        <!-- <ProjectDash></ProjectDash> -->
       </div>
     </div>
     <div class="bg-base-200 rounded-xl" data-swapy-slot="4">

@@ -15,6 +15,10 @@ export const useTimeMachineStore = defineStore('timeMachine', () => {
   // Timer for automatic time progression
   let progressionTimer = null
   
+  // Rollover system for day changes
+  const rolloverCallbacks = ref(new Set())
+  const lastProcessedDate = ref(null)
+  
   // Load state from localStorage on initialization
   const loadState = () => {
     try {
@@ -42,6 +46,31 @@ export const useTimeMachineStore = defineStore('timeMachine', () => {
       localStorage.setItem('timeMachine', JSON.stringify(state))
     } catch (error) {
       console.warn('Failed to save TimeMachine state:', error)
+    }
+  }
+  
+  // Load last processed date from localStorage
+  const loadRolloverState = () => {
+    try {
+      const saved = localStorage.getItem('timeMachine_rollover')
+      if (saved) {
+        const state = JSON.parse(saved)
+        lastProcessedDate.value = state.lastProcessedDate ? new Date(state.lastProcessedDate) : null
+      }
+    } catch (error) {
+      console.warn('Failed to load TimeMachine rollover state:', error)
+    }
+  }
+  
+  // Save last processed date to localStorage
+  const saveRolloverState = () => {
+    try {
+      const state = {
+        lastProcessedDate: lastProcessedDate.value?.toISOString()
+      }
+      localStorage.setItem('timeMachine_rollover', JSON.stringify(state))
+    } catch (error) {
+      console.warn('Failed to save TimeMachine rollover state:', error)
     }
   }
   
@@ -233,9 +262,81 @@ export const useTimeMachineStore = defineStore('timeMachine', () => {
     )
   }
   
+  // Register callback for rollover events
+  const registerRolloverCallback = (callback) => {
+    rolloverCallbacks.value.add(callback)
+    console.log('[TimeMachine] Registered rollover callback, total:', rolloverCallbacks.value.size)
+    
+    // Return unregister function
+    return () => {
+      rolloverCallbacks.value.delete(callback)
+      console.log('[TimeMachine] Unregistered rollover callback, total:', rolloverCallbacks.value.size)
+    }
+  }
+  
+  // Check for day rollover and trigger callbacks
+  const checkForRollover = () => {
+    const currentDate = getCurrentDate()
+    const currentDateStr = currentDate.toDateString()
+    const lastDateStr = lastProcessedDate.value?.toDateString()
+    
+    // Check if we've crossed midnight (day change)
+    if (lastProcessedDate.value && lastDateStr !== currentDateStr) {
+      console.log('[TimeMachine] Day rollover detected:', {
+        from: lastDateStr,
+        to: currentDateStr,
+        callbackCount: rolloverCallbacks.value.size
+      })
+      
+      // Trigger all registered callbacks
+      rolloverCallbacks.value.forEach(callback => {
+        try {
+          callback(lastProcessedDate.value, currentDate)
+        } catch (error) {
+          console.error('[TimeMachine] Rollover callback error:', error)
+        }
+      })
+    }
+    
+    // Update last processed date
+    lastProcessedDate.value = currentDate
+    saveRolloverState()
+  }
+  
+  // Manual rollover trigger (for testing)
+  const triggerManualRollover = () => {
+    const currentDate = getCurrentDate()
+    const previousDate = new Date(currentDate)
+    previousDate.setDate(previousDate.getDate() - 1)
+    
+    console.log('[TimeMachine] Manual rollover triggered:', {
+      from: previousDate.toDateString(),
+      to: currentDate.toDateString(),
+      callbackCount: rolloverCallbacks.value.size
+    })
+    
+    rolloverCallbacks.value.forEach(callback => {
+      try {
+        callback(previousDate, currentDate)
+      } catch (error) {
+        console.error('[TimeMachine] Manual rollover callback error:', error)
+      }
+    })
+  }
+
+  // Watch virtualTime for automatic rollover detection
+  watch(virtualTime, () => {
+    if (isVirtualModeEnabled.value) {
+      checkForRollover()
+    }
+  })
+
+  // Initialize rollover state
+  loadRolloverState()
+
   // Initialize store
   loadState()
-  
+
   // Cleanup on unmount
   const cleanup = () => {
     stopTimeProgression()
@@ -281,7 +382,11 @@ export const useTimeMachineStore = defineStore('timeMachine', () => {
     // Utilities
     formatTimeForDisplay,
     isSameDay,
-    cleanup
+    cleanup,
+    
+    // Rollover API
+    registerRolloverCallback,
+    triggerManualRollover
   }
 })
 

@@ -1,7 +1,9 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import { useUserStore } from './account'
+import { usePomodoroStore } from './pomodoro'
 import { now, today } from './timeMachine'
+import { SERVER_URL } from '@/const.js'
 import {
   getCalendarItems,
   getEvents,
@@ -13,6 +15,7 @@ import {
 
 export const useCalendarStore = defineStore('calendar', () => {
   const userStore = useUserStore()
+  const pomodoroStore = usePomodoroStore()
     // State
   const events = ref([])
   const todos = ref([])
@@ -136,13 +139,15 @@ export const useCalendarStore = defineStore('calendar', () => {
   
   const visibleEvents = computed(() => {
     const range = viewRange.value
+    
     const filtered = calendarItems.value.filter(item => {
-      // Gli eventi da getCalendarItems hanno start/end, i todos hanno dueDate
+      // Gli eventi hanno start/end, i todos hanno dueDate
       const itemDate = new Date(item.start || item.dueDate)
+      
       const isInRange = itemDate >= range.start && itemDate <= range.end
       
-      // Apply category filter for events (todos don't have categories)
-      if (item.type !== 'todo') {
+      // Apply category filter for events and unified todos with categories
+      if (item.type !== 'todo' && item.category) {
         const eventCategory = item.category || 'other'
         const isCategoryActive = activeCategories.value.includes(eventCategory)
         if (!isCategoryActive) {
@@ -152,7 +157,6 @@ export const useCalendarStore = defineStore('calendar', () => {
       
       return isInRange
     })
-    
     return filtered
   })
 
@@ -224,8 +228,7 @@ export const useCalendarStore = defineStore('calendar', () => {
         id: event._id,
         date: event.startDate,
         start: event.startDate,
-        end: event.endDate
-      }))
+        end: event.endDate      }))
         } catch (error) {
       console.error('Error fetching events:', error)
     } finally {
@@ -237,47 +240,119 @@ export const useCalendarStore = defineStore('calendar', () => {
     if (!userStore.loggedUser?._id) return
     
     try {
-      const range = viewRange.value
-      const items = await getCalendarItems(
-        userStore.loggedUser._id,
-        range.start,
-        range.end
-      )
+      // Accesso diretto all'API todo (pattern semplice come pomodoro/note)
+      const response = await fetch(`${SERVER_URL}/api/todo`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
       
-      // Filtra solo i todos
-      todos.value = items.filter(item => item.extendedProps?.type === 'todo')
+      if (response.ok) {
+        const todosData = await response.json()
+        
+        // Trasforma tutti i todos per il calendario
+        todos.value = todosData.map(todo => ({
+          id: `todo_${todo._id}`,
+          _id: todo._id,
+          title: todo.text,
+          type: 'todo',
+          dueDate: todo.date,
+          checked: todo.checked,
+          author: todo.author,
+          from: todo.from
+        }))
+      } else {
+        console.error('🚨 Calendar: Failed to fetch todos, status:', response.status)
+      }
       
     } catch (error) {
       console.error('Error fetching todos:', error)
-    }  }
-  
-  const setCurrentDate = (date) => {
+    }
+  }
+    const setCurrentDate = (date) => {
     currentDate.value = new Date(date)
   }
-  
+    const fetchUnifiedTodos = async () => {
+    if (!userStore.loggedUser?._id) return
+    
+    try {
+      // Aggiungi parametri di date per il filtro del backend
+      const range = viewRange.value
+      const params = new URLSearchParams({
+        start: range.start.toISOString(),
+        end: range.end.toISOString()
+      })
+      
+      const response = await fetch(`${SERVER_URL}/api/todo/calendar/${userStore.loggedUser._id}?${params.toString()}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'user-id': userStore.loggedUser._id
+        }
+      })
+      
+      if (response.ok) {
+        const unifiedTodos = await response.json()
+        // Trasforma tutti i todos per il calendario
+        const transformedTodos = unifiedTodos.map(todo => {
+          let icon = '⏰' // Default per simple todos
+          let title = todo.text || todo.title
+          
+          // Icone specifiche per tipo
+          if (todo.type === 'project_task') {
+            icon = '📋'
+          } else if (todo.type === 'note_todo') {
+            icon = '📝'
+          }
+          
+          return {
+            id: `todo_${todo._id}`,
+            _id: todo._id,
+            title: `${icon} ${title}`,
+            type: todo.type || 'simple',
+            start: todo.startDate,
+            end: todo.endDate,
+            dueDate: todo.date || todo.dueDate, // Compatibilità
+            allDay: true,
+            category: todo.category || 'other',
+            projectId: todo.projectId,
+            state: todo.state,
+            progress: todo.progress || (todo.checked ? 100 : 0),
+            checked: todo.checked,
+            assignedUsers: todo.assignedUsers || [],
+            phase: todo.phase || 'Generale',
+            priority: todo.priority || 'medium',
+            from: todo.from // Per note todos
+          }
+        })
+        
+        todos.value = transformedTodos
+      } else {
+        console.error('Failed to fetch unified todos:', response.status, response.statusText)
+      }
+      
+    } catch (error) {
+      console.error('Error fetching unified todos:', error)
+    }
+  }
   const fetchCalendarItems = async (startDate = null, endDate = null) => {
     if (!userStore.loggedUser?._id) return
     
     isLoading.value = true
     try {
-      const range = startDate && endDate ? { start: startDate, end: endDate } : viewRange.value
+      // Reset arrays
+      todos.value = []
       
-      const items = await getCalendarItems(
-        userStore.loggedUser._id,
-        range.start,
-        range.end
-      )
-      
-      // Separa eventi e todos
-      const eventsData = items.filter(item => !item.extendedProps?.type)
-      const todosData = items.filter(item => item.extendedProps?.type === 'todo')
-      
-      // Gli eventi da getCalendarItems sono già formattati correttamente con start/end
-      events.value = eventsData
-      todos.value = todosData
+      // Fetch unificato: eventi e todos (tutti i tipi inclusi project tasks)
+      await Promise.all([
+        fetchEvents(),
+        fetchUnifiedTodos()
+      ])
       
     } catch (error) {
-      console.error('Error fetching calendar items:', error)    } finally {
+      console.error('Error fetching calendar items:', error)
+    } finally {
       isLoading.value = false
     }
   }
@@ -415,12 +490,45 @@ export const useCalendarStore = defineStore('calendar', () => {
       }
     })
   }
-  
-  // Watchers per ricarica automatica
+    // Watchers per ricarica automatica
   watch([currentView, currentDate], () => {
-    fetchEvents()
-    fetchTodos()
+    fetchCalendarItems()
   }, { immediate: true })
+  
+  // =============================
+  // INTEGRAZIONE POMODORO
+  // =============================
+  
+  const startPomodoroFromTodo = async (todo) => {
+    try {
+      // Verifica se il todo ha pomodori stimati
+      if (!todo.pomodoro?.estimatedPomodoros || todo.pomodoro.estimatedPomodoros === 0) {
+        console.warn('⚠️ Todo has no estimated pomodoros:', todo)
+        // Potremmo mostrare un modal per impostare pomodori stimati
+        return false
+      }
+      
+      // Avvia il pomodoro usando lo store esistente
+      pomodoroStore.playPomodoroTimer()
+      
+      // Opzionalmente aggiorna le sessioni del todo
+      // TODO: Implementare tracking sessioni pomodoro per todo specifici
+      
+      return true
+      
+    } catch (error) {
+      console.error('Error starting pomodoro from todo:', error)
+      return false
+    }
+  }
+  
+  const canStartPomodoro = (todo) => {
+    // Verifica se è un todo con pomodori stimati
+    return todo.type === 'project_task' && 
+           todo.pomodoro?.estimatedPomodoros > 0 &&
+           !todo.checked &&
+           todo.state !== 'completed'
+  }
   
   return {
     // State
@@ -435,11 +543,10 @@ export const useCalendarStore = defineStore('calendar', () => {
     visibleEvents,
     currentWeekDays,
     currentMonth,
-    currentYear,    viewRange,
-    
-    // Actions
+    currentYear,    viewRange,    // Actions
     fetchEvents,
     fetchTodos,
+    fetchUnifiedTodos,
     setCurrentDate,
     fetchCalendarItems,
     createNewEvent,
@@ -458,6 +565,10 @@ export const useCalendarStore = defineStore('calendar', () => {
     eventCategories,
     activeCategories,
     getCategoryByValue,
-    toggleCategoryFilter
+    toggleCategoryFilter,
+    
+    // Pomodoro integration
+    startPomodoroFromTodo,
+    canStartPomodoro
   }
 })

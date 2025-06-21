@@ -545,10 +545,6 @@ export default {
         
         if (response.ok) {
           const data = await response.json();
-          console.log('✅ Frontend: Tasks loaded:', {
-            tasksCount: data.tasks?.length || 0,
-            linksCount: data.links?.length || 0
-          });
           tasks.value = data.tasks || [];
           ganttLinks.value = data.links || [];
         } else {
@@ -596,7 +592,6 @@ export default {
         });
         
         if (response.ok) {
-          console.log('✅ Frontend: Task updated successfully');
           await loadTasks(); // Ricarica i task per aggiornare la vista
         } else {
           const errorText = await response.text();
@@ -608,8 +603,6 @@ export default {
       }
     };    const handleTaskDeleted = async (taskId) => {
       try {
-        console.log('🔧 Frontend: Deleting task:', taskId);
-        
         const response = await fetch(`${API_URL}/projects/${props.projectId}/tasks/${taskId}`, {
           method: 'DELETE',
           headers: { 
@@ -618,11 +611,9 @@ export default {
         });
         
         if (response.ok) {
-          console.log('✅ Frontend: Task deleted successfully');
           await loadTasks(); // Ricarica i task per aggiornare la vista
         } else if (response.status === 404) {
           // Task già eliminata o non esistente, non è un errore critico
-          console.warn('⚠️ Task not found (already deleted):', taskId);
           await loadTasks(); // Ricarica per sincronizzare lo stato
         } else {
           const errorText = await response.text();
@@ -846,10 +837,24 @@ export default {
         console.warn('Error getting user initials for:', userId);
         return '??';
       }
-    };const startPomodoro = (task) => {
+    };    const startPomodoro = (task) => {
       // Integrazione con il sistema Pomodoro esistente
-      console.log('Starting pomodoro for task:', task.title);
-      // Per ora loggiamo, in futuro integrare con il sistema Pomodoro
+      console.log('🍅 Starting pomodoro for task:', task.title);
+      
+      // Verifica se il task ha pomodori stimati
+      if (!task.pomodoro?.estimatedPomodoros || task.pomodoro.estimatedPomodoros === 0) {
+        alert('Questa task non ha pomodori stimati. Modifica la task per aggiungere una stima.');
+        return;
+      }
+      
+      // Avvia il pomodoro usando lo store esistente
+      const pomodoroStore = usePomodoroStore();
+      pomodoroStore.playPomodoroTimer();
+      
+      // Mostra messaggio di successo
+      console.log('✅ Pomodoro started for task:', task.title);
+      
+      // TODO: Implementare tracking sessioni pomodoro per task specifici
     };
 
     // Metodi mancanti per eliminazione e gestione progetto

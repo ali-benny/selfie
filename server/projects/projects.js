@@ -83,9 +83,9 @@ router.get('/users/:userId/projects', requireAuth, async (req, res) => {
       $or: [
         { ownerId: userId },
         { 'members.userId': userId }
-      ]    }).sort({ updatedAt: -1 })
+      ]
+    }).sort({ updatedAt: -1 })
 
-    
     if (projects.length === 0) {
       return res.json([])
     }
@@ -219,12 +219,6 @@ router.post('/projects/:projectId/tasks', requireAuth, checkProjectPermissions, 
 
     const newTask = new Task(taskData)
     const result = await newTask.save()
-
-    // Crea evento nel calendario se necessario
-    if (taskData.type !== 'phase') {
-      console.log('📅 Creating calendar event for task')
-      await createCalendarEvent(taskData, req.project)
-    }
 
     const responseData = { _id: result._id, ...result.toObject() }
     
@@ -422,13 +416,5 @@ router.get('/debug/database', requireAuth, async (req, res) => {
     res.status(500).json({ error: error.message })
   }
 })
-
-// =====================
-
-// Funzione helper per creare eventi del calendario (da implementare)
-async function createCalendarEvent(taskData, project) {
-  // TODO: implementare la creazione di eventi nel calendario
-  console.log('Creating calendar event for task:', taskData.title)
-}
 
 export default router

@@ -10,12 +10,17 @@
           <div class="flex items-center gap-4 mt-1">
             <span class="text-sm text-subtext-0">{{ formatDayDate(currentDay) }}</span>
             <span class="text-sm text-subtext-1">{{ dayEvents.length }} eventi</span>
-          </div>
+          </div></div>
+        <div class="flex gap-2">
+          <button @click="createTodoForDay()" class="btn btn-sm btn-accent">
+            <Icon icon="fluent:task-list-add-24-filled" />
+            Nuovo Todo
+          </button>
+          <button @click="createEventAtTime('09:00')" class="btn btn-sm btn-primary">
+            <Icon icon="fluent:add-24-filled" />
+            Nuovo evento
+          </button>
         </div>
-        <button @click="createEventAtTime('09:00')" class="btn btn-sm btn-primary">
-          <Icon icon="fluent:add-24-filled" />
-          Nuovo evento
-        </button>
       </div>
     </div>
 
@@ -69,7 +74,7 @@
               @click.stop="selectEvent(event)"
             >              <div class="text-xs opacity-75">
                 {{ formatEventTime(event) }}
-              </div>
+              </div>              
               <div class="font-medium truncate flex items-center gap-1">
                 <span v-if="event.type !== 'todo'">{{ calendarStore.getCategoryByValue(event.category || 'other').icon }}</span>
                 <span v-else>⏰</span>
@@ -79,9 +84,16 @@
                 <Icon icon="fluent:location-24-filled" class="w-3 h-3" />
                 <span class="truncate">{{ event.location }}</span>
               </div>
-              <div v-if="event.type === 'todo'" class="text-xs opacity-75 flex items-center gap-1">
+              <div v-if="event.type === 'todo'" class="text-xs opacity-75 flex items-center gap-2">
                 <Icon icon="fluent:task-list-square-24-filled" class="w-3 h-3" />
-                Todo
+                <span>Todo</span>
+                <button 
+                  @click.stop="startPomodoroFromTodo(event)"
+                  class="btn btn-xs btn-ghost text-error hover:bg-error/20"
+                  :title="'Avvia Pomodoro'"
+                >
+                  <Icon icon="fluent:timer-24-filled" class="w-3 h-3" />
+                </button>
               </div>
             </div>
           </div>
@@ -107,7 +119,17 @@
                 <span v-else>⏰</span>
                 <h4 class="card-title text-sm">{{ event.title }}</h4>
               </div>
-              <span v-if="event.type === 'todo'" class="badge badge-warning badge-xs">Todo</span>
+              <div class="flex items-center gap-2">
+                <span v-if="event.type === 'todo'" class="badge badge-warning badge-xs">Todo</span>
+                <button 
+                  v-if="event.type === 'todo'"
+                  @click.stop="startPomodoroFromTodo(event)"
+                  class="btn btn-xs btn-ghost text-error hover:bg-error/20"
+                  :title="'Avvia Pomodoro'"
+                >
+                  <Icon icon="fluent:timer-24-filled" class="w-3 h-3" />
+                </button>
+              </div>
             </div>
             <div v-if="event.description" class="text-xs text-subtext-0 mt-1">
               {{ event.description }}
@@ -135,7 +157,7 @@ export default {
   components: {
     Icon
   },
-  emits: ['create-event', 'select-event'],
+  emits: ['create-event', 'create-todo', 'select-event'],
   setup(props, { emit }) {
     const calendarStore = useCalendarStore()
     const selectedEventId = ref(null)
@@ -147,28 +169,21 @@ export default {
     const currentDay = computed(() => calendarStore.currentDate)
       
     const dayEvents = computed(() => {
-      console.log('Calculating dayEvents for currentDay:', currentDay.value)
-      console.log('Available events:', calendarStore.visibleEvents)
-      
       const events = calendarStore.visibleEvents.filter(event => {
         // Use standardized property names: start for events, dueDate for todos
         const eventDate = new Date(event.start || event.dueDate)
         const dayString = currentDay.value.toDateString()
         const eventString = eventDate.toDateString()
 
-        console.log('Comparing event date:', eventString, 'with current day:', dayString)
-
         return eventString === dayString
       })
 
-      console.log('Filtered dayEvents:', events)
       return events
     })
     // TODO: refactor: timedEvents e allDayEvents usati anche in CalendarWeekDay.vue
     // Eventi con orario specifico
     const timedEvents = computed(() => {
       const events = dayEvents.value.filter((event) => {
-        console.log('Filtering event:', event.title, 'Full event:', event)
 
         // REGOLA PRINCIPALE: Se allDay è esplicitamente true, l'evento è tutto il giorno
         if (event.allDay === true) {
@@ -180,7 +195,6 @@ export default {
 
         // 1. Controllo esplicito per startTime come stringa
         if (event.startTime) {
-          console.log('Event:', event.title, 'has explicit startTime:', event.startTime)
           return true
         }
           // 2. Controllo basato su start (standardized property)
@@ -191,12 +205,9 @@ export default {
 
           // Se l'ora non è 00:00, consideriamo che abbia un orario specifico
           if (hours !== 0 || minutes !== 0) {
-            console.log('Event:', event.title, 'has time in start:', hours + ':' + minutes)
             return true;
           }
         }
-
-        console.log('Event:', event.title, 'has allDay:', event.allDay, 'but no valid time found')
 
         // Se siamo qui, l'evento non ha un orario valido ma allDay è false
         // Lo trattiamo come timed event per rispettare la volontà dell'utente
@@ -301,31 +312,17 @@ export default {
           startHour = new Date(event.start).getHours()
         }
 
-        console.log('Event:', event.title, 'calculated hour:', startHour, 'target hour:', hour)
-
         // L'evento viene mostrato solo nell'ora di inizio per evitare duplicati
         return startHour === hour
       })
 
-      console.log('Events for hour', hour, ':', events)
       return events
     }
     // TODO: refactor: funzione definita anche in CalendarWeekView.vue
     // Calcola le or che un evento occupa - versione completa per eventi multi-ora
     const getEventDurationInHours = (event) => {
-      console.log('🕐 CalendarDayView - Calculating duration for event:', event.title)
-      console.log('🔍 Event data:', {
-        startTime: event.startTime,
-        endTime: event.endTime,
-        duration: event.duration,
-        startDate: event.startDate,
-        endDate: event.endDate,
-        type: event.type
-      })
-
       // 1. Todo eventi sono sempre di 1 ora nella vista giornaliera
       if (event.type === 'todo') {
-        console.log('📋 Todo event - returning 1 hour')
         return 1
       }
 
@@ -341,17 +338,15 @@ export default {
           const endTotalMinutes = endHour * 60 + endMinute
 
           const duration = Math.max(1, (endTotalMinutes - startTotalMinutes) / 60)
-          console.log('⏰ Calculated from startTime/endTime:', duration, 'hours')
           return duration
         } catch (error) {
-          console.error('❌ Error parsing startTime/endTime:', error)
+          console.error('CalendarDayView: Error - parsing startTime/endTime:', error)
         }
       }
 
       // 3. Calcolo basato su proprietà duration (in minuti)
       if (event.duration && typeof event.duration === 'number') {
         const duration = Math.max(1, event.duration / 60)
-        console.log('⌛ Calculated from duration property:', duration, 'hours')
         return duration
       }
         // 4. Calcolo basato su start/end (standardized properties)
@@ -361,21 +356,18 @@ export default {
           const endDate = new Date(event.end)
           const diffMs = endDate.getTime() - startDate.getTime()
           const diffHours = Math.max(1, diffMs / (1000 * 60 * 60))
-          console.log('📅 Calculated from start/end:', diffHours, 'hours')
           return diffHours
         } catch (error) {
-          console.error('❌ Error parsing start/end:', error)
+          console.error('CalendarDayView: Error parsing start/end:', error)
         }
       }
 
       // 5. Durata hardcoded per eventi specifici
       if (event.title && event.title.toUpperCase().includes('WEBINAR')) {
-        console.log('🎓 WEBINAR event - returning 2.25 hours')
         return 2.25
       }
 
       // 6. Default: 1 ora
-      console.log('🔄 Using default 1 hour duration')
       return 1
     }
     // TODO: refactor: funzioni definite anche nelle altre view
@@ -420,26 +412,16 @@ export default {
     }
     // Gestione eventi sovrapposti e durata multi-ora - versione completa
     const getCollisionAwareStyle = (event, hour, index) => {
-      console.log(
-        '🎨 CalendarDayView - Calculating style for event:',
-        event.title,
-        'at hour:',
-        hour
-      )
-
       const eventsInHour = getEventsForHour(hour)
       const totalEvents = eventsInHour.length
 
       // Calcola la durata dell'evento in or
       const durationHours = getEventDurationInHours(event)
-      console.log('📏 Event duration:', durationHours, 'hours')
 
       // Calcola l'altezza effettiva basata sulla durata multi-ora
       // Ogni slot è 64px (h-16) + 1px border = 65px per slot
       const slotHeight = 65 // 64px + 1px border
       const totalHeight = Math.max(slotHeight * durationHours - 4, 30)
-
-      console.log('📐 Calculated height:', totalHeight, 'px for', durationHours, 'hours')
 
       if (totalEvents === 1) {
         // Evento singolo: occupa tutta la larghezza
@@ -452,7 +434,6 @@ export default {
           overflow: 'visible', // Permette estensione visiva oltre il contenitore
           position: 'absolute'
         }
-        console.log('✅ Single event style:', style)
         return style
       }
 
@@ -470,11 +451,8 @@ export default {
         position: 'absolute'
       }
 
-      console.log('✅ Multi-event style:', style)
       return style
-    }
-
-    // Azioni
+    }    // Azioni
     const createEventAtTime = (time) => {
       // Assicurati che la data sia quella corretta
       const eventDate = new Date(currentDay.value)
@@ -482,13 +460,28 @@ export default {
       emit('create-event', {
         date: eventDate,
         startTime: time
-      })
+      })    }
+
+    const createTodoForDay = () => {
+      const todoDate = new Date(currentDay.value)
+      emit('create-todo', todoDate)
     }
 
     const selectEvent = (event) => {
       selectedEventId.value = event._id || event.id
       emit('select-event', event)
-    } // Sincronizzazione scroll
+    }
+    
+    const startPomodoroFromTodo = async (todo) => {
+      try {
+        await calendarStore.startPomodoroFromTodo(todo)
+      } catch (error) {
+        console.error('Errore nell\'avvio del pomodoro:', error)
+        // TODO: Mostra toast di errore
+      }
+    }
+
+    // Sincronizzazione scroll
     const syncScroll = () => {
       if (timeColumn.value && eventsColumn.value) {
         timeColumn.value.scrollTop = eventsColumn.value.scrollTop
@@ -512,12 +505,13 @@ export default {
       formatEventTime,
       getEventsForHour,
       getEventDurationInHours,
-      getEventStyle,
-      getEventTypeClass,
-      getEventClasses,
+      getEventStyle,      getEventTypeClass,
+      getEventClasses,      
       getCollisionAwareStyle,
       createEventAtTime,
+      createTodoForDay,
       selectEvent,
+      startPomodoroFromTodo,
       syncScroll
     }
   }

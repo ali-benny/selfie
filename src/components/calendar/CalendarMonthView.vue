@@ -133,13 +133,13 @@
               ]"
               @click="selectEvent(event)"
             >
-              <div class="card-body p-4">
-                <div class="flex justify-between items-start">
+              <div class="card-body p-4">                <div class="flex justify-between items-start">
                   <div class="flex items-center gap-2">
-                    <span v-if="event.type !== 'todo'">{{
+                    <span v-if="event.type === 'todo'">⏰</span>
+                    <span v-else-if="event.type === 'project_task'">📋</span>
+                    <span v-else>{{
                       calendarStore.getCategoryByValue(event.category || 'other').icon
                     }}</span>
-                    <span v-else>⏰</span>
                     <h4 class="card-title text-base">{{ event.title }}</h4>
                   </div>
                   <span class="text-sm text-subtext-1">{{ formatEventTime(event) }}</span>
