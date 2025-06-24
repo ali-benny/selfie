@@ -404,7 +404,11 @@ const setupSocketEvents = (io) => {
         io.to(messageData.chatId).emit('chat-message', savedMessage)
 
         if (messageData.chatType === 'private') {
-          const recipient = messageData.chatId.split('_')[1]
+          const first = messageData.chatId.split('_')[0]
+          const second = messageData.chatId.split('_')[1]
+          const sender = messageData.user_id
+          const recipient = first === sender ? second : first
+
           const notification = new ChatNotification({
             sender: { id: messageData.user_id, username: messageData.name },
             user: recipient,
