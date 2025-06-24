@@ -39,7 +39,13 @@ app.use('/api', calendar)
 app.use('/chat', chat)
 app.use('/uploads', express.static('uploads'))
 
-if (process.env.NODE_ENV !== 'development') app.use(express.static(`${APP_PREFIX}/dist`))
+if (process.env.NODE_ENV !== 'development') {
+  app.use(express.static(`${APP_PREFIX}/dist`))
+
+  app.get('/service-worker.js', (_, res) => {
+    res.sendFile(path.join(__dirname, `${APP_PREFIX}/service-worker.js`))
+  })
+}
 
 initializeSocket(server)
 
