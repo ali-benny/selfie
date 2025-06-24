@@ -1,10 +1,12 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
+import { Icon } from '@iconify/vue'
 import { API_URL } from '@/const.js'
 import { useUserStore } from '@/stores/account'
 import GroupList from '@/components/group/GroupList.vue'
 import NoteView from '@/components/note/NoteView.vue'
 import UserShare from '@/components/UserShare.vue'
+import AvatarMembers from '@/components/AvatarMembers.vue'
 import { getUsersByIds } from '../user/user'
 import { updateGroup, getGroupById } from './group'
 
@@ -178,6 +180,45 @@ async function createGroup() {
   }
 }
 
+// Remove member function for drag&drop
+async function removeMember(user) {
+  if (!user || !user._id || !selectedGroup.value) return
+
+  try {
+    // Remove from local state immediately for better UX
+    const memberIndex = selectedGroup.value.members.indexOf(user._id)
+    if (memberIndex > -1) {
+      selectedGroup.value.members.splice(memberIndex, 1)
+      realGroupMembers.value = selectedGroup.value.members
+    }
+
+    // Update backend immediately
+    const updatedGroup = await updateGroup({
+      _id: selectedGroup.value._id,
+      members: selectedGroup.value.members
+    })
+
+    // Update the selected group with the response
+    selectedGroup.value = updatedGroup
+
+    // Remove from local users cache
+    if (users.value[user._id]) {
+      delete users.value[user._id]
+    }
+
+    push.success(`Removed ${user.name} ${user.surname} from group`)
+    console.log(`Removed ${user.name} ${user.surname} from group members`)
+  } catch (error) {
+    console.error('Error removing member:', error)
+    // Revert the change if there was an error
+    if (!selectedGroup.value.members.includes(user._id)) {
+      selectedGroup.value.members.push(user._id)
+      realGroupMembers.value = selectedGroup.value.members
+    }
+    push.error('Failed to remove member')
+  }
+}
+
 async function deleteGroup(group) {
   try {
     const response = await fetch(API_URL + '/group/' + group._id, {
@@ -305,54 +346,29 @@ async function deleteGroup(group) {
             {{ editedGroup.description }}
           </p>
         </label>
-        <!-- Actual members -->
-        <div>
-          <h2><b>Group Members</b></h2>
-          <div class="flex flex-row items-center justify-start m-2">
-            <div class="flex flex-row items-center w-max mt-1">
-              <!-- owner avatar -->
-              <div class="avatar w-10 mr-2">
-                <div class="w-10 ring-primary ring-offset-base-100 rounded-full ring ring-offset-2">
-                  <img
-                    class="mt-0"
-                    :src="users[selectedGroup.owner]?.image"
-                    :title="
-                      users[selectedGroup.owner]?.name + ' ' + users[selectedGroup.owner]?.surname
-                    "
-                  />
-                </div>
-              </div>
-              <!-- member avatar -->
-              <div class="avatar-group w-max">
-                <div v-for="reader in selectedGroup.members" :key="reader" class="avatar h-10">
-                  <img
-                    class="mask mask-circle !bg-secondary mt-0"
-                    :src="users[reader]?.image"
-                    :title="users[reader]?.name + ' ' + users[reader]?.surname"
-                  />
-                </div>
-              </div>
-            </div>
-            <!-- Only show UserShare for owner -->
-            <UserShare
-              v-if="selectedGroup.owner === userStore.loggedUser._id"
-              :id="selectedGroup._id"
-              type="Group"
-              msg="Invites"
-              v-model="realGroupMembers"
-            ></UserShare>
-          </div>
-        </div>
-        <div class="divider m-0"></div>
-        <!-- Group Notes -->
-        <div class="flex flex-col *:mx-0">
-          <h3 class="text-lg font-bold">Group Notes</h3>
-          <NoteView
-            viewMode="grid"
-            :edit="false"
-            :extended="false"
-            :ownerId="selectedGroup._id"
-          ></NoteView>
+        <!-- Group Members Display -->
+        <div class="flex flex-row items-center justify-start m-2">
+          <AvatarMembers
+            :owner-user="users[selectedGroup.owner]"
+            :member-users="selectedGroup.members.map((id) => users[id]).filter(Boolean)"
+            variant="default"
+            :show-online-status="true"
+            :show-count="true"
+            :display-limit="8"
+            size="medium"
+            @remove-member="removeMember"
+          >
+            <template #share-button>
+              <!-- Only show UserShare for owner -->
+              <UserShare
+                v-if="selectedGroup.owner === userStore.loggedUser._id"
+                :id="selectedGroup._id"
+                type="Group"
+                msg="Invites"
+                v-model="realGroupMembers"
+              />
+            </template>
+          </AvatarMembers>
         </div>
       </div>
     </Transition>

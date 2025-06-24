@@ -12,6 +12,7 @@ import todo from './todo/todo.js'
 import webpush from './notification/webpush.js'
 import notification from './notification/notification.js'
 import groups from './groups/groups.js'
+import calendar from './calendar/calendar.js'
 import chat, { initializeSocket } from './chat/messages.js'
 
 import fs from 'fs'
@@ -34,6 +35,7 @@ app.use('/api', webpush)
 app.use('/api', notification)
 app.use('/api', upload)
 app.use('/api', groups)
+app.use('/api', calendar)
 app.use('/chat', chat)
 app.use('/uploads', express.static('uploads'))
 

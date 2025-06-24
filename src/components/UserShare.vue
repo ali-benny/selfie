@@ -1,6 +1,6 @@
 <template>
   <Popper>
-    <button class="btn btn-ghost text-xl">
+    <button type="button" class="btn btn-ghost text-xl">
       <Icon icon="typcn:user-add" />
     </button>
     <template #content>
@@ -11,6 +11,7 @@
           <button
             v-for="user in users"
             :key="user._id"
+            type="button"
             :class="[
               'flex gap-2 justify-between items-center',
               'rounded-lg',
@@ -40,6 +41,7 @@
           </button>
         </ul>
         <button
+          type="button"
           class="btn btn-outline btn-primary mt-2 flex items-center justify-center rounded-lg gap-2"
           @click="sendshare()"
         >
@@ -203,7 +205,13 @@ async function sendshare() {
       break
     }
     case 'Event': {
-      //TODO: add user to event share
+      // Update event invitees
+      const eventStore = await import('@/stores/calendar.js')
+      const calendarStore = eventStore.useCalendarStore()
+
+      await calendarStore.updateExistingEvent(props.id, {
+        invitees: props.modelValue.filter((id) => id !== undefined && id !== null)
+      })
       break
     }
     case 'Group': {

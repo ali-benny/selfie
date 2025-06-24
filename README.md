@@ -1,12 +1,27 @@
 # Progetto per il corso di Tecnlogie Web
 
-dir macchine di lab: `/home/web/site232433/html/` che equivale a https://site232433.tw.cs.unibo.it
+dir machine di lab: `/home/web/site232433/html/` che equivale a https://site232433.tw.cs.unibo.it
+
+- [Deploy](#deploy)
+- [Deploy manuale](#deploy-manuale)
+- [Deploy locale](#deploy-locale)
+- [Wiki](#wiki)
+  - [Icone by Iconify](#icone-by-iconify)
+  - [Toast | Notifiche Push interne:](#toast--notifiche-push-interne)
+  - [Gantt Chart - Vue Ganttastic](#gantt-chart---vue-ganttastic)
 
 ## Deploy
 
-NB: è necessario avere già la build del progetto, quindi prima di eseguire lo script o fare git pull è necessario eseguire `npm run build` in locale e pushare le modifiche.
+> è necessario avere un file .env con NODE_ENV=production e un file .env.development con NODE_ENV=development
 
-usare lo script `build&deploy.py`, in seguito connettersi alla macchina, accedere al gocker e restartarlo.
+Quando si fa un push su `main` il server di produzione viene aggiornato automaticamente grazie all'action `deploy.yml` presente nella cartella `.github/workflows`, che fa la build e la manda in produzione sul server.
+Il server di produzione è un container docker che gira su `gocker.cs.unibo.it` usa `nodemon-22` dunque non è necessario riavviarlo manualmente.
+
+## Deploy manuale
+
+NB: è necessario avere già la build del progetto, quindi prima di eseguire lo script o fare git pull è necessario eseguire `/usr/local/node/bin/npm run build` in locale e pushare le modifiche.
+
+Usare lo script `build&deploy.py`, in seguito connettersi alla macchina, accedere al gocker e restartarlo.
 
 Oppure: connettersi alla macchina, entrare nella cartella `html`
 
@@ -20,19 +35,25 @@ ssh gocker.cs.unibo.it
 
 dalla shell di gocker:
 
-fare partire mongodb
+fare partire mongodb:
 
 ```bash
 start mongo site232433
 ```
 
-1. per fare partire node: ogni modifica fatta lato backend nella cartella server implica un necessario riavvio di node-22
+fare partire node: ogni modifica fatta lato backend nella cartella server implica un necessario riavvio di node-22
 
 ```bash
-start node-22 site232433 ./server/app.js
+start node-22 site232433 server/app.js
 ```
 
-2. per deployare il sito
+o in alternativa:
+
+```bash
+start nodemon-22 site232433 server/app.js
+```
+
+Esiste anche questo commando per servire il sito statico, ma non è da fare perché lo serviamo con node-22:
 
 ```bash
 start static site232433
@@ -40,7 +61,7 @@ start static site232433
 
 ## Deploy locale
 
-runnare server: `node src/api/app.js`
+runnare server: `node server/app.js` o `npm run backend:dev` che utilizza nodemon per il reload automatico delle modifiche lato backend.
 
 ```bash
 npm install
@@ -71,11 +92,14 @@ Per usare l'icona inserire l'elemento del tipo: `<Icon icon="<pack>:<nome_icona>
 
 docs: https://docs.notivue.smastrom.io
 Per usarlo nello `<script>`: `push.<type>('<msg>')`
-dove `type` può essere: success/warining/error
+dove `type` può essere: success/warning/error
 
 Per realizzare cose particolari consiglio di consultare https://docs.notivue.smastrom.io/push-usage/methods.html
+
+## Gantt Chart - DHTMLX Gantt
+
+docs: https://github.com/DHTMLX/gantt
 
 ## Vue3-Popper
 
 Documentazione davvero completa su: https://github.com/valgeirb/vue3-popper
-
