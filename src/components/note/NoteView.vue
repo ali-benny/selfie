@@ -36,8 +36,6 @@ const effectiveOwnerId = computed(() => props.ownerId || userStore.loggedUser._i
 
 // reload notes when ownerId changes
 watch(effectiveOwnerId, async (newOwnerId) => {
-  console.log('🔥 - watch - newOwnerId:', newOwnerId)
-  console.log('🔥 - watch - effectiveOwnerId.value:', effectiveOwnerId.value)
   if (newOwnerId) {
     try {
       notes.value = await getNotes(newOwnerId)
@@ -57,7 +55,6 @@ watch(
   async () => {
     try {
       notes.value = await getNotes(effectiveOwnerId.value)
-      console.log('🔥 - watch effectiveOwnerId.value:', effectiveOwnerId.value)
       const authorIds = notes.value.map((note) => note.author)
       const readerIds = notes.value.flatMap((note) => note.readers)
       const uniqueUserIds = [...new Set([...authorIds, ...readerIds])]
@@ -70,7 +67,6 @@ watch(
 
 onMounted(async () => {
   try {
-    console.log('🔥 - onMounted - effectiveOwnerId.value:', effectiveOwnerId.value)
     notes.value = await getNotes(effectiveOwnerId.value)
     const authorIds = notes.value.map((note) => note.author)
     const readerIds = notes.value.flatMap((note) => note.readers)

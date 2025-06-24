@@ -38,6 +38,7 @@ app.use('/api', groups)
 app.use('/api', calendar)
 app.use('/chat', chat)
 app.use('/uploads', express.static('uploads'))
+app.use('/public', express.static(`${APP_PREFIX}/public`))
 
 if (process.env.NODE_ENV !== 'development') {
   app.use(express.static(`${APP_PREFIX}/dist`))

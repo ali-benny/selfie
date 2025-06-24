@@ -8,9 +8,12 @@ import TimeMachine from './components/TimeMachine.vue'
 import { useUserStore } from './stores/account'
 import { usePomodoroStore } from './stores/pomodoro'
 import { Notivue, Notification, NotivueSwipe } from 'notivue'
+import { useFavicon } from '@vueuse/core'
 
 const userStore = useUserStore()
 const pomodoroStore = usePomodoroStore()
+
+useFavicon('/public/favicon.png')
 
 provide('notification.viewMode', 'notivue')
 
