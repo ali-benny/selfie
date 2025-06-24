@@ -9,7 +9,6 @@ import users from './users/users.js'
 import upload from './notes/upload.js'
 import pomodoro from './pomodoro/pomodoro.js'
 import todo from './todo/todo.js'
-import projects from './projects/projects.js'
 import webpush from './notification/webpush.js'
 import notification from './notification/notification.js'
 import groups from './groups/groups.js'
@@ -31,7 +30,6 @@ app.use(express.urlencoded({ extended: true }))
 app.use('/api', notes)
 app.use('/api', users)
 app.use('/api', todo)
-app.use('/api', projects)
 app.use('/api', pomodoro)
 app.use('/api', webpush)
 app.use('/api', notification)

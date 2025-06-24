@@ -1,5 +1,6 @@
 <template>
-  <div ref="container" class="container grid grid-cols-3 gap-5 place-content-center h-[85dvh]">    <div class="bg-base-200 rounded-xl" data-swapy-slot="1">
+  <div ref="container" class="container grid grid-cols-3 gap-5 place-content-center h-[85dvh]">
+    <div class="bg-base-200 rounded-xl" data-swapy-slot="1">
       <div class="col-md-6 p-3 rounded-xl shadow-sm bg-surface-0" data-swapy-item="calendar">
         <div class="flex flex-row justify-between items-center mb-3">
           <h4 class="font-semibold text-lg ml-3">Calendario</h4>
@@ -46,12 +47,6 @@
         ></NoteView>
       </div>
     </div>
-    <div class="bg-base-200 col-span-2 rounded-xl" data-swapy-slot="3">
-      <div class="h-100 min-h-36 p-3 rounded-xl shadow-sm bg-surface-0" data-swapy-item="project">
-        <h4 class="font-semibold text-lg ml-3">Projects' Gantt View</h4>
-        <!-- <ProjectDash></ProjectDash> -->
-      </div>
-    </div>
     <div class="bg-base-200 rounded-xl" data-swapy-slot="4">
       <div
         class="h-100 p-3 flex justify-center item-center bg-light rounded-xl shadow-sm bg-surface-0"
@@ -71,7 +66,6 @@ import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { createSwapy } from 'swapy'
 import PomodoroTimer from '@/components/pomodoro/PomodoroTimer.vue'
 import NoteView from '@/components/note/NoteView.vue'
-import ProjectDash from '@/router/project/ProjectDash.vue'
 
 const container = ref(null)
 const lastModified = ref(3)

@@ -53,7 +53,8 @@
       </div>
 
       <!-- Barra azioni -->
-      <div class="flex justify-between items-center mt-4">        <div class="flex gap-2">
+      <div class="flex justify-between items-center mt-4">
+        <div class="flex gap-2">
           <button @click="openEventModal({})" class="btn btn-sm btn-accent">
             <Icon icon="fluent:add-24-filled" />
             Nuovo Evento
@@ -62,23 +63,24 @@
             <Icon icon="fluent:task-list-add-24-filled" />
             Nuovo Todo
           </button>
-        </div><!-- Filtri -->
+        </div>
+        <!-- Filtri -->
         <div class="flex items-center gap-4">
           <!-- Filtri tipo -->
           <div class="flex items-center gap-2">
             <label class="label cursor-pointer gap-2">
-              <input 
-                type="checkbox" 
-                v-model="showEvents" 
-                class="checkbox checkbox-sm checkbox-primary" 
+              <input
+                type="checkbox"
+                v-model="showEvents"
+                class="checkbox checkbox-sm checkbox-primary"
               />
               <span class="label-text">Eventi</span>
             </label>
             <label class="label cursor-pointer gap-2">
-              <input 
-                type="checkbox" 
-                v-model="showTodos" 
-                class="checkbox checkbox-sm checkbox-error" 
+              <input
+                type="checkbox"
+                v-model="showTodos"
+                class="checkbox checkbox-sm checkbox-error"
               />
               <span class="label-text">Todo</span>
             </label>
@@ -94,21 +96,21 @@
               Categorie
               <Icon icon="fluent:chevron-down-24-filled" />
             </div>
-            <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-56 p-2 shadow border border-base-300">
+            <ul
+              tabindex="0"
+              class="dropdown-content menu bg-base-100 rounded-box z-[1] w-56 p-2 shadow border border-base-300"
+            >
               <li class="menu-title">
                 <span>Filtra per categoria</span>
               </li>
-              <li 
-                v-for="category in calendarStore.eventCategories"
-                :key="category.value"
-              >
+              <li v-for="category in calendarStore.eventCategories" :key="category.value">
                 <label class="label cursor-pointer">
                   <span class="flex items-center gap-2">
                     <span>{{ category.icon }}</span>
                     <span>{{ category.label }}</span>
                   </span>
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     class="checkbox checkbox-sm"
                     :checked="calendarStore.activeCategories.includes(category.value)"
                     @change="calendarStore.toggleCategoryFilter(category.value)"
@@ -127,7 +129,8 @@
         <Icon icon="mingcute:loading-3-fill" class="animate-spin text-4xl text-primary" />
       </div>
 
-      <div v-else class="h-full">        <!-- Vista Mensile -->
+      <div v-else class="h-full">
+        <!-- Vista Mensile -->
         <CalendarMonthView
           v-if="currentView === 'month'"
           @create-event="openEventModal"
@@ -153,7 +156,8 @@
           @select-event="openEventModal"
         />
       </div>
-    </div>    <!-- Modal Creazione/Modifica Evento -->
+    </div>
+    <!-- Modal Creazione/Modifica Evento -->
     <EventModal
       :is-visible="showEventModal"
       :event="selectedEvent"
@@ -161,7 +165,8 @@
       @close="closeEventModal"
       @save="onEventSaved"
       @delete="onEventDeleted"
-    />    <!-- Modal Creazione Rapida Todo -->
+    />
+    <!-- Modal Creazione Rapida Todo -->
     <QuickTodoModal
       :is-open="showQuickTodoModal"
       :initial-date="todoModalInitialDate"
@@ -251,8 +256,8 @@ const openEventModal = (eventOrData) => {
   console.log('openEventModal called with:', eventOrData)
   console.log('Event type:', eventOrData?.type)
   console.log('Event title:', eventOrData?.title)
-    // Se è un todo, apri il modal specifico per todo
-  if (eventOrData && (eventOrData.type === 'todo' || eventOrData.type === 'simple' || eventOrData.type === 'project_task')) {
+  // Se è un todo, apri il modal specifico per todo
+  if (eventOrData && (eventOrData.type === 'todo' || eventOrData.type === 'simple')) {
     console.log('Opening TodoModal for:', eventOrData)
     selectedTodo.value = eventOrData
     showTodoModal.value = true
@@ -309,7 +314,7 @@ const onTodoCreated = async (todo) => {
   // Il todo è già stato salvato nel modal, aggiorniamo solo la vista
   await calendarStore.fetchCalendarItems()
   closeQuickTodoModal()
-  
+
   // Feedback positivo
   console.log('Todo creato con successo!', todo)
 }

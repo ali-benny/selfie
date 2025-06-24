@@ -31,8 +31,10 @@
     <div class="flex-1 grid grid-rows-6 gap-1">
       <div
         v-for="(week, weekIndex) in monthWeeks"
-        :key="weekIndex"        class="grid grid-cols-7 gap-1 min-h-32"
-      >        <div
+        :key="weekIndex"
+        class="grid grid-cols-7 gap-1 min-h-32"
+      >
+        <div
           v-for="day in week"
           :key="day ? day.toISOString() : `empty-${weekIndex}`"
           :data-day="day ? day.toISOString().split('T')[0] : null"
@@ -46,10 +48,12 @@
               'border-secondary bg-secondary/10': day && isSelected(day),
               'border-l-4 border-l-accent': day && getDayEvents(day).length > 0,
               'opacity-0 pointer-events-none': !day,
-              'drop-zone-valid': day && isDragging && isValidDropZone(day.toISOString().split('T')[0]),
+              'drop-zone-valid':
+                day && isDragging && isValidDropZone(day.toISOString().split('T')[0]),
               'drop-zone-highlighted': day && isDropZoneHighlighted(day.toISOString().split('T')[0])
             }
-          ]"          @click="selectDay(day)"
+          ]"
+          @click="selectDay(day)"
           @mouseenter="day && handleDayDragEnter(day)"
           @mouseleave="handleDayDragLeave"
         >
@@ -133,10 +137,10 @@
               ]"
               @click="selectEvent(event)"
             >
-              <div class="card-body p-4">                <div class="flex justify-between items-start">
+              <div class="card-body p-4">
+                <div class="flex justify-between items-start">
                   <div class="flex items-center gap-2">
                     <span v-if="event.type === 'todo'">⏰</span>
-                    <span v-else-if="event.type === 'project_task'">📋</span>
                     <span v-else>{{
                       calendarStore.getCategoryByValue(event.category || 'other').icon
                     }}</span>
@@ -198,22 +202,22 @@ export default {
 
     // Nomi giorni settimana
     // TODO: creare costante e poi renderla reactive
-    const weekdayNames = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']    // Mese corrente
+    const weekdayNames = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'] // Mese corrente
     const currentMonth = computed(() => {
       return new Date(
         calendarStore.currentDate.getFullYear(),
         calendarStore.currentDate.getMonth(),
         1
       )
-    })    // Settimane del mese (con giorni precedenti/successivi per riempire griglia)
+    }) // Settimane del mese (con giorni precedenti/successivi per riempire griglia)
     const monthWeeks = computed(() => {
       const weeks = []
       const year = currentMonth.value.getFullYear()
       const month = currentMonth.value.getMonth()
-      
+
       // Crea primo giorno del mese in UTC per evitare problemi di fuso orario
       const firstDay = new Date(Date.UTC(year, month, 1))
-      
+
       // Calcola primo lunedì della vista (potrebbe essere del mese precedente)
       const firstDayOfWeek = firstDay.getUTCDay() === 0 ? 6 : firstDay.getUTCDay() - 1 // Lunedì = 0
       const startDate = new Date(firstDay)
@@ -228,15 +232,24 @@ export default {
           currentDate.setUTCDate(currentDate.getUTCDate() + 1)
         }
         weeks.push(weekDays)
-      }      return weeks
+      }
+      return weeks
     })
-    
+
     // Eventi del mese
     const monthEvents = computed(() => {
-      const startOfMonth = new Date(currentMonth.value.getFullYear(), currentMonth.value.getMonth(), 1)
-      const endOfMonth = new Date(currentMonth.value.getFullYear(), currentMonth.value.getMonth() + 1, 0)
+      const startOfMonth = new Date(
+        currentMonth.value.getFullYear(),
+        currentMonth.value.getMonth(),
+        1
+      )
+      const endOfMonth = new Date(
+        currentMonth.value.getFullYear(),
+        currentMonth.value.getMonth() + 1,
+        0
+      )
 
-      return calendarStore.visibleEvents.filter(event => {
+      return calendarStore.visibleEvents.filter((event) => {
         // Use standardized property names: start for events, dueDate for todos
         const eventDate = new Date(event.start || event.dueDate)
         return eventDate >= startOfMonth && eventDate <= endOfMonth
@@ -277,7 +290,7 @@ export default {
           minute: '2-digit'
         })
       }
-        if (event.allDay) {
+      if (event.allDay) {
         return 'Tutto il giorno'
       }
 
@@ -303,7 +316,8 @@ export default {
           return `${event.startTime} - ${event.endTime}`
         }
         return event.startTime
-      }      return ''
+      }
+      return ''
     }
 
     // Utility
@@ -312,19 +326,25 @@ export default {
         date.getUTCMonth() === currentMonth.value.getMonth() &&
         date.getUTCFullYear() === currentMonth.value.getFullYear()
       )
-    }    
-      const isToday = (date) => {
+    }
+    const isToday = (date) => {
       const todayDate = today() // Use virtual time
       // Usa UTC per confrontare solo le date, non gli orari
-      const todayUTC = new Date(Date.UTC(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate()))
-      const dateUTC = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()))
+      const todayUTC = new Date(
+        Date.UTC(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate())
+      )
+      const dateUTC = new Date(
+        Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+      )
       return todayUTC.getTime() === dateUTC.getTime()
     }
 
     const isSelected = (date) => {
       if (!selectedDay.value) return false
       // Usa UTC per confrontare solo le date      const selectedUTC = new Date(Date.UTC(selectedDay.value.getFullYear(), selectedDay.value.getMonth(), selectedDay.value.getDate()))
-      const dateUTC = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()))
+      const dateUTC = new Date(
+        Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+      )
       return selectedUTC.getTime() === dateUTC.getTime()
     }
 
@@ -332,27 +352,33 @@ export default {
       if (text.length <= maxLength) return text
       return text.substring(0, maxLength) + '...'
     }
-    
+
     // Eventi per giorno
     const getDayEvents = (day) => {
-      return calendarStore.visibleEvents.filter(event => {
-        // Use standardized property names: start for events, dueDate for todos
-        const eventDate = new Date(event.start || event.dueDate)
-        
-        // Usa UTC per confrontare solo le date, ignorando gli orari
-        const eventDateUTC = new Date(Date.UTC(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate()))
-        const dayUTC = new Date(Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate()))
-        
-        return eventDateUTC.getTime() === dayUTC.getTime()
-      }).sort((a, b) => {
-        // Ordina per orario, eventi tutto il giorno prima
-        if (a.allDay && !b.allDay) return -1
-        if (!a.allDay && b.allDay) return 1
+      return calendarStore.visibleEvents
+        .filter((event) => {
+          // Use standardized property names: start for events, dueDate for todos
+          const eventDate = new Date(event.start || event.dueDate)
 
-        const timeA = a.startTime || (a.dueDate ? new Date(a.dueDate).toTimeString() : '00:00')
-        const timeB = b.startTime || (b.dueDate ? new Date(b.dueDate).toTimeString() : '00:00')
-        return timeA.localeCompare(timeB)
-      })
+          // Usa UTC per confrontare solo le date, ignorando gli orari
+          const eventDateUTC = new Date(
+            Date.UTC(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate())
+          )
+          const dayUTC = new Date(
+            Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate())
+          )
+
+          return eventDateUTC.getTime() === dayUTC.getTime()
+        })
+        .sort((a, b) => {
+          // Ordina per orario, eventi tutto il giorno prima
+          if (a.allDay && !b.allDay) return -1
+          if (!a.allDay && b.allDay) return 1
+
+          const timeA = a.startTime || (a.dueDate ? new Date(a.dueDate).toTimeString() : '00:00')
+          const timeB = b.startTime || (b.dueDate ? new Date(b.dueDate).toTimeString() : '00:00')
+          return timeA.localeCompare(timeB)
+        })
     }
 
     // Classe CSS per tipo evento
@@ -378,11 +404,12 @@ export default {
         const category = calendarStore.getCategoryByValue(event.category || 'other')
 
         if (variant === 'full') {
-          baseClasses.push(`border-l-4 border-l-primary ${category.colors.accent}`)        } else {
+          baseClasses.push(`border-l-4 border-l-primary ${category.colors.accent}`)
+        } else {
           baseClasses.push(`${category.colors.bg} ${category.colors.border}`)
         }
       }
-      
+
       return baseClasses.join(' ')
     }
 
@@ -420,7 +447,7 @@ export default {
     const closeDayEventsModal = () => {
       showDayEventsModal.value = false
       selectedDayForModal.value = null
-    }    // Drag & Drop handlers
+    } // Drag & Drop handlers
     const handleEventMouseDown = (event, eventData, mouseEvent) => {
       mouseEvent.preventDefault()
       dragDrop.startDrag(event.currentTarget, eventData, mouseEvent)
@@ -428,7 +455,7 @@ export default {
 
     const handleMouseMove = (event) => {
       dragDrop.updateDragPosition(event)
-      
+
       // Se stiamo draggando, trova la cella sotto il mouse
       if (dragDrop.isDragging.value) {
         const elementUnderMouse = document.elementFromPoint(event.clientX, event.clientY)
@@ -447,7 +474,7 @@ export default {
 
     const handleMouseUp = (event) => {
       if (dragDrop.isDragging.value) {
-        // Trova la cella sotto il mouse al momento del rilascio
+        // Trova la cella sotto il mouse al memento del rilascio
         const elementUnderMouse = document.elementFromPoint(event.clientX, event.clientY)
         if (elementUnderMouse) {
           const dayCell = elementUnderMouse.closest('[data-day]')
@@ -459,7 +486,8 @@ export default {
             }
           }
         }
-      }      dragDrop.endDrag()
+      }
+      dragDrop.endDrag()
     }
 
     const handleDayDragEnter = (day) => {
@@ -515,7 +543,7 @@ export default {
       selectEvent,
       selectDay,
       showMoreEvents,
-      closeDayEventsModal,      // Drag & Drop
+      closeDayEventsModal, // Drag & Drop
       ...dragDrop,
       handleEventMouseDown,
       handleDayDragEnter,

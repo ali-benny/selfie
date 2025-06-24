@@ -51,57 +51,58 @@
           </div>
 
           <!-- Status -->
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text font-medium">Status</span>
-            </label>
-            <div class="flex items-center gap-4">
-              <label class="label cursor-pointer gap-2">
-                <input 
-                  type="checkbox" 
-                  v-model="todoData.checked" 
-                  class="checkbox checkbox-primary"
-                  :disabled="!isEditing"
-                />
-                <span class="label-text">Completed</span>
-              </label>
-              <div class="text-sm text-base-content/70">
-                {{ todoData.progress || 0 }}% progress
-              </div>
-            </div>
-          </div>
+          <!-- <div class="form-control"> -->
+          <!--   <label class="label"> -->
+          <!--     <span class="label-text font-medium">Status</span> -->
+          <!--   </label> -->
+          <!--   <div class="flex items-center gap-4"> -->
+          <!--     <label class="label cursor-pointer gap-2"> -->
+          <!--       <input -->
+          <!--         type="checkbox" -->
+          <!--         v-model="todoData.checked" -->
+          <!--         class="checkbox checkbox-primary" -->
+          <!--         :disabled="!isEditing" -->
+          <!--       /> -->
+          <!--       <span class="label-text">Completed</span> -->
+          <!--     </label> -->
+          <!--     <div class="text-sm text-base-content/70">{{ todoData.progress || 0 }}% progress</div> -->
+          <!--   </div> -->
+          <!-- </div> -->
         </div>
 
         <!-- Row con Priorità e Categoria -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Priorità -->
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text font-medium">Priority</span>
-            </label>
-            <select v-model="todoData.priority" class="select select-bordered w-full" :disabled="!isEditing">
-              <option value="low">🟢 Bassa</option>
-              <option value="medium">🟡 Media</option>
-              <option value="high">🔴 Alta</option>
-              <option value="urgent">🚨 Urgente</option>
-            </select>
-          </div>
+          <!-- <div class="form-control"> -->
+          <!--   <label class="label"> -->
+          <!--     <span class="label-text font-medium">Priority</span> -->
+          <!--   </label> -->
+          <!--   <select -->
+          <!--     v-model="todoData.priority" -->
+          <!--     class="select select-bordered w-full" -->
+          <!--     :disabled="!isEditing" -->
+          <!--   > -->
+          <!--     <option value="low">🟢 Bassa</option> -->
+          <!--     <option value="medium">🟡 Media</option> -->
+          <!--     <option value="high">🔴 Alta</option> -->
+          <!--     <option value="urgent">🚨 Urgente</option> -->
+          <!--   </select> -->
+          <!-- </div> -->
 
           <!-- Categoria -->
           <div class="form-control">
             <label class="label">
               <span class="label-text font-medium">Ctegory</span>
             </label>
-            <select v-model="todoData.category" class="select select-bordered w-full" :disabled="!isEditing">
+            <select
+              v-model="todoData.category"
+              class="select select-bordered w-full"
+              :disabled="!isEditing"
+            >
               <option value="personal">👤 Personale</option>
               <option value="work">💼 Lavoro</option>
               <option value="study">📚 Studio</option>
               <option value="health">🏥 Salute</option>
-              <option value="household">🏠 Casa</option>
-              <option value="finance">💰 Finanze</option>
-              <option value="social">👥 Sociale</option>
-              <option value="hobby">🎨 Hobby</option>
-              <option value="shopping">🛒 Shopping</option>
               <option value="travel">✈️ Viaggi</option>
               <option value="other">📝 Altro</option>
             </select>
@@ -115,7 +116,7 @@
               <Icon icon="fluent:timer-24-filled" class="!text-error" />
               Gestione Pomodoro
             </h4>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <!-- Pomodori stimati -->
               <div class="form-control">
@@ -155,7 +156,7 @@
 
             <!-- Pulsante Avvia Pomodoro -->
             <div class="mt-4">
-              <button 
+              <button
                 type="button"
                 @click="startPomodoro"
                 class="btn btn-error btn-sm"
@@ -168,49 +169,27 @@
           </div>
         </div>
 
-        <!-- Progetto (se presente) -->
-        <div v-if="todoData.projectId" class="card bg-primary/5 border border-primary/20">
-          <div class="card-body p-4">
-            <h4 class="card-title text-base">
-              <Icon icon="fluent:folder-24-filled" class="!text-primary" />
-              Project
-            </h4>
-            <!-- <p>ID Progetto: {{ todoData }}</p> -->
-            <span class="badge badge-primary">{{ todoData.type === 'project_task' ? 'Project Task' : 'Basic Todo' }}</span>
-          </div>
-        </div>
-
         <!-- Azioni -->
         <div class="modal-action">
-          <button type="button" @click="closeModal" class="btn btn-ghost">
-            Close
-          </button>
-          
-          <button 
-            v-if="!isEditing" 
-            type="button" 
-            @click="isEditing = true" 
-            class="btn btn-primary"
-          >
+          <button type="button" @click="closeModal" class="btn btn-ghost">Close</button>
+
+          <button v-if="!isEditing" type="button" @click="isEditing = true" class="btn btn-primary">
             <Icon icon="fluent:edit-24-filled" class="mr-2" />
             Edit
           </button>
-          
+
           <template v-else>
-            <button type="button" @click="cancelEdit" class="btn btn-ghost">
-              Don't Edit
-            </button>
-            <button type="submit" class="btn btn-primary" :disabled="!todoData.title.trim() || isSaving">
+            <button type="button" @click="cancelEdit" class="btn btn-ghost">Don't Edit</button>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              :disabled="!todoData.title.trim() || isSaving"
+            >
               <Icon v-if="isSaving" icon="mingcute:loading-3-fill" class="animate-spin mr-2" />
               <Icon v-else icon="fluent:checkmark-24-filled" class="mr-2" />
               {{ isSaving ? 'Salvataggio...' : 'Salva' }}
             </button>
-            <button 
-              type="button" 
-              @click="deleteTodo" 
-              class="btn btn-error"
-              :disabled="isSaving"
-            >
+            <button type="button" @click="deleteTodo" class="btn btn-error" :disabled="isSaving">
               <Icon icon="fluent:delete-24-filled" class="mr-2" />
               Delete
             </button>
@@ -266,7 +245,6 @@ const todoData = ref({
     completedPomodoros: 0,
     sessions: []
   },
-  projectId: '',
   type: 'todo'
 })
 
@@ -282,17 +260,24 @@ const estimatedTime = computed(() => {
 })
 
 // Watchers
-watch(() => props.todo, (newTodo) => {
-  if (newTodo) {
-    loadTodoData(newTodo)
-  }
-}, { immediate: true })
+watch(
+  () => props.todo,
+  (newTodo) => {
+    if (newTodo) {
+      loadTodoData(newTodo)
+    }
+  },
+  { immediate: true }
+)
 
-watch(() => props.isVisible, (visible) => {
-  if (!visible) {
-    isEditing.value = false
+watch(
+  () => props.isVisible,
+  (visible) => {
+    if (!visible) {
+      isEditing.value = false
+    }
   }
-})
+)
 
 // Methods
 const loadTodoData = (todo) => {
@@ -318,7 +303,6 @@ const loadTodoData = (todo) => {
       completedPomodoros: todo.pomodoro?.completedPomodoros || 0,
       sessions: todo.pomodoro?.sessions || []
     },
-    projectId: todo.projectId || '',
     type: todo.type || 'todo'
   }
 
@@ -332,7 +316,7 @@ const saveTodo = async () => {
   isSaving.value = true
   try {
     const dataToSave = { ...todoData.value }
-    
+
     // Converte la data in formato ISO se presente
     if (dataToSave.dueDate) {
       dataToSave.dueDate = new Date(dataToSave.dueDate).toISOString()
@@ -341,7 +325,8 @@ const saveTodo = async () => {
     // Rimuovi campi non necessari per il backend
     delete dataToSave._id
 
-    const response = await fetch(`${SERVER_URL}/api/todo/${todoData.value._id}`, {      method: 'PUT',
+    const response = await fetch(`${SERVER_URL}/api/todo/${todoData.value._id}`, {
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json'
       },
@@ -350,13 +335,13 @@ const saveTodo = async () => {
 
     if (response.ok) {
       const updatedTodo = await response.json()
-      
+
       // Aggiorna il calendario
       await calendarStore.fetchCalendarItems()
-      
+
       // Notifica il parent
       emit('saved', updatedTodo)
-      
+
       isEditing.value = false
     } else {
       throw new Error('Errore nel salvataggio del todo')
@@ -373,20 +358,20 @@ const deleteTodo = async () => {
   if (!confirm('Sei sicuro di voler eliminare questo todo?')) return
 
   isSaving.value = true
-  try {    const response = await fetch(`${SERVER_URL}/api/todo/${todoData.value._id}`, {
+  try {
+    const response = await fetch(`${SERVER_URL}/api/todo/${todoData.value._id}`, {
       method: 'DELETE'
     })
 
     if (response.ok) {
       // Aggiorna il calendario
       await calendarStore.fetchCalendarItems()
-      
+
       // Notifica il parent
       emit('deleted', todoData.value._id)
       closeModal()
-      
     } else {
-      throw new Error('Errore nell\'eliminazione del todo')
+      throw new Error("Errore nell'eliminazione del todo")
     }
   } catch (error) {
     console.error('Error deleting todo:', error)
@@ -401,7 +386,7 @@ const startPomodoro = async () => {
     await calendarStore.startPomodoroFromTodo(todoData.value)
     // TODO: Mostra toast di successo
   } catch (error) {
-    console.error('Errore nell\'avvio del pomodoro:', error)
+    console.error("Errore nell'avvio del pomodoro:", error)
     // TODO: Mostra toast di errore
   }
 }

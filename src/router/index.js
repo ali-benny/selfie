@@ -10,7 +10,6 @@ import GroupDash from './group/GroupDash.vue'
 import Chat from '../components/ChatComponent.vue'
 import CalendarMain from '../components/calendar/CalendarMain.vue'
 import NotFound from '@/views/NotFound.vue'
-import ProjectDash from './project/ProjectDash.vue'
 import { NODE_ENV } from '~/server/const'
 
 const routes = [
@@ -59,11 +58,6 @@ const routes = [
     path: '/login',
     name: 'login',
     component: LoginView
-  },
-  {
-    path: '/projects/:projectId?',
-    name: 'projects',
-    component: ProjectDash
   }
 ]
 
