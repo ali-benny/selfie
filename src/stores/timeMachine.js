@@ -204,14 +204,25 @@ export const useTimeMachineStore = defineStore('timeMachine', () => {
 
   // Computed properties
   const formattedVirtualTime = computed(() => {
-    return virtualTime.value.toLocaleString('it-IT', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    })
+    if (isVirtualModeEnabled.value) {
+      return virtualTime.value.toLocaleString('it-IT', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      })
+    } else {
+      return new Date().toLocaleString('it-IT', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      })
+    }
   })
 
   const formattedVirtualDate = computed(() => {

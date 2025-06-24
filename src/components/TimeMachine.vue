@@ -49,7 +49,11 @@
             {{ timeMachine.isVirtualModeEnabled ? 'Tempo Virtuale' : 'Tempo Reale' }}
           </div>
           <div class="font-mono text-base font-bold text-base-content">
-            {{ timeMachine.formattedVirtualTime }}
+            {{
+              timeMachine.isVirtualModeEnabled
+                ? timeMachine.formattedVirtualTime
+                : formattedRealTime
+            }}
           </div>
           <div v-if="!timeMachine.isToday" class="text-xs mt-1" :class="daysDifferenceClass">
             {{ daysDifferenceText }}
@@ -80,16 +84,16 @@
             leave-to-class="opacity-0 transform -translate-y-2"
           >
             <div v-if="timeMachine.isVirtualModeEnabled" class="space-y-3">
-              <!-- Date Picker - PRIMARY FEATURE -->
-              <div class="space-y-2">
-                <label class="text-sm font-medium !text-primary">📅 Imposta Data:</label>
-                <input
-                  type="date"
-                  class="input input-bordered input-sm w-full"
-                  :value="currentDateString"
-                  @change="onDateChange"
-                />
-              </div>
+              <!-- Date Picker -->
+              <!-- <div class="space-y-2"> -->
+              <!--   <label class="text-sm font-medium !text-primary">📅 Imposta Data:</label> -->
+              <!--   <input -->
+              <!--     type="date" -->
+              <!--     class="input input-bordered input-sm w-full" -->
+              <!--     :value="currentDateString" -->
+              <!--     @change="onDateChange" -->
+              <!--   /> -->
+              <!-- </div> -->
 
               <!-- Quick Date Jumps -->
               <div class="space-y-2">
@@ -119,6 +123,7 @@
 import { ref, computed, watch } from 'vue'
 import { useTimeMachineStore } from '@/stores/timeMachine'
 import { Icon } from '@iconify/vue'
+import { useNow } from '@vueuse/core'
 
 export default {
   name: 'TimeMachine',
@@ -127,9 +132,11 @@ export default {
   },
   setup() {
     const timeMachine = useTimeMachineStore()
-    const isCollapsed = ref(false)
+    const isCollapsed = ref(true)
     const showTimeProgression = ref(false)
     const currentDateString = ref('')
+
+    const now = useNow()
 
     // Update currentDateString when virtual time changes
     watch(
@@ -208,7 +215,20 @@ export default {
       resetToToday,
       jumpDays,
       jumpHours,
-      jumpMinutes
+      jumpMinutes,
+      now
+    }
+  },
+  computed: {
+    formattedRealTime() {
+      return this.now.toLocaleString('it-IT', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      })
     }
   }
 }

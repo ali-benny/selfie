@@ -1,20 +1,20 @@
 <template>
   <div class="h-full flex flex-col bg-base-100">
     <!-- Header mese -->
-    <div class="bg-base-200 rounded-lg p-4 mb-4">
-      <div class="flex justify-between items-center">
-        <div class="flex flex-col">
-          <h2 class="text-xl font-bold text-base-content">
-            {{ formatMonthTitle() }}
-          </h2>
-          <span class="text-sm text-subtext-0">{{ monthEvents.length }} eventi questo mese</span>
-        </div>
-        <button @click="createEvent()" class="btn btn-sm btn-primary">
-          <Icon icon="fluent:add-24-filled" />
-          Nuovo evento
-        </button>
-      </div>
-    </div>
+    <!-- <div class="bg-base-200 rounded-lg p-4 mb-4"> -->
+    <!--   <div class="flex justify-between items-center"> -->
+    <!--     <div class="flex flex-col"> -->
+    <!--       <h2 class="text-xl font-bold text-base-content"> -->
+    <!--         {{ formatMonthTitle() }} -->
+    <!--       </h2> -->
+    <!--       <span class="text-sm text-subtext-0">{{ monthEvents.length }} eventi questo mese</span> -->
+    <!--     </div> -->
+    <!--     <button @click="createEvent()" class="btn btn-sm btn-primary"> -->
+    <!--       <Icon icon="fluent:add-24-filled" /> -->
+    <!--       Nuovo evento -->
+    <!--     </button> -->
+    <!--   </div> -->
+    <!-- </div> -->
 
     <!-- Header giorni settimana -->
     <div class="grid grid-cols-7 gap-1 mb-2">
