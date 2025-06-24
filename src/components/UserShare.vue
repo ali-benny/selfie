@@ -58,6 +58,7 @@ import { API_URL } from '@/const.js'
 import { saveNoteMongo, getReadersIds } from '@/router/note/editor/note'
 import { updateGroup } from '@/router/group/group'
 import { useUserStore } from '@/stores/account.js'
+import { sendPomodoroInvitation } from '@/router/notifications/notifications'
 
 const loggedUser = useUserStore().loggedUser
 
@@ -201,7 +202,24 @@ async function sendshare() {
       break
     }
     case 'Pomodoro': {
-      //TODO: add user to pomo share
+      const userId = useUserStore().loggedUser._id
+      try {
+        const response = await fetch(`${API_URL}/pomodoros/configs/${props.id}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        if (!response.ok) throw new Error(`ERROR - loadConfig, response status ${response.status}`)
+
+        const config = await response.json()
+
+        sharewith.value.forEach(async (u) => {
+          await sendPomodoroInvitation(u._id, userId, config)
+        })
+      } catch (e) {
+        console.error(e)
+      }
       break
     }
     case 'Event': {

@@ -21,14 +21,14 @@ export async function sendPomodoroAlert(user, title, message) {
   }
 }
 
-export async function sendPomodoroInvitation(user, sender, pomodoro) {
+export async function sendPomodoroInvitation(recipient_id, sender_id, pomodoro) {
   try {
-    const response = await fetch(`${API_URL}/${user._id}/notifications`, {
+    const response = await fetch(`${API_URL}/${recipient_id}/notifications`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         kind: 'invitation',
-        sender: sender._id,
+        sender: sender_id,
         invitation: {
           kind: 'pomodoro',
           pomodoro: pomodoro

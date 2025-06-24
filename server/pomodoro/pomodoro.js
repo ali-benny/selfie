@@ -64,6 +64,16 @@ app.on('mount', async () => {
   await connect('pomodoroConfig')
 })
 
+app.get('/pomodoros/configs/:id', async (req, res) => {
+  try {
+    const config = await PomodoroConfig.findById(req.params.id)
+    res.status(200).json(config)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
 /*
  * Returns the Configs of pomodoros
  */
