@@ -10,8 +10,8 @@ export const initialConfig = {
     interval: 3
   },
   color: {
-    name: flavors.macchiato.colors.maroon.name,
-    hex: flavors.macchiato.colors.maroon.hex
+    name: flavors.macchiato.colors.red.name,
+    hex: flavors.macchiato.colors.red.hex
   }
 }
 

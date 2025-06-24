@@ -34,6 +34,10 @@
   --popper-theme-padding: 0;
   /* shadow shadow-base-300 */
   --popper-theme-box-shadow: 0 1px 3px 0 rgb(var(--b3) / 0.1), 0 1px 2px -1px rgb(var(--b3) / 0.1);
+
+  --nv-width: 350px;
+  --nv-global-bg: oklch(var(--surface-0));
+  --nv-global-fg: oklch(var(--bc));
 }
 
 /* *** NOTIVUE *** */
@@ -45,7 +49,11 @@
 }
 
 .Notivue__notification {
-  @apply !bg-surface-1;
+  @apply !bg-surface-0;
+}
+
+.Notivue__close-icon {
+  @apply !text-base-content;
 }
 
 [class^='Notivue__content'] {

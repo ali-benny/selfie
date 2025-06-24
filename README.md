@@ -1,14 +1,14 @@
 # Progetto per il corso di Tecnlogie Web
 
-dir macchine di lab: `/home/web/site232433/html/` che equivale a https://site232433.tw.cs.unibo.it
+dir machine di lab: `/home/web/site232433/html/` che equivale a https://site232433.tw.cs.unibo.it
 
 - [Deploy](#deploy)
 - [Deploy manuale](#deploy-manuale)
 - [Deploy locale](#deploy-locale)
 - [Wiki](#wiki)
-	- [Icone by Iconify](#icone-by-iconify)
-	- [Toast | Notifiche Push interne:](#toast--notifiche-push-interne)
-	- [Gantt Chart - Vue Ganttastic](#gantt-chart---vue-ganttastic)
+  - [Icone by Iconify](#icone-by-iconify)
+  - [Toast | Notifiche Push interne:](#toast--notifiche-push-interne)
+  - [Gantt Chart - Vue Ganttastic](#gantt-chart---vue-ganttastic)
 
 ## Deploy
 
@@ -53,7 +53,7 @@ o in alternativa:
 start nodemon-22 site232433 server/app.js
 ```
 
-Esiste anche questo comando per servire il sito statico, ma non è da fare perché lo serviamo con node-22:
+Esiste anche questo commando per servire il sito statico, ma non è da fare perché lo serviamo con node-22:
 
 ```bash
 start static site232433
@@ -92,10 +92,14 @@ Per usare l'icona inserire l'elemento del tipo: `<Icon icon="<pack>:<nome_icona>
 
 docs: https://docs.notivue.smastrom.io
 Per usarlo nello `<script>`: `push.<type>('<msg>')`
-dove `type` può essere: success/warining/error
+dove `type` può essere: success/warning/error
 
 Per realizzare cose particolari consiglio di consultare https://docs.notivue.smastrom.io/push-usage/methods.html
 
 ## Gantt Chart - DHTMLX Gantt
 
 docs: https://github.com/DHTMLX/gantt
+
+## Vue3-Popper
+
+Documentazione davvero completa su: https://github.com/valgeirb/vue3-popper

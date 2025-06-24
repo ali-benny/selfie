@@ -1,12 +1,44 @@
 <script setup>
+import { provide } from 'vue'
+import AlertNotification from './components/notification/AlertNotification.vue'
+import ChatNotification from './components/notification/ChatNotification.vue'
+import PomodoroNotification from './components/notification/PomodoroNotification.vue'
 import PomodoroTimerWidget from './components/pomodoro/PomodoroTimerWidget.vue'
 import TimeMachine from './components/TimeMachine.vue'
 import { useUserStore } from './stores/account'
 import { usePomodoroStore } from './stores/pomodoro'
-import { Notivue, Notification } from 'notivue'
+import { Notivue, Notification, NotivueSwipe } from 'notivue'
 
 const userStore = useUserStore()
 const pomodoroStore = usePomodoroStore()
+
+provide('notification.viewMode', 'notivue')
+
+function notificationComponent(item) {
+  const notification = item.props.notification
+
+  if (!notification) return Notification
+
+  switch (notification.kind) {
+    case 'alert':
+      return AlertNotification
+    case 'chat':
+      return ChatNotification
+    case 'invitation': {
+      switch (notification.invitation.kind) {
+        case 'pomodoro':
+          return PomodoroNotification
+        case 'groups':
+        case 'note':
+          throw new Error('Not implemented yet')
+        default:
+          throw new Error('Invalid invitation kind:' + notification.invitation.kind)
+      }
+    }
+    default:
+      throw new Error('Notification kind:' + notification.kind)
+  }
+}
 </script>
 
 <template>
@@ -16,9 +48,9 @@ const pomodoroStore = usePomodoroStore()
     >
       <RouterLink class="hover:!text-accent" to="/">
         <Icon icon="ic:round-dashboard" />
-      </RouterLink>      
+      </RouterLink>
       <RouterLink class="hover:!text-accent" to="/calendar">
-        <Icon icon="fluent:calendar-24-filled"/>
+        <Icon icon="fluent:calendar-24-filled" />
       </RouterLink>
       <RouterLink class="hover:!text-accent" to="/note">
         <Icon icon="fluent:notebook-32-filled" />
@@ -46,8 +78,11 @@ const pomodoroStore = usePomodoroStore()
         <Icon v-else icon="fluent:settings-48-filled" />
       </RouterLink>
     </div>
-    <div id="app" class="relative w-full grow px-2 mb-16 sm:!pb-0">      <Notivue v-slot="item">
-        <Notification :item="item" />
+    <div id="app" class="relative w-full grow px-2 mb-16 sm:!pb-0">
+      <Notivue v-slot="item">
+        <NotivueSwipe :item="item">
+          <component :item="item" :is="notificationComponent(item)" class="w-[350px]"></component>
+        </NotivueSwipe>
       </Notivue>
       <RouterView />
       <PomodoroTimerWidget v-if="pomodoroStore.showPomodoroWidget()" />
