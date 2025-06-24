@@ -8,6 +8,7 @@ import { createAvatar } from '@dicebear/core'
 import { adventurer } from '@dicebear/collection'
 import { useRouter } from 'vue-router'
 import { usePomodoroStore } from '@/stores/pomodoro'
+import NotificationTray from '@/components/notification/NotificationTray.vue'
 
 const users = ref([])
 const newUser = ref({ name: '' })
@@ -181,7 +182,10 @@ onMounted(fetchUsers)
       <!--   @update:selectedUserId="selectUser" -->
       <!-- /> -->
       <!-- <div class="divider"></div> -->
-      <h2 class="mt-0">Change Profile Avatar</h2>
+      <div class="flex justify-between">
+        <h2 class="mt-0">Change Profile Avatar</h2>
+        <NotificationTray />
+      </div>
       <div class="flex flex-row justify-around items-center">
         <div class="flex flex-col gap-2">
           <button @click="generateNewImage" class="btn btn-secondary">

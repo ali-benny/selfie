@@ -7,7 +7,7 @@
     </div>
     <template #content>
       <div
-        class="w-72 min-h-64 min-h-80 max-h-96 flex justify-stretch rounded-lg overflow-hidden m-1"
+        class="w-80 min-h-64 min-h-80 max-h-96 flex justify-stretch rounded-lg overflow-hidden m-1"
       >
         <div class="w-full overflow-y-auto" v-if="sortedNotifications.size > 0">
           <div class="flex flex-col grow gap-3">

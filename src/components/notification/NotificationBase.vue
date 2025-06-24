@@ -3,7 +3,7 @@
     class="notification-container relative max-w-full flex flex-col gap-0.5 bg-[color:var(--global-bg)] rounded-lg text-[color:var(--global-fg) shadow px-2.5 py-3"
     :data-view-mode="viewMode"
   >
-    <p class="absolute top-3 right-2.5 text-sm text-subtext-0">
+    <p class="absolute top-3 right-2.5 text-sm text-subtext-0 my-0">
       {{ printNotificationTime() }}
     </p>
 
@@ -12,10 +12,10 @@
         <slot name="icon"></slot>
       </div>
       <div class="grow">
-        <p class="font-bold">
+        <p class="font-bold my-0">
           <slot name="title"></slot>
         </p>
-        <p class="text-pretty line-clamp-3">
+        <p class="text-pretty line-clamp-3 my-0">
           <slot name="message"></slot>
         </p>
       </div>
