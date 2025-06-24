@@ -36,8 +36,8 @@
         <Icon icon="fluent:edit-16-filled" :inline="true" v-if="!isChecked" />
         <Icon icon="fluent:checkmark-12-filled" v-else />
       </button> -->
-        </div>        
-        <div class="flex justify-between flex-wrap lg:justify-end items-center">          
+        </div>
+        <div class="flex justify-between flex-wrap lg:justify-end items-center">
           <!-- Note Author + Readers Display -->
           <AvatarMembers
             v-if="id != null"
@@ -54,10 +54,10 @@
               <UserShare :id="id" v-model="readers" type="Note" />
             </template>
           </AvatarMembers>
-          
+
           <!-- Fallback UserShare for new notes -->
           <UserShare v-else :id="id" v-model="readers" type="Note" />
-          
+
           <div class="flex items-center">
             <button class="btn text-xl btn-primary my-2 rounded-box" @click="saveNote">
               <Icon icon="fluent:save-32-filled" /> Save
@@ -412,7 +412,8 @@ export default {
         }
       })
     }
-  },  components: {
+  },
+  components: {
     UserShare,
     AvatarMembers,
     EditorComponent

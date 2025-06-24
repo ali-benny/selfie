@@ -116,13 +116,15 @@
               {{ category.icon }} {{ category.label }}
             </option>
           </select>
-        </div>        <!-- Invitati -->
+        </div>
+        <!-- Invitati -->
         <div class="form-control">
           <label class="label">
             <span class="label-text">Invitati</span>
           </label>
-          
-          <!-- Avatar display for owner + invitees - only show if event exists and has invitees -->          <div v-if="isEditing && formData.invitees.length > 0" class="mb-3">
+
+          <!-- Avatar display for owner + invitees - only show if event exists and has invitees -->
+          <div v-if="isEditing && formData.invitees.length > 0" class="mb-3">
             <AvatarMembers
               :owner-user="ownerUser"
               :member-users="inviteeUsers"
@@ -142,7 +144,7 @@
               </template>
             </AvatarMembers>
           </div>
-          
+
           <!-- Share button for new events or events without invitees -->
           <div v-else class="flex items-center gap-3">
             <UserShare
@@ -152,7 +154,7 @@
               :msg="isEditing ? 'Invita Utenti' : 'Salva evento per invitare utenti'"
             />
             <span class="text-sm text-base-content/70">
-              {{ isEditing ? 'Nessun invitato' : 'Salva l\'evento per poter invitare utenti' }}
+              {{ isEditing ? 'Nessun invitato' : "Salva l'evento per poter invitare utenti" }}
             </span>
           </div>
         </div>
@@ -273,65 +275,70 @@
             <Icon v-if="isLoading" icon="fluent:spinner-ios-20-filled" class="animate-spin" />
             <Icon v-else icon="fluent:save-24-filled" />
             {{ isLoading ? 'Salvando...' : isEditing ? 'Salva Modifiche' : 'Crea Evento' }}
-          </button>        </div>
+          </button>
+        </div>
       </form>
-    </div>    <!-- Modal Conferma Eliminazione -->
+    </div>
+    <!-- Modal Conferma Eliminazione -->
     <dialog id="delete_confirm_modal" class="modal">
       <div class="modal-box">
         <h3 class="font-bold text-lg mb-4">Conferma eliminazione evento</h3>
-        
+
         <!-- Info evento -->
         <div class="bg-base-200 rounded-lg p-4 mb-4">
           <div class="flex items-center gap-2 mb-2">
             <Icon icon="fluent:calendar-24-filled" class="text-primary" />
             <h4 class="font-semibold">{{ formData.title }}</h4>
           </div>
-          
+
           <div class="space-y-2 text-sm">
             <!-- Data -->
             <div class="flex items-center gap-2">
               <Icon icon="fluent:calendar-day-24-regular" class="w-4 h-4 text-base-content/60" />
               <span>{{ formatEventDate() }}</span>
             </div>
-            
+
             <!-- Orario (se non tutto il giorno) -->
-            <div v-if="!formData.allDay && (formData.startTime || formData.endTime)" class="flex items-center gap-2">
+            <div
+              v-if="!formData.allDay && (formData.startTime || formData.endTime)"
+              class="flex items-center gap-2"
+            >
               <Icon icon="fluent:clock-24-regular" class="w-4 h-4 text-base-content/60" />
               <span>{{ formatEventTime() }}</span>
             </div>
-            
+
             <!-- Categoria -->
             <div v-if="formData.category" class="flex items-center gap-2">
               <Icon icon="fluent:tag-24-regular" class="w-4 h-4 text-base-content/60" />
               <span>{{ getCategoryLabel() }}</span>
             </div>
-            
+
             <!-- Luogo -->
             <div v-if="formData.location" class="flex items-center gap-2">
               <Icon icon="fluent:location-24-regular" class="w-4 h-4 text-base-content/60" />
               <span>{{ formData.location }}</span>
             </div>
-              <!-- Invitati -->
+            <!-- Invitati -->
             <div v-if="formData.invitees.length > 0" class="flex items-center gap-2">
               <Icon icon="fluent:people-24-regular" class="w-4 h-4 text-base-content/60" />
-              <span>{{ formData.invitees.length }} invitat{{ formData.invitees.length === 1 ? 'o' : 'i' }}</span>
+              <span
+                >{{ formData.invitees.length }} invitat{{
+                  formData.invitees.length === 1 ? 'o' : 'i'
+                }}</span
+              >
             </div>
           </div>
         </div>
-        
+
         <div class="alert alert-warning">
           <Icon icon="fluent:warning-24-filled" />
           <span>Questa azione non può essere annullata.</span>
         </div>
-        
+
         <div class="modal-action">
           <form method="dialog">
             <button class="btn btn-ghost btn-sm mr-2">Annulla</button>
-            <button
-              class="btn btn-error btn-sm"
-              @click="confirmDeleteEvent"
-              :disabled="isLoading"
-            >
+            <button class="btn btn-error btn-sm" @click="confirmDeleteEvent" :disabled="isLoading">
               <Icon v-if="isLoading" icon="fluent:spinner-ios-20-filled" class="animate-spin" />
               <Icon v-else icon="fluent:delete-24-regular" />
               {{ isLoading ? 'Eliminando...' : 'Sì, elimina evento' }}
@@ -355,7 +362,8 @@ import AvatarMembers from '@/components/AvatarMembers.vue'
 import { getUsersByIds } from '@/router/user/user'
 
 export default {
-  name: 'EventModal',  components: {
+  name: 'EventModal',
+  components: {
     Icon,
     UserShare,
     AvatarMembers
@@ -372,17 +380,19 @@ export default {
     initialData: {
       type: Object,
       default: () => ({})
-    }  
+    }
   },
-  emits: ['close', 'save', 'delete'],  setup(props, { emit }) {    const calendarStore = useCalendarStore()
+  emits: ['close', 'save', 'delete'],
+  setup(props, { emit }) {
+    const calendarStore = useCalendarStore()
     const userStore = useUserStore()
-    
+
     // User management
     const users = ref({})
-      // Load users function
+    // Load users function
     const loadUsers = async (userIds) => {
       if (!userIds || userIds.length === 0) return
-      
+
       try {
         const userData = await getUsersByIds(userIds)
         // getUsersByIds returns an object map, merge it with existing users
@@ -393,7 +403,7 @@ export default {
     }
     const isLoading = ref(false)
 
-    const weekdays = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']// Dati form
+    const weekdays = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'] // Dati form
     const defaultFormData = () => ({
       title: '',
       date: '',
@@ -416,31 +426,32 @@ export default {
       }
     })
 
-    const formData = ref(defaultFormData())    // Computed
-    const isEditing = computed(() => !!props.event);const isFormValid = computed(() => {
+    const formData = ref(defaultFormData()) // Computed
+    const isEditing = computed(() => !!props.event)
+    const isFormValid = computed(() => {
       return formData.value.title.trim() && formData.value.date
     })
-      // User computed properties
+    // User computed properties
     const ownerUser = computed(() => {
       const ownerId = props.event?.createdBy || userStore.loggedUser._id
       return users.value[ownerId] || userStore.loggedUser
     })
-    
+
     const inviteeUsers = computed(() => {
-      return formData.value.invitees
-        .map(id => users.value[id])
-        .filter(Boolean)
-    })    // Inizializzazione form
+      return formData.value.invitees.map((id) => users.value[id]).filter(Boolean)
+    }) // Inizializzazione form
     const initializeForm = async () => {
       // Reset loading state quando si apre un nuovo evento
       isLoading.value = false
-      
+
       if (props.event) {
         // Modifica evento esistente
         const event = props.event
 
         // Gestione date dal backend
-        let eventDate, startTime = '', endTime = ''
+        let eventDate,
+          startTime = '',
+          endTime = ''
 
         if (event.startDate) {
           const startDate = new Date(event.startDate)
@@ -457,7 +468,9 @@ export default {
 
         if (event.endDate && !event.allDay) {
           const endDate = new Date(event.endDate)
-          endTime = endDate.toTimeString().substring(0, 5)        }        formData.value = {
+          endTime = endDate.toTimeString().substring(0, 5)
+        }
+        formData.value = {
           title: event.title || '',
           date: eventDate || event.date || event.dueDate || event.startDate || '',
           allDay: event.allDay || false,
@@ -473,12 +486,18 @@ export default {
             frequency: event.recurrenceRule?.frequency || 'weekly',
             interval: event.recurrenceRule?.interval || 1,
             daysOfWeek: [...(event.recurrenceRule?.daysOfWeek || [])],
-            endType: event.recurrenceRule?.endType === 'count' ? 'after' :
-                     event.recurrenceRule?.endType === 'date' ? 'on' : 'never',
+            endType:
+              event.recurrenceRule?.endType === 'count'
+                ? 'after'
+                : event.recurrenceRule?.endType === 'date'
+                  ? 'on'
+                  : 'never',
             count: event.recurrenceRule?.endCount || 10,
-            until: event.recurrenceRule?.endDate ?
-              new Date(event.recurrenceRule.endDate).toISOString().split('T')[0] : ''
-          }        }
+            until: event.recurrenceRule?.endDate
+              ? new Date(event.recurrenceRule.endDate).toISOString().split('T')[0]
+              : ''
+          }
+        }
       } else {
         // Nuovo evento
         formData.value = defaultFormData()
@@ -490,22 +509,23 @@ export default {
           } else {
             formData.value.date = new Date(props.initialData.date).toISOString().split('T')[0]
           }
-        }        if (props.initialData?.startTime) {
+        }
+        if (props.initialData?.startTime) {
           formData.value.startTime = props.initialData.startTime
-        }        // Data di default oggi se non specificata (solo per nuovi eventi)
+        } // Data di default oggi se non specificata (solo per nuovi eventi)
         if (!formData.value.date) {
           formData.value.date = new Date().toISOString().split('T')[0]
         }
       }
-        // Load users after form initialization
+      // Load users after form initialization
       const ownerId = props.event?.createdBy || userStore.loggedUser._id
       const userIdsToLoad = []
-      
+
       // Add owner if different from logged user and not already in users
       if (ownerId && ownerId !== userStore.loggedUser._id && !users.value[ownerId]) {
         userIdsToLoad.push(ownerId)
       }
-      
+
       // Add invitees
       if (formData.value.invitees && formData.value.invitees.length > 0) {
         userIdsToLoad.push(...formData.value.invitees)
@@ -570,7 +590,8 @@ export default {
             const endMinutes = endDate.getMinutes().toString().padStart(2, '0')
             formData.value.endTime = `${endHours}:${endMinutes}`
           }
-        }        const eventData = {
+        }
+        const eventData = {
           title: formData.value.title.trim(),
           description: formData.value.description.trim(),
           location: formData.value.location.trim(),
@@ -592,8 +613,10 @@ export default {
           }
 
           // Giorni settimana per ricorrenza settimanale
-          if (formData.value.recurrence.frequency === 'weekly' &&
-              formData.value.recurrence.daysOfWeek.length > 0) {
+          if (
+            formData.value.recurrence.frequency === 'weekly' &&
+            formData.value.recurrence.daysOfWeek.length > 0
+          ) {
             eventData.recurrenceRule.daysOfWeek = formData.value.recurrence.daysOfWeek
           }
 
@@ -610,7 +633,7 @@ export default {
             eventData.recurrenceRule.endType = 'never'
           }
         }
-        
+
         if (isEditing.value) {
           // Aggiorna evento esistente
           await calendarStore.updateExistingEvent(props.event._id, eventData)
@@ -632,7 +655,8 @@ export default {
         // TODO: Mostra messaggio errore all'utente
       } finally {
         isLoading.value = false
-      }    }
+      }
+    }
 
     const openDeleteConfirmModal = () => {
       const modal = document.getElementById('delete_confirm_modal')
@@ -649,13 +673,13 @@ export default {
       try {
         await calendarStore.deleteExistingEvent(props.event._id)
         emit('delete', props.event)
-        
+
         // Chiudi il modal di conferma
         const modal = document.getElementById('delete_confirm_modal')
         if (modal) {
           modal.close()
         }
-        
+
         closeModal()
       } catch (error) {
         console.error('Errore eliminando evento:', error)
@@ -674,46 +698,48 @@ export default {
     const formatEventDate = () => {
       if (!formData.value.date) return ''
       const date = new Date(formData.value.date)
-      return date.toLocaleDateString('it-IT', { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
+      return date.toLocaleDateString('it-IT', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
       })
     }
 
     const formatEventTime = () => {
       if (formData.value.allDay) return 'Tutto il giorno'
-        const start = formData.value.startTime || '09:00'
+      const start = formData.value.startTime || '09:00'
       const end = formData.value.endTime || '10:00'
-      
+
       return `${start} - ${end}`
     }
 
     const getCategoryLabel = () => {
-      const category = calendarStore.eventCategories.find(cat => cat.value === formData.value.category)
+      const category = calendarStore.eventCategories.find(
+        (cat) => cat.value === formData.value.category
+      )
       return category ? `${category.icon} ${category.label}` : formData.value.category
-    }    // Remove invitee function for drag&drop
+    } // Remove invitee function for drag&drop
     const removeInvitee = async (user) => {
       if (!user || !user._id) return
-      
+
       try {
         // Remove from local form data
         const index = formData.value.invitees.indexOf(user._id)
         if (index > -1) {
           formData.value.invitees.splice(index, 1)
         }
-        
+
         // If editing an existing event, update the backend immediately
         if (isEditing.value && props.event?._id) {
           await calendarStore.updateExistingEvent(props.event._id, {
             invitees: formData.value.invitees
           })
-          
+
           // Show success notification
           push.success(`${user.name} ${user.surname} rimosso dall'evento`)
         }
-        
+
         console.log(`Removed ${user.name} ${user.surname} from event invitees`)
       } catch (error) {
         console.error('Error removing invitee:', error)
@@ -721,25 +747,33 @@ export default {
         if (!formData.value.invitees.includes(user._id)) {
           formData.value.invitees.push(user._id)
         }
-        push.error('Errore durante la rimozione dell\'utente')
+        push.error("Errore durante la rimozione dell'utente")
       }
     }
 
     // Watchers
-    watch(() => props.isVisible, (newValue) => {
-      if (newValue) {
-        nextTick(async () => {
-          await initializeForm()
-        })
+    watch(
+      () => props.isVisible,
+      (newValue) => {
+        if (newValue) {
+          nextTick(async () => {
+            await initializeForm()
+          })
+        }
       }
-    });
+    )
 
     // Watch for invitees changes to load user data
-    watch(() => formData.value.invitees, async (newInvitees) => {
-      if (newInvitees && newInvitees.length > 0) {
-        await loadUsers(newInvitees)
-      }
-    }, { immediate: true });    watch(
+    watch(
+      () => formData.value.invitees,
+      async (newInvitees) => {
+        if (newInvitees && newInvitees.length > 0) {
+          await loadUsers(newInvitees)
+        }
+      },
+      { immediate: true }
+    )
+    watch(
       () => props.event,
       (newValue) => {
         if (props.isVisible) {
@@ -749,15 +783,20 @@ export default {
         }
       },
       { deep: true }
-    );
+    )
 
-    watch(() => props.initialData, (newValue) => {
-      if (props.isVisible && newValue) {
-        nextTick(async () => {
-          await initializeForm()
-        })
-      }
-    }, { deep: true });return {
+    watch(
+      () => props.initialData,
+      (newValue) => {
+        if (props.isVisible && newValue) {
+          nextTick(async () => {
+            await initializeForm()
+          })
+        }
+      },
+      { deep: true }
+    )
+    return {
       // Store
       calendarStore,
       userStore,
@@ -774,7 +813,7 @@ export default {
       isEditing,
       isFormValid,
       ownerUser,
-      inviteeUsers,      // Actions
+      inviteeUsers, // Actions
       closeModal,
       saveEvent,
       openDeleteConfirmModal,

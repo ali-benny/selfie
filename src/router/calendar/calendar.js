@@ -35,7 +35,7 @@ export async function createEvent(eventData) {
 export async function getEvents(userId, startDate = null, endDate = null) {
   try {
     let url = `${CALENDAR_API_URL}/${userId}/events`
-    
+
     if (startDate && endDate) {
       const params = new URLSearchParams({
         startDate: startDate.toISOString(),
@@ -141,7 +141,7 @@ export async function deleteEvent(eventId) {
 export async function getCalendarTodos(userId, startDate = null, endDate = null) {
   try {
     let url = `${CALENDAR_API_URL}/${userId}/calendar-todos`
-    
+
     if (startDate && endDate) {
       const params = new URLSearchParams({
         startDate: startDate.toISOString(),
@@ -180,7 +180,7 @@ export async function createRecurringEvent(eventData, recurrenceRule) {
     isRecurring: true,
     recurrenceRule
   }
-  
+
   return await createEvent(recurringEventData)
 }
 
@@ -189,25 +189,25 @@ export async function createRecurringEvent(eventData, recurrenceRule) {
  */
 export function validateEventData(eventData) {
   const errors = []
-  
+
   if (!eventData.title || eventData.title.trim() === '') {
     errors.push('Il titolo è obbligatorio')
   }
-  
+
   if (!eventData.startDate) {
     errors.push('La data di inizio è obbligatoria')
   }
-  
+
   if (!eventData.endDate) {
     errors.push('La data di fine è obbligatoria')
   }
-  
+
   if (eventData.startDate && eventData.endDate) {
     if (new Date(eventData.startDate) >= new Date(eventData.endDate)) {
       errors.push('La data di fine deve essere successiva alla data di inizio')
     }
   }
-  
+
   return {
     isValid: errors.length === 0,
     errors
@@ -242,7 +242,7 @@ export function formatEventForCalendar(event) {
       originalEventId: event.originalEventId
     }
   }
-  
+
   return formatted
 }
 
@@ -252,7 +252,7 @@ export function formatEventForCalendar(event) {
 export function formatTodoForCalendar(todo) {
   return {
     id: `todo_${todo._id}`,
-    title: `📋 ${todo.text}`,
+    title: `${todo.text}`,
     start: todo.date,
     allDay: true,
     backgroundColor: todo.checked ? '#6b7280' : '#ef4444', // Grigio se completato, rosso se in scadenza
@@ -276,10 +276,10 @@ export async function getCalendarItems(userId, startDate = null, endDate = null)
       getEvents(userId, startDate, endDate),
       getCalendarTodos(userId, startDate, endDate)
     ])
-    
+
     const formattedEvents = events.map(formatEventForCalendar)
     const formattedTodos = todos.map(formatTodoForCalendar)
-    
+
     return [...formattedEvents, ...formattedTodos]
   } catch (error) {
     console.error('Error fetching calendar items:', error)

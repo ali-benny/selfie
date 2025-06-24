@@ -1,4 +1,5 @@
-<template>  <Popper>
+<template>
+  <Popper>
     <button type="button" class="btn btn-ghost text-xl">
       <Icon icon="typcn:user-add" />
     </button>
@@ -202,11 +203,12 @@ async function sendshare() {
     case 'Pomodoro': {
       //TODO: add user to pomo share
       break
-    }    case 'Event': {
+    }
+    case 'Event': {
       // Update event invitees
       const eventStore = await import('@/stores/calendar.js')
       const calendarStore = eventStore.useCalendarStore()
-      
+
       await calendarStore.updateExistingEvent(props.id, {
         invitees: props.modelValue.filter((id) => id !== undefined && id !== null)
       })

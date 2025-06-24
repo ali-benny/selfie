@@ -14,7 +14,9 @@
     <div class="flex flex-row items-center w-max">
       <!-- Owner avatar with primary ring -->
       <div v-if="ownerUser" class="avatar w-10 mr-2">
-        <div class="w-10 ring-primary ring-offset-base-100 rounded-full ring ring-offset-2 relative">
+        <div
+          class="w-10 ring-primary ring-offset-base-100 rounded-full ring ring-offset-2 relative"
+        >
           <img
             class="mt-0 mask mask-circle"
             :src="ownerUser.image"
@@ -30,16 +32,19 @@
       </div>
 
       <!-- Members avatars -->
-      <div 
-        v-if="displayedMemberUsers && displayedMemberUsers.length > 0" 
+      <div
+        v-if="displayedMemberUsers && displayedMemberUsers.length > 0"
         class="avatar-group w-max"
         :class="groupClasses"
       >
-        <div 
-          v-for="member in displayedMemberUsers" 
-          :key="member._id || member.id" 
+        <div
+          v-for="member in displayedMemberUsers"
+          :key="member._id || member.id"
           class="avatar h-10 relative"
-          :class="[memberClasses, isDraggingMember && draggedMember?._id === member._id ? 'opacity-50 scale-95' : '']"
+          :class="[
+            memberClasses,
+            isDraggingMember && draggedMember?._id === member._id ? 'opacity-50 scale-95' : ''
+          ]"
           :draggable="canRemoveMembers"
           @dragstart="handleDragStart(member, $event)"
           @dragend="handleDragEnd"
@@ -59,11 +64,10 @@
       </div>
 
       <!-- Add member count badge if there are many members -->
-      <div 
-        v-if="showCount && totalMemberCount > displayLimit"
-        class="avatar h-10 ml-1"
-      >
-        <div class="w-10 h-10 rounded-full bg-base-200 flex items-center justify-center text-xs font-medium text-base-content">
+      <div v-if="showCount && totalMemberCount > displayLimit" class="avatar h-10 ml-1">
+        <div
+          class="w-10 h-10 rounded-full bg-base-200 flex items-center justify-center text-xs font-medium text-base-content"
+        >
           +{{ totalMemberCount - displayLimit }}
         </div>
       </div>
@@ -87,7 +91,7 @@ const props = defineProps({
     type: Object,
     default: null
   },
-  // Array of member user objects  
+  // Array of member user objects
   memberUsers: {
     type: Array,
     default: () => []
@@ -145,33 +149,46 @@ const totalMemberCount = computed(() => {
 // Dynamic classes based on variant
 const groupClasses = computed(() => {
   const classes = []
-  
+
   if (props.variant === 'hover-expand') {
-    classes.push('-space-x-4', 'hover:-space-x-0', 'transition', 'hover:-translate-x-1', 'ease-in-out', 'duration-300')
+    classes.push(
+      '-space-x-4',
+      'hover:-space-x-0',
+      'transition',
+      'hover:-translate-x-1',
+      'ease-in-out',
+      'duration-300'
+    )
   }
-  
+
   return classes.join(' ')
 })
 
 const memberClasses = computed(() => {
   const classes = []
-  
+
   if (props.variant === 'hover-expand') {
-    classes.push('hover:cursor-pointer', 'transition', 'ease-in-out', 'hover:scale-125', 'duration-300')
+    classes.push(
+      'hover:cursor-pointer',
+      'transition',
+      'ease-in-out',
+      'hover:scale-125',
+      'duration-300'
+    )
   }
-  
+
   // Size classes
   if (props.size === 'small') {
     classes.push('h-8', 'w-8')
   } else if (props.size === 'large') {
     classes.push('h-12', 'w-12')
   }
-  
+
   // Add drag cursor if can remove members
   if (canRemoveMembers.value) {
     classes.push('cursor-grab', 'active:cursor-grabbing')
   }
-  
+
   return classes.join(' ')
 })
 
@@ -181,14 +198,14 @@ const handleDragStart = (member, event) => {
     event.preventDefault()
     return
   }
-  
+
   draggedMember.value = member
   isDraggingMember.value = true
-  
+
   // Set drag data
   event.dataTransfer.setData('text/plain', member._id)
   event.dataTransfer.effectAllowed = 'move'
-  
+
   // Add some visual feedback
   event.target.classList.add('opacity-50')
 }
@@ -196,18 +213,18 @@ const handleDragStart = (member, event) => {
 const handleDragEnd = (event) => {
   isDraggingMember.value = false
   draggedMember.value = null
-  
+
   // Remove visual feedback
   event.target.classList.remove('opacity-50')
 }
 
 const handleDrop = (event) => {
   event.preventDefault()
-  
+
   if (draggedMember.value) {
     // Emit event to parent component to handle removal
     emit('remove-member', draggedMember.value)
-    
+
     // Reset drag state
     isDraggingMember.value = false
     draggedMember.value = null
@@ -226,12 +243,12 @@ const handleDrop = (event) => {
 }
 
 /* Drag & Drop visual feedback */
-.avatar[draggable="true"]:hover {
+.avatar[draggable='true']:hover {
   transform: scale(1.05);
   transition: transform 0.2s ease;
 }
 
-.avatar[draggable="true"]:active {
+.avatar[draggable='true']:active {
   transform: scale(0.95);
 }
 

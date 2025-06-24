@@ -463,6 +463,7 @@ app.get('/todo/calendar/:userId', async (req, res) => {
       id: `todo_${todo._id}`,
       _id: todo._id,
       title: todo.text,
+      description: todo.description,
       type: todo.type === 'todo',
       start: todo.startDate || todo.date,
       end: todo.endDate || todo.date,

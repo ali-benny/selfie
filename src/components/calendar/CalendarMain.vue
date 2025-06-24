@@ -253,18 +253,13 @@ const formatCurrentPeriod = () => {
 }
 
 const openEventModal = (eventOrData) => {
-  console.log('openEventModal called with:', eventOrData)
-  console.log('Event type:', eventOrData?.type)
-  console.log('Event title:', eventOrData?.title)
   // Se è un todo, apri il modal specifico per todo
   if (eventOrData && (eventOrData.type === 'todo' || eventOrData.type === 'simple')) {
-    console.log('Opening TodoModal for:', eventOrData)
     selectedTodo.value = eventOrData
     showTodoModal.value = true
     return
   }
 
-  console.log('Opening EventModal for:', eventOrData)
   if (eventOrData && eventOrData._id) {
     // Modifica evento esistente
     selectedEvent.value = eventOrData

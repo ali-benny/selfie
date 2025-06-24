@@ -284,14 +284,10 @@ const loadTodoData = (todo) => {
   if (!todo) return
 
   // Pulisci il titolo dall'icona se presente
-  let cleanTitle = todo.title
-  if (cleanTitle.startsWith('📋 ') || cleanTitle.startsWith('⏰ ')) {
-    cleanTitle = cleanTitle.substring(2).trim()
-  }
 
   todoData.value = {
     _id: todo._id,
-    title: cleanTitle,
+    title: todo.title,
     description: todo.description || '',
     dueDate: todo.dueDate ? new Date(todo.dueDate).toISOString().slice(0, 16) : '',
     priority: todo.priority || 'medium',

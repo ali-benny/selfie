@@ -1,7 +1,7 @@
 <template>
   <div class="fixed bottom-4 left-4 z-50">
     <!-- Single Transition Container -->
-    <Transition 
+    <Transition
       name="time-machine"
       mode="out-in"
       enter-active-class="transition-all duration-300 ease-out"
@@ -12,7 +12,7 @@
       leave-to-class="scale-95 opacity-0"
     >
       <!-- Collapsed Toggle Button -->
-      <div 
+      <div
         v-if="isCollapsed"
         key="collapsed"
         class="!bg-primary border border-base-300 rounded-lg shadow-lg p-2 cursor-pointer hover:shadow-xl hover:scale-110 transition-transform duration-200 w-auto inline-block"
@@ -23,7 +23,7 @@
       </div>
 
       <!-- Floating Time Machine Widget -->
-      <div 
+      <div
         v-else
         key="expanded"
         class="bg-base-100 border border-base-300 rounded-lg shadow-lg p-3 min-w-64"
@@ -34,8 +34,8 @@
             <Icon icon="mingcute:time-fill" class="!text-primary text-lg" />
             <span class="text-sm font-semibold">Time Machine</span>
           </div>
-          <button 
-            @click="toggleCollapsed" 
+          <button
+            @click="toggleCollapsed"
             class="btn btn-ghost btn-xs text-subtext-0 hover:text-error"
             title="Nascondi Time Machine"
           >
@@ -61,8 +61,8 @@
           <!-- Virtual Mode Toggle -->
           <div class="flex items-center justify-between">
             <span class="text-sm">Modalità Virtuale</span>
-            <input 
-              type="checkbox" 
+            <input
+              type="checkbox"
               class="toggle toggle-primary toggle-sm"
               v-model="timeMachine.isVirtualModeEnabled"
               @change="onVirtualModeToggle"
@@ -70,7 +70,7 @@
           </div>
 
           <!-- Date Selection (always visible when virtual mode is enabled) -->
-          <Transition 
+          <Transition
             name="virtual-controls"
             enter-active-class="transition-all duration-300 ease-out"
             leave-active-class="transition-all duration-200 ease-in"
@@ -80,12 +80,11 @@
             leave-to-class="opacity-0 transform -translate-y-2"
           >
             <div v-if="timeMachine.isVirtualModeEnabled" class="space-y-3">
-              
               <!-- Date Picker - PRIMARY FEATURE -->
               <div class="space-y-2">
                 <label class="text-sm font-medium !text-primary">📅 Imposta Data:</label>
-                <input 
-                  type="date" 
+                <input
+                  type="date"
                   class="input input-bordered input-sm w-full"
                   :value="currentDateString"
                   @change="onDateChange"
@@ -133,12 +132,16 @@ export default {
     const currentDateString = ref('')
 
     // Update currentDateString when virtual time changes
-    watch(() => timeMachine.virtualTime, (newTime) => {
-      const year = newTime.getFullYear()
-      const month = String(newTime.getMonth() + 1).padStart(2, '0')
-      const day = String(newTime.getDate()).padStart(2, '0')
-      currentDateString.value = `${year}-${month}-${day}`
-    }, { immediate: true })
+    watch(
+      () => timeMachine.virtualTime,
+      (newTime) => {
+        const year = newTime.getFullYear()
+        const month = String(newTime.getMonth() + 1).padStart(2, '0')
+        const day = String(newTime.getDate()).padStart(2, '0')
+        currentDateString.value = `${year}-${month}-${day}`
+      },
+      { immediate: true }
+    )
 
     // Computed properties for display
     const daysDifferenceClass = computed(() => {

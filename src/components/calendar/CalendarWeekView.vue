@@ -93,9 +93,12 @@
                   { 'ring-2 ring-secondary ring-offset-1': selectedEventId === event._id }
                 ]"
                 :style="getCollisionAwareStyle(event, day, hour, index)"
-                @click.stop="selectEvent(event)"              >
+                @click.stop="selectEvent(event)"
+              >
                 <div class="font-medium truncate flex items-center gap-1">
-                  <span v-if="event.type !== 'todo'">{{ calendarStore.getCategoryByValue(event.category || 'other').icon }}</span>
+                  <span v-if="event.type !== 'todo'">{{
+                    calendarStore.getCategoryByValue(event.category || 'other').icon
+                  }}</span>
                   <span v-else>⏰</span>
                   <span class="truncate">{{ event.title }}</span>
                 </div>
@@ -122,9 +125,12 @@
               :class="[
                 'text-xs px-2 py-1 rounded cursor-pointer transition-all duration-200 hover:shadow-sm',
                 getEventClasses(event)
-              ]"              @click="selectEvent(event)"
+              ]"
+              @click="selectEvent(event)"
             >
-              <span v-if="event.type !== 'todo'">{{ calendarStore.getCategoryByValue(event.category || 'other').icon }}</span>
+              <span v-if="event.type !== 'todo'">{{
+                calendarStore.getCategoryByValue(event.category || 'other').icon
+              }}</span>
               <span v-else>⏰</span>
               <span class="truncate ml-1">{{ event.title }}</span>
             </div>
@@ -161,27 +167,24 @@ export default {
     // Giorni della settimana
     const weekDays = computed(() => {
       return calendarStore.currentWeekDays
-    })    // Eventi della settimana
+    }) // Eventi della settimana
     const weekEvents = computed(() => {
-      const events = calendarStore.visibleEvents.filter(event => {
+      const events = calendarStore.visibleEvents.filter((event) => {
         // Gli eventi da getCalendarItems hanno start, i todos hanno dueDate
         const eventDate = new Date(event.start || event.dueDate)
         const eventDateString = eventDate.toDateString()
-        
-        const isInWeek = weekDays.value.some(day => 
-          eventDateString === day.toDateString()
-        )
-        
+
+        const isInWeek = weekDays.value.some((day) => eventDateString === day.toDateString())
+
         return isInWeek
       })
-      
+
       return events
     })
 
     // Eventi con orario specifico
     const timedEvents = computed(() => {
-      
-      const result = weekEvents.value.filter(event => {
+      const result = weekEvents.value.filter((event) => {
         // REGOLA PRINCIPALE: Se allDay è esplicitamente true, l'evento è tutto il giorno
         if (event.allDay === true) {
           return false // Non è un evento con orario specifico
@@ -194,7 +197,7 @@ export default {
         if (event.startTime) {
           return true
         }
-          // 2. Controllo basato su start (data ISO)
+        // 2. Controllo basato su start (data ISO)
         if (event.start) {
           const date = new Date(event.start)
           const hours = date.getHours()
@@ -210,7 +213,7 @@ export default {
         // Lo trattiamo come timed event per rispettare la volontà dell'utente
         return event.allDay === false
       })
-        
+
       return result
     })
 
@@ -229,19 +232,19 @@ export default {
         if (event.allDay === false) {
           return false
         }
-          // 3. Se allDay non è specificato, controlliamo startTime e start
-        
+        // 3. Se allDay non è specificato, controlliamo startTime e start
+
         // Se ha startTime, NON è un evento tutto il giorno
         if (event.startTime) {
           return false
         }
-        
+
         // Se start ha un'ora specifica, NON è un evento tutto il giorno
         if (event.start) {
-          const date = new Date(event.start);
-          const hours = date.getHours();
-          const minutes = date.getMinutes();
-          
+          const date = new Date(event.start)
+          const hours = date.getHours()
+          const minutes = date.getMinutes()
+
           if (hours !== 0 || minutes !== 0) {
             return false
           }
@@ -323,15 +326,15 @@ export default {
 
     const isSelected = (date) => {
       return selectedDay.value?.toDateString() === date.toDateString()
-    }    // Conteggi eventi
+    } // Conteggi eventi
     const getDayEventsCount = (day) => {
-      return weekEvents.value.filter(event => {
+      return weekEvents.value.filter((event) => {
         const eventDate = new Date(event.start || event.dueDate)
         return eventDate.toDateString() === day.toDateString()
       }).length
-    }    // Eventi per giorno e ora (include eventi multi-ora)
+    } // Eventi per giorno e ora (include eventi multi-ora)
     const getEventsForDayHour = (day, hour) => {
-      return timedEvents.value.filter(event => {
+      return timedEvents.value.filter((event) => {
         const eventDate = new Date(event.start || event.dueDate)
         if (eventDate.toDateString() !== day.toDateString()) {
           return false
@@ -353,9 +356,10 @@ export default {
             endHour = startHour + durationHours
           } else {
             endHour = startHour + 1 // Default 1 ora
-          }        } else if (event.start) {
+          }
+        } else if (event.start) {
           startHour = new Date(event.start).getHours()
-          
+
           if (event.duration) {
             const durationHours = Math.ceil(event.duration / 60)
             endHour = startHour + durationHours
@@ -394,25 +398,25 @@ export default {
         const duration = event.duration / 60
         return Math.max(1, duration)
       }
-        // 3. Controlla se l'evento ha start e end (date ISO)
+      // 3. Controlla se l'evento ha start e end (date ISO)
       if (event.start && event.end) {
         const startDate = new Date(event.start)
         const endDate = new Date(event.end)
         const durationMs = endDate.getTime() - startDate.getTime()
         const durationHours = durationMs / (1000 * 60 * 60)
-        
+
         // Se la durata è negativa o troppo lunga, usa default di 1 ora
         if (durationHours <= 0 || durationHours > 24) {
           return 1
         }
-        
+
         return Math.max(1, durationHours)
       }
-     
+
       return 1 // Default 1 ora
-    }    // Eventi tutto il giorno per giorno
+    } // Eventi tutto il giorno per giorno
     const getAllDayEventsForDay = (day) => {
-      return allDayEvents.value.filter(event => {
+      return allDayEvents.value.filter((event) => {
         const eventDate = new Date(event.start || event.dueDate)
         return eventDate.toDateString() === day.toDateString()
       })
@@ -426,14 +430,14 @@ export default {
         minHeight: '20px',
         position: 'absolute'
       }
-    }    // Stile con gestione sovrapposizioni e durata multi-ora
+    } // Stile con gestione sovrapposizioni e durata multi-ora
     const getCollisionAwareStyle = (event, day, hour, index) => {
       const hourEvents = getEventsForDayHour(day, hour)
       const totalEvents = hourEvents.length
 
       // Calcola la durata dell'evento in or
       const durationHours = getEventDurationInHours(event)
-      
+
       // Base styles from standard event style
       const baseStyle = getEventStyle(event)
 
@@ -458,7 +462,7 @@ export default {
       // Calcola la larghezza di ciascun evento per eventi multipli
       const eventWidth = Math.floor(100 / totalEvents)
       const leftOffset = index * eventWidth
-      
+
       return {
         ...baseStyle,
         height: `${totalHeight}px`,
@@ -476,7 +480,7 @@ export default {
         return 'event-todo'
       }
       return 'event-calendar'
-    }    // Classi DaisyUI per eventi
+    } // Classi DaisyUI per eventi
     const getEventClasses = (event, variant = 'small') => {
       const baseClasses = []
 
@@ -489,7 +493,7 @@ export default {
       } else {
         // Get category color scheme
         const category = calendarStore.getCategoryByValue(event.category || 'other')
-        
+
         if (variant === 'full') {
           baseClasses.push(`border-l-4 border-l-primary ${category.colors.accent}`)
         } else {
@@ -520,7 +524,7 @@ export default {
     const selectDay = (day) => {
       selectedDay.value = day
       emit('day-selected', day)
-    }    // Sincronizzazione scroll
+    } // Sincronizzazione scroll
     const syncScroll = () => {
       if (timeColumn.value && eventsColumn.value) {
         timeColumn.value.scrollTop = eventsColumn.value.scrollTop

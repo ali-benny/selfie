@@ -10,7 +10,8 @@
           <div class="flex items-center gap-4 mt-1">
             <span class="text-sm text-subtext-0">{{ formatDayDate(currentDay) }}</span>
             <span class="text-sm text-subtext-1">{{ dayEvents.length }} eventi</span>
-          </div></div>
+          </div>
+        </div>
         <div class="flex gap-2">
           <button @click="createTodoForDay()" class="btn btn-sm btn-accent">
             <Icon icon="fluent:task-list-add-24-filled" />
@@ -72,11 +73,14 @@
               ]"
               :style="getCollisionAwareStyle(event, hour, index)"
               @click.stop="selectEvent(event)"
-            >              <div class="text-xs opacity-75">
+            >
+              <div class="text-xs opacity-75">
                 {{ formatEventTime(event) }}
-              </div>              
+              </div>
               <div class="font-medium truncate flex items-center gap-1">
-                <span v-if="event.type !== 'todo'">{{ calendarStore.getCategoryByValue(event.category || 'other').icon }}</span>
+                <span v-if="event.type !== 'todo'">{{
+                  calendarStore.getCategoryByValue(event.category || 'other').icon
+                }}</span>
                 <span v-else>⏰</span>
                 <span class="truncate">{{ event.title }}</span>
               </div>
@@ -87,7 +91,7 @@
               <div v-if="event.type === 'todo'" class="text-xs opacity-75 flex items-center gap-2">
                 <Icon icon="fluent:task-list-square-24-filled" class="w-3 h-3" />
                 <span>Todo</span>
-                <button 
+                <button
                   @click.stop="startPomodoroFromTodo(event)"
                   class="btn btn-xs btn-ghost text-error hover:bg-error/20"
                   :title="'Avvia Pomodoro'"
@@ -113,15 +117,19 @@
             getEventClasses(event, 'full')
           ]"
           @click="selectEvent(event)"
-        >          <div class="card-body p-3">            <div class="flex justify-between items-start">
+        >
+          <div class="card-body p-3">
+            <div class="flex justify-between items-start">
               <div class="flex items-center gap-2">
-                <span v-if="event.type !== 'todo'">{{ calendarStore.getCategoryByValue(event.category || 'other').icon }}</span>
+                <span v-if="event.type !== 'todo'">{{
+                  calendarStore.getCategoryByValue(event.category || 'other').icon
+                }}</span>
                 <span v-else>⏰</span>
                 <h4 class="card-title text-sm">{{ event.title }}</h4>
               </div>
               <div class="flex items-center gap-2">
                 <span v-if="event.type === 'todo'" class="badge badge-warning badge-xs">Todo</span>
-                <button 
+                <button
                   v-if="event.type === 'todo'"
                   @click.stop="startPomodoroFromTodo(event)"
                   class="btn btn-xs btn-ghost text-error hover:bg-error/20"
@@ -165,11 +173,11 @@ export default {
     const eventsColumn = ref(null)
 
     // Ore della giornata (6-23)
-    const hours = Array.from({ length: 18 }, (_, i) => i + 6)    // Eventi del giorno corrente
+    const hours = Array.from({ length: 18 }, (_, i) => i + 6) // Eventi del giorno corrente
     const currentDay = computed(() => calendarStore.currentDate)
-      
+
     const dayEvents = computed(() => {
-      const events = calendarStore.visibleEvents.filter(event => {
+      const events = calendarStore.visibleEvents.filter((event) => {
         // Use standardized property names: start for events, dueDate for todos
         const eventDate = new Date(event.start || event.dueDate)
         const dayString = currentDay.value.toDateString()
@@ -184,7 +192,6 @@ export default {
     // Eventi con orario specifico
     const timedEvents = computed(() => {
       const events = dayEvents.value.filter((event) => {
-
         // REGOLA PRINCIPALE: Se allDay è esplicitamente true, l'evento è tutto il giorno
         if (event.allDay === true) {
           return false // Non è un evento con orario specifico
@@ -197,7 +204,7 @@ export default {
         if (event.startTime) {
           return true
         }
-          // 2. Controllo basato su start (standardized property)
+        // 2. Controllo basato su start (standardized property)
         if (event.start) {
           const date = new Date(event.start)
           const hours = date.getHours()
@@ -205,7 +212,7 @@ export default {
 
           // Se l'ora non è 00:00, consideriamo che abbia un orario specifico
           if (hours !== 0 || minutes !== 0) {
-            return true;
+            return true
           }
         }
 
@@ -236,12 +243,12 @@ export default {
         if (event.startTime) {
           return false
         }
-          // Se startDate ha un'ora specifica, NON è un evento tutto il giorno
+        // Se startDate ha un'ora specifica, NON è un evento tutto il giorno
         if (event.start) {
-          const date = new Date(event.start);
-          const hours = date.getHours();
-          const minutes = date.getMinutes();
-          
+          const date = new Date(event.start)
+          const hours = date.getHours()
+          const minutes = date.getMinutes()
+
           if (hours !== 0 || minutes !== 0) {
             return false
           }
@@ -304,7 +311,8 @@ export default {
 
         // Prova diversi modi per ottenere l'ora dell'evento
         if (event.type === 'todo' && event.dueDate) {
-          startHour = new Date(event.dueDate).getHours()        } else if (event.startTime) {
+          startHour = new Date(event.dueDate).getHours()
+        } else if (event.startTime) {
           // Se ha startTime come stringa "HH:MM"
           startHour = parseInt(event.startTime.split(':')[0])
         } else if (event.start) {
@@ -349,7 +357,7 @@ export default {
         const duration = Math.max(1, event.duration / 60)
         return duration
       }
-        // 4. Calcolo basato su start/end (standardized properties)
+      // 4. Calcolo basato su start/end (standardized properties)
       if (event.start && event.end) {
         try {
           const startDate = new Date(event.start)
@@ -386,7 +394,7 @@ export default {
         return 'event-todo'
       }
       return 'event-calendar'
-    }    
+    }
     // Classi DaisyUI per eventi
     const getEventClasses = (event, variant = 'small') => {
       const baseClasses = []
@@ -400,7 +408,7 @@ export default {
       } else {
         // Get category color scheme
         const category = calendarStore.getCategoryByValue(event.category || 'other')
-        
+
         if (variant === 'full') {
           baseClasses.push(`border-l-4 border-l-primary ${category.colors.accent}`)
         } else {
@@ -452,7 +460,7 @@ export default {
       }
 
       return style
-    }    // Azioni
+    } // Azioni
     const createEventAtTime = (time) => {
       // Assicurati che la data sia quella corretta
       const eventDate = new Date(currentDay.value)
@@ -460,7 +468,8 @@ export default {
       emit('create-event', {
         date: eventDate,
         startTime: time
-      })    }
+      })
+    }
 
     const createTodoForDay = () => {
       const todoDate = new Date(currentDay.value)
@@ -471,12 +480,12 @@ export default {
       selectedEventId.value = event._id || event.id
       emit('select-event', event)
     }
-    
+
     const startPomodoroFromTodo = async (todo) => {
       try {
         await calendarStore.startPomodoroFromTodo(todo)
       } catch (error) {
-        console.error('Errore nell\'avvio del pomodoro:', error)
+        console.error("Errore nell'avvio del pomodoro:", error)
         // TODO: Mostra toast di errore
       }
     }
@@ -485,7 +494,8 @@ export default {
     const syncScroll = () => {
       if (timeColumn.value && eventsColumn.value) {
         timeColumn.value.scrollTop = eventsColumn.value.scrollTop
-      }    }
+      }
+    }
 
     return {
       // Store
@@ -505,8 +515,9 @@ export default {
       formatEventTime,
       getEventsForHour,
       getEventDurationInHours,
-      getEventStyle,      getEventTypeClass,
-      getEventClasses,      
+      getEventStyle,
+      getEventTypeClass,
+      getEventClasses,
       getCollisionAwareStyle,
       createEventAtTime,
       createTodoForDay,
