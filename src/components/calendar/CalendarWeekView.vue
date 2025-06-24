@@ -1,24 +1,5 @@
 <template>
   <div class="h-full flex flex-col bg-base-100">
-    <!-- Header settimana -->
-    <div class="bg-base-200 rounded-lg p-4 mb-4">
-      <div class="flex justify-between items-center">
-        <div class="flex flex-col">
-          <h2 class="text-xl font-bold text-base-content">
-            {{ formatWeekTitle() }}
-          </h2>
-          <span class="text-sm text-subtext-0">{{ formatWeekRange() }}</span>
-        </div>
-        <div class="flex items-center gap-4">
-          <span class="text-sm text-subtext-1">{{ weekEvents.length }} eventi</span>
-          <button @click="createEvent()" class="btn btn-sm btn-primary">
-            <Icon icon="fluent:add-24-filled" />
-            Nuovo evento
-          </button>
-        </div>
-      </div>
-    </div>
-
     <!-- Griglia settimana -->
     <div class="flex-1 flex min-h-0">
       <!-- Colonna degli orari -->

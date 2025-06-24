@@ -1,30 +1,5 @@
 <template>
   <div class="h-full flex flex-col bg-base-100">
-    <!-- Header della giornata -->
-    <div class="bg-base-200 rounded-lg p-4 mb-4">
-      <div class="flex justify-between items-center">
-        <div class="flex flex-col">
-          <h2 class="text-xl font-bold text-base-content">
-            {{ formatDayTitle(currentDay) }}
-          </h2>
-          <div class="flex items-center gap-4 mt-1">
-            <span class="text-sm text-subtext-0">{{ formatDayDate(currentDay) }}</span>
-            <span class="text-sm text-subtext-1">{{ dayEvents.length }} eventi</span>
-          </div>
-        </div>
-        <div class="flex gap-2">
-          <button @click="createTodoForDay()" class="btn btn-sm btn-accent">
-            <Icon icon="fluent:task-list-add-24-filled" />
-            Nuovo Todo
-          </button>
-          <button @click="createEventAtTime('09:00')" class="btn btn-sm btn-primary">
-            <Icon icon="fluent:add-24-filled" />
-            Nuovo evento
-          </button>
-        </div>
-      </div>
-    </div>
-
     <!-- Griglia oraria -->
     <div class="flex-1 flex min-h-0">
       <!-- Colonna degli orari -->
@@ -172,7 +147,7 @@ export default {
     const timeColumn = ref(null)
     const eventsColumn = ref(null)
 
-    // Ore della giornata (6-23)
+    // Or della giornata (6-23)
     const hours = Array.from({ length: 18 }, (_, i) => i + 6) // Eventi del giorno corrente
     const currentDay = computed(() => calendarStore.currentDate)
 

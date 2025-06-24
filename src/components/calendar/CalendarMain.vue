@@ -66,29 +66,6 @@
         </div>
         <!-- Filtri -->
         <div class="flex items-center gap-4">
-          <!-- Filtri tipo -->
-          <div class="flex items-center gap-2">
-            <label class="label cursor-pointer gap-2">
-              <input
-                type="checkbox"
-                v-model="showEvents"
-                class="checkbox checkbox-sm checkbox-primary"
-              />
-              <span class="label-text">Eventi</span>
-            </label>
-            <label class="label cursor-pointer gap-2">
-              <input
-                type="checkbox"
-                v-model="showTodos"
-                class="checkbox checkbox-sm checkbox-error"
-              />
-              <span class="label-text">Todo</span>
-            </label>
-          </div>
-
-          <!-- Separatore -->
-          <div class="divider divider-horizontal m-0"></div>
-
           <!-- Filtri categoria -->
           <div class="dropdown dropdown-end">
             <div tabindex="0" role="button" class="btn btn-sm btn-ghost">
