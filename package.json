@@ -84,7 +84,7 @@
     "autoprefixer": "^10.4.20",
     "cross-env": "^7.0.3",
     "daisyui": "^4.12.24",
-    "editorjs-html": "^3.4.3",
+    "editorjs-html": "^4.0.5",
     "eslint": "^9.24.0",
     "eslint-plugin-vue": "^10.2.0",
     "express-fileforge": "^1.8.3",
