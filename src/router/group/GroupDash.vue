@@ -1,9 +1,12 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
+import { Icon } from '@iconify/vue'
 import { API_URL } from '@/const.js'
 import { useUserStore } from '@/stores/account'
 import GroupList from '@/components/group/GroupList.vue'
+import NoteView from '@/components/note/NoteView.vue'
 import UserShare from '@/components/UserShare.vue'
+import AvatarMembers from '@/components/AvatarMembers.vue'
 import { getUsersByIds } from '../user/user'
 import { updateGroup, getGroupById } from './group'
 
@@ -70,8 +73,6 @@ async function handleSelectGroup(group) {
     const members = Array.isArray(freshGroup.members) ? freshGroup.members : []
     const allUserIds = [freshGroup.owner, ...members].filter(Boolean) // Filter out null/undefined values
 
-    console.log('Getting users for IDs:', allUserIds)
-
     // Get user data for members and owner
     const usersData = await getUsersByIds(allUserIds)
 
@@ -93,8 +94,6 @@ async function handleSelectGroup(group) {
         users.value = usersData
       }
     }
-
-    console.log('🔥 - handleSelectGroup - users.value:', users.value)
   } catch (error) {
     console.error('Error selecting group:', error)
     push.error(`Could not load group details: ${error.message}`)
@@ -104,7 +103,6 @@ async function handleSelectGroup(group) {
 async function saveGroup() {
   if (!editedGroup.value) return
 
-  console.log('🔥 - saveGroup - group:', editedGroup.value)
   try {
     const updatedGroup = await updateGroup(editedGroup.value)
     // Only update the selectedGroup after successful save
@@ -182,8 +180,46 @@ async function createGroup() {
   }
 }
 
+// Remove member function for drag&drop
+async function removeMember(user) {
+  if (!user || !user._id || !selectedGroup.value) return
+
+  try {
+    // Remove from local state immediately for better UX
+    const memberIndex = selectedGroup.value.members.indexOf(user._id)
+    if (memberIndex > -1) {
+      selectedGroup.value.members.splice(memberIndex, 1)
+      realGroupMembers.value = selectedGroup.value.members
+    }
+
+    // Update backend immediately
+    const updatedGroup = await updateGroup({
+      _id: selectedGroup.value._id,
+      members: selectedGroup.value.members
+    })
+
+    // Update the selected group with the response
+    selectedGroup.value = updatedGroup
+
+    // Remove from local users cache
+    if (users.value[user._id]) {
+      delete users.value[user._id]
+    }
+
+    push.success(`Removed ${user.name} ${user.surname} from group`)
+    console.log(`Removed ${user.name} ${user.surname} from group members`)
+  } catch (error) {
+    console.error('Error removing member:', error)
+    // Revert the change if there was an error
+    if (!selectedGroup.value.members.includes(user._id)) {
+      selectedGroup.value.members.push(user._id)
+      realGroupMembers.value = selectedGroup.value.members
+    }
+    push.error('Failed to remove member')
+  }
+}
+
 async function deleteGroup(group) {
-  console.log('🔥 - deleteGroup - group:', group)
   try {
     const response = await fetch(API_URL + '/group/' + group._id, {
       method: 'DELETE',
@@ -207,15 +243,15 @@ async function deleteGroup(group) {
 </script>
 
 <template>
-  <div class="flex flex-row w-full mt-3 prose">
+  <div class="flex flex-row w-full mt-3">
     <div class="flex flex-col w-full">
-      <div class="flex items-baseline justify-between">
+      <div class="flex items-baseline justify-between prose">
         <h2>My Groups</h2>
         <Popper arrow>
           <button class="btn btn-sm btn-secondary !btn-outline rounded-full">
             <Icon icon="mingcute:add-fill" />New Group
           </button>
-          <template>
+          <template #content>
             <form
               id="create-group-form"
               @submit.prevent="createGroup"
@@ -255,10 +291,10 @@ async function deleteGroup(group) {
     <Transition name="slide-fade" :duration="550">
       <div
         v-if="selectedGroup != null"
-        class="flex flex-col w-full bg-surface-0 rounded-box p-5 h-min pt-0 my-[10%]"
+        class="flex flex-col w-full bg-surface-0/50 rounded-box p-5 h-min pt-0 my-[10%] gap-3"
         id="dynamic-view"
       >
-        <div class="flex items-baseline justify-between">
+        <div class="flex items-baseline justify-between prose mt-4 mb-0">
           <h2>{{ selectedGroup.name }}</h2>
           <div>
             <button
@@ -310,40 +346,29 @@ async function deleteGroup(group) {
             {{ editedGroup.description }}
           </p>
         </label>
-        <!-- Actual members -->
+        <!-- Group Members Display -->
         <div class="flex flex-row items-center justify-start m-2">
-          <div class="flex flex-row items-center w-max mt-1">
-            <!-- owner avatar -->
-            <div class="avatar w-10 mr-2">
-              <div class="w-10 ring-primary ring-offset-base-100 rounded-full ring ring-offset-2">
-                <img
-                  class="mt-0"
-                  :src="users[selectedGroup.owner]?.image"
-                  :title="
-                    users[selectedGroup.owner]?.name + ' ' + users[selectedGroup.owner]?.surname
-                  "
-                />
-              </div>
-            </div>
-            <!-- member avatar -->
-            <div class="avatar-group w-max">
-              <div v-for="reader in selectedGroup.members" :key="reader" class="avatar h-10">
-                <img
-                  class="mask mask-circle !bg-secondary mt-0"
-                  :src="users[reader]?.image"
-                  :title="users[reader]?.name + ' ' + users[reader]?.surname"
-                />
-              </div>
-            </div>
-          </div>
-          <!-- Only show UserShare for owner -->
-          <UserShare
-            v-if="selectedGroup.owner === userStore.loggedUser._id"
-            :id="selectedGroup._id"
-            type="Group"
-            msg="Invites"
-            v-model="realGroupMembers"
-          ></UserShare>
+          <AvatarMembers
+            :owner-user="users[selectedGroup.owner]"
+            :member-users="selectedGroup.members.map((id) => users[id]).filter(Boolean)"
+            variant="default"
+            :show-online-status="true"
+            :show-count="true"
+            :display-limit="8"
+            size="medium"
+            @remove-member="removeMember"
+          >
+            <template #share-button>
+              <!-- Only show UserShare for owner -->
+              <UserShare
+                v-if="selectedGroup.owner === userStore.loggedUser._id"
+                :id="selectedGroup._id"
+                type="Group"
+                msg="Invites"
+                v-model="realGroupMembers"
+              />
+            </template>
+          </AvatarMembers>
         </div>
       </div>
     </Transition>

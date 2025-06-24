@@ -8,6 +8,7 @@ import PomodoroDashboard from './pomodoro/PomodoroDashboard.vue'
 import NotificationsDebug from '@/views/NotificationsDebug.vue'
 import GroupDash from './group/GroupDash.vue'
 import Chat from '../components/ChatComponent.vue'
+import CalendarMain from '../components/calendar/CalendarMain.vue'
 import NotFound from '@/views/NotFound.vue'
 import { NODE_ENV } from '~/server/const'
 
@@ -47,6 +48,11 @@ const routes = [
     path: '/pomodoro',
     name: 'Pomodoro',
     component: PomodoroDashboard
+  },
+  {
+    path: '/calendar',
+    name: 'calendar',
+    component: CalendarMain
   },
   {
     path: '/login',

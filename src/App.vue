@@ -4,6 +4,7 @@ import AlertNotification from './components/notification/AlertNotification.vue'
 import ChatNotification from './components/notification/ChatNotification.vue'
 import PomodoroNotification from './components/notification/PomodoroNotification.vue'
 import PomodoroTimerWidget from './components/pomodoro/PomodoroTimerWidget.vue'
+import TimeMachine from './components/TimeMachine.vue'
 import { useUserStore } from './stores/account'
 import { usePomodoroStore } from './stores/pomodoro'
 import { Notivue, Notification, NotivueSwipe } from 'notivue'
@@ -48,6 +49,9 @@ function notificationComponent(item) {
       <RouterLink class="hover:!text-accent" to="/">
         <Icon icon="ic:round-dashboard" />
       </RouterLink>
+      <RouterLink class="hover:!text-accent" to="/calendar">
+        <Icon icon="fluent:calendar-24-filled" />
+      </RouterLink>
       <RouterLink class="hover:!text-accent" to="/note">
         <Icon icon="fluent:notebook-32-filled" />
       </RouterLink>
@@ -78,6 +82,7 @@ function notificationComponent(item) {
       </Notivue>
       <RouterView />
       <PomodoroTimerWidget v-if="pomodoroStore.showPomodoroWidget()" />
+      <TimeMachine />
     </div>
   </div>
 </template>
