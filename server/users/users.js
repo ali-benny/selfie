@@ -91,6 +91,7 @@ app.patch('/users/migrate-colors', async (req, res) => {
 })
 
 const Users = mongoose.model('user', UsersSchema)
+export { Users }
 
 app.on('mount', async () => {
   await connect('user')

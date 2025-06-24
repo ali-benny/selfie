@@ -26,7 +26,6 @@ export async function sendNotification(user, notification) {
             await webPush.sendNotification(subscription, JSON.stringify({ notification }))
           } catch (error) {
             console.error(`ERROR for ${subscription.endpoint}:`, error.message)
-            // TODO: decidere se eliminare la subscription
             await s.deleteOne()
           }
         })
