@@ -23,7 +23,12 @@
             <div class="flex items-center gap-3">
               <div :class="['avatar', user.logged ? 'online' : '']">
                 <div class="mask mask-squircle !bg-primary w-10">
-                  <img :src="user.image" alt="User Image" class="m-0" />
+                  <Icon
+                    v-if="user.group"
+                    icon="mingcute:group-3-fill"
+                    class="text-base-100 text-3xl m-1"
+                  ></Icon>
+                  <img v-else :src="user.image" alt="User Image" class="m-0" />
                 </div>
               </div>
               {{ user.name }} {{ user.surname ? user.surname : '' }}
@@ -54,7 +59,7 @@ import { useUserStore } from '@/stores/account.js'
 
 const loggedUser = useUserStore().loggedUser
 
-const users = ref() // all users
+const users = ref() // all users and groups to share with
 const sharewith = ref([]) // users to share with [users selected from the popper]
 const emit = defineEmits(['update:modelValue'])
 
@@ -76,8 +81,8 @@ onMounted(async () => {
   try {
     const response = await fetch(`${API_URL}/users`)
     const data = await response.json()
-    // Filter out users based on current group
     loadUserData(data)
+    if (props.type !== 'Group') loadUserGroups()
   } catch (error) {
     console.error('Error fetching users:', error)
   }
@@ -101,14 +106,33 @@ function loadUserData(allUsers) {
   sharewith.value = []
 }
 
+async function loadUserGroups() {
+  // get all groups of the logged user
+  const groups = await fetch(`${API_URL}/${loggedUser._id}/groups`)
+  const data = await groups.json()
+
+  // add groups as users to the list of users
+  data.forEach((group) => {
+    users.value.push({
+      _id: group._id,
+      name: group.name,
+      surname: '',
+      logged: false,
+      group: true // add group property to identify groups
+    })
+  })
+}
+
 function select(user) {
   if (sharewith.value.includes(user)) {
+    // deselecting
     sharewith.value = sharewith.value.filter((u) => u !== user)
     emit(
       'update:modelValue',
       props.modelValue.filter((id) => id !== user._id && id !== undefined && id !== null)
     )
   } else if (user._id !== undefined && user._id !== null) {
+    // selecting
     sharewith.value.push(user)
     emit('update:modelValue', [
       ...props.modelValue.filter((id) => id !== undefined && id !== null),
@@ -125,15 +149,53 @@ async function sendshare() {
 
   switch (props.type) {
     case 'Note': {
-      const readers = await getReadersIds(props.id)
-      emit('update:modelValue', [
+      // const readers = await getReadersIds(props.id)
+      const selectedGroups = sharewith.value.filter((user) => user.group)
+
+      let allGroupMembers = []
+      for (const group of selectedGroups) {
+        try {
+          // Fetch group details to get members
+          const response = await fetch(`${API_URL}/group/${group._id}`)
+          const groupData = await response.json()
+
+          // Add each member to our array (if they exist)
+          if (groupData && Array.isArray(groupData.members)) {
+            allGroupMembers = [...allGroupMembers, ...groupData.members]
+          }
+        } catch (error) {
+          console.error(`Error fetching members for group ${group.name}:`, error)
+        }
+      }
+
+      // Combine individual users and group members
+      const individualUsers = sharewith.value.filter((user) => !user.group).map((user) => user._id)
+
+      // Create final readers list (existing + new individual users + group members)
+      const allReaderIds = [
         ...props.modelValue.filter((id) => id !== undefined && id !== null),
-        ...readers.map((reader) => reader._id).filter((id) => id !== undefined && id !== null)
-      ])
+        ...individualUsers,
+        ...allGroupMembers
+      ]
+
+      // Remove duplicates
+      const uniqueReaderIds = [...new Set(allReaderIds)]
+
+      // Update the note with all readers
       await saveNoteMongo({
         id: props.id,
-        readers: props.modelValue.filter((id) => id !== undefined && id !== null)
+        readers: uniqueReaderIds
       })
+      // emit('update:modelValue', uniqueReaderIds)
+
+      // emit('update:modelValue', [
+      //   ...props.modelValue.filter((id) => id !== undefined && id !== null),
+      //   ...readers.map((reader) => reader._id).filter((id) => id !== undefined && id !== null)
+      // ])
+      // await saveNoteMongo({
+      //   id: props.id,
+      //   readers: props.modelValue.filter((id) => id !== undefined && id !== null)
+      // })
       break
     }
     case 'Pomodoro': {
