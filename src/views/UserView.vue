@@ -6,12 +6,16 @@ import UserDropdown from '../components/UserDropdown.vue'
 import { useUserStore } from '../stores/account'
 import { createAvatar } from '@dicebear/core'
 import { adventurer } from '@dicebear/collection'
+import { useRouter } from 'vue-router'
+import { usePomodoroStore } from '@/stores/pomodoro'
 
 const users = ref([])
 const newUser = ref({ name: '' })
 const userStore = useUserStore()
 const newImage = ref('')
 const editUser = ref(false)
+
+const router = useRouter()
 
 const fetchUsers = async () => {
   try {
@@ -50,6 +54,15 @@ const selectUser = async (userId) => {
       console.error('Failed to select user:', error)
     }
   }
+}
+
+const logout = () => {
+  userStore.setLoggedUser(null)
+
+  window.localStorage.clear()
+  window.sessionStorage.clear()
+
+  router.push('/login')
 }
 
 const generateNewImage = () => {
@@ -160,14 +173,14 @@ onMounted(fetchUsers)
       </div>
     </div>
     <div class="divider divider-primary md:divider-horizontal"></div>
-    <div class="flex flex-col grow m-5 prose">
-      <h1>Login with</h1>
-      <UserDropdown
-        :users="users"
-        :selectedUserId="userStore.loggedUser._id"
-        @update:selectedUserId="selectUser"
-      />
-      <div class="divider"></div>
+    <div class="flex flex-col justify-around grow m-5 prose">
+      <!-- <h1>Login with</h1> -->
+      <!-- <UserDropdown -->
+      <!--   :users="users" -->
+      <!--   :selectedUserId="userStore.loggedUser._id" -->
+      <!--   @update:selectedUserId="selectUser" -->
+      <!-- /> -->
+      <!-- <div class="divider"></div> -->
       <h2 class="mt-0">Change Profile Avatar</h2>
       <div class="flex flex-row justify-around items-center">
         <div class="flex flex-col gap-2">
@@ -186,32 +199,35 @@ onMounted(fetchUsers)
         />
       </div>
       <div class="divider"></div>
-      <form class="flex flex-col gap-3">
-        <h2>Register a new user</h2>
-        <div class="flex flex-row gap-2 w-full">
-          <input
-            required
-            type="text"
-            v-model="newUser.name"
-            placeholder="Name"
-            class="input input-primary input-md border !input-bordered mx-3 grow"
-          />
-          <input
-            required
-            type="text"
-            v-model="newUser.surname"
-            placeholder="Surname"
-            class="input input-primary input-md border !input-bordered mx-3 grow"
-          />
-        </div>
-        <input
-          type="date"
-          v-model="newUser.birthday"
-          placeholder="Birthday"
-          class="input input-primary input-md border !input-bordered mx-3"
-        />
-        <button @click="addUser" class="btn btn-primary btn-sm">Add User</button>
-      </form>
+      <div class="flex justify-end">
+        <button class="btn btn-error btn-outline" @click="logout">Logout</button>
+      </div>
+      <!-- <form class="flex flex-col gap-3"> -->
+      <!--   <h2>Register a new user</h2> -->
+      <!--   <div class="flex flex-row gap-2 w-full"> -->
+      <!--     <input -->
+      <!--       required -->
+      <!--       type="text" -->
+      <!--       v-model="newUser.name" -->
+      <!--       placeholder="Name" -->
+      <!--       class="input input-primary input-md border !input-bordered mx-3 grow" -->
+      <!--     /> -->
+      <!--     <input -->
+      <!--       required -->
+      <!--       type="text" -->
+      <!--       v-model="newUser.surname" -->
+      <!--       placeholder="Surname" -->
+      <!--       class="input input-primary input-md border !input-bordered mx-3 grow" -->
+      <!--     /> -->
+      <!--   </div> -->
+      <!--   <input -->
+      <!--     type="date" -->
+      <!--     v-model="newUser.birthday" -->
+      <!--     placeholder="Birthday" -->
+      <!--     class="input input-primary input-md border !input-bordered mx-3" -->
+      <!--   /> -->
+      <!--   <button @click="addUser" class="btn btn-primary btn-sm">Add User</button> -->
+      <!-- </form> -->
     </div>
   </div>
 </template>

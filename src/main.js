@@ -64,7 +64,7 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray
 }
 
-if ('serviceWorker' in navigator) {
+if ('serviceWorker' in navigator && useUserStore().loggedUser) {
   navigator.serviceWorker
     .register('/service-worker.js')
     .then(async (registration) => {

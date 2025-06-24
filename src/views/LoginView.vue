@@ -117,6 +117,7 @@ import { API_URL } from '@/const.js'
 import passwordMeter from 'vue-simple-password-meter'
 import bcrypt from 'bcryptjs'
 import { useUserStore } from '@/stores/account'
+import { useRouter } from 'vue-router'
 
 const focus = ref('')
 const status = ref('')
@@ -130,7 +131,12 @@ const birthday = ref('')
 const password1 = ref('')
 const password2 = ref('')
 
+const router = useRouter()
+
 onMounted(async () => {
+  if (useUserStore().loggedUser) {
+    router.push('/')
+  }
   const response = await getUsers()
   users.value = response.sort((a, b) => a.name.localeCompare(b.name))
 })
@@ -234,6 +240,7 @@ async function login() {
         logged: true
       })
       push.success('Login successful')
+      router.push('/')
     } else {
       push.error('Failed to log in!')
     }

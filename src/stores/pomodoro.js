@@ -54,7 +54,7 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
   const isWidgetOpen = useSessionStorage('pomodoro.isWidgetOpen', false)
 
   whenever(isConfigReady, () => {
-    if (pomodoro.value?.configId !== config.value._id) pomodoro.value = initNewPomodoro
+    if (pomodoro.value?.configId !== config.value._id) initNewPomodoro()
 
     if (pomodoro.value.started) {
       if (pomodoro.value.running) playPomodoroTimer()
@@ -166,6 +166,12 @@ export const usePomodoroStore = defineStore('pomodoro', () => {
   }
 
   function timerProgress() {
+    if (!useUserStore().loggedUser) {
+      config.value = initialConfig
+      initNewPomodoro()
+      return
+    }
+
     pomodoro.value.timer--
 
     if (pomodoro.value.timer == 30) {

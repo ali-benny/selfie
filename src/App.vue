@@ -45,6 +45,7 @@ function notificationComponent(item) {
   <div class="container min-h-screen mx-auto flex flex-col">
     <div
       class="navbar relative bg-base-300 justify-around rounded-b-xl text-2xl !text-primary z-20"
+      v-if="userStore.loggedUser"
     >
       <RouterLink class="hover:!text-accent" to="/">
         <Icon icon="ic:round-dashboard" />
@@ -75,14 +76,14 @@ function notificationComponent(item) {
       </RouterLink>
     </div>
     <div id="app" class="relative w-full grow px-2 mb-16 sm:!pb-0">
-      <Notivue v-slot="item">
+      <Notivue v-slot="item" v-if="userStore.loggedUser">
         <NotivueSwipe :item="item">
           <component :item="item" :is="notificationComponent(item)" class="w-[350px]"></component>
         </NotivueSwipe>
       </Notivue>
       <RouterView />
-      <PomodoroTimerWidget v-if="pomodoroStore.showPomodoroWidget()" />
-      <TimeMachine />
+      <PomodoroTimerWidget v-if="pomodoroStore.showPomodoroWidget() && userStore.loggedUser" />
+      <TimeMachine v-if="userStore.loggedUser" />
     </div>
   </div>
 </template>
