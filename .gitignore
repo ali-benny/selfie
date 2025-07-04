@@ -100,3 +100,4 @@ pnpm-lock.yaml
 /cypress/videos/
 /cypress/screenshots/
 *.tgz
+*.pdf
